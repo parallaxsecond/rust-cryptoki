@@ -1,0 +1,8 @@
+*target
+**/*.rs.bk
+*Cargo.lock
+*.swp
+*DS_Store
+*.patch
+*NVChip
+.vscode

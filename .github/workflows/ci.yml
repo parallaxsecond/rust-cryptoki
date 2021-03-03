@@ -1,0 +1,24 @@
+name: Continuous Integration
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Execute CI script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Execute CI script
+        run: ./ci.sh
+
+  links:
+    name: Check links
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Link Checker
+      uses: peter-evans/link-checker@v1
+      with:
+        args: -v -r *.md
+    - name: Fail if there were link errors
+      run: exit ${{ steps.lc.outputs.exit_code }}
