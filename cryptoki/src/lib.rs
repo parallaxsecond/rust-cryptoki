@@ -269,6 +269,7 @@ mod tests {
     use std::env;
     use std::sync::Arc;
     use std::thread;
+    use serial_test::serial;
 
     fn init_pins() -> (Pkcs11, Slot) {
         let pkcs11 = Pkcs11::new(
