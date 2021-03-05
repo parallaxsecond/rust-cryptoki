@@ -8,8 +8,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Execute CI script
-        run: ./ci.sh
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # - name: Execute CI script
+      #   run: ./ci.sh
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - name: Install SoftHSM
+        run: |
+          sudo apt-get update -y -qq &&
+          sudo apt-get install -y -qq libsofthsm2 &&
+          mkdir /tmp/tokens
+          echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
+
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+        env:
+          PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
+          SOFTHSM2_CONF: /tmp/softhsm2.conf
 
   links:
     name: Check links

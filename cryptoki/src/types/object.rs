@@ -424,6 +424,14 @@ pub struct ObjectClass {
 }
 
 impl ObjectClass {
+    /// Data objects
+    pub const DATA: ObjectClass = ObjectClass {
+        val: CKO_DATA,
+    };
+    /// Certificate objects
+    pub const CERTIFICATE: ObjectClass = ObjectClass {
+        val: CKO_CERTIFICATE,
+    };
     /// Public key object
     pub const PUBLIC_KEY: ObjectClass = ObjectClass {
         val: CKO_PUBLIC_KEY,
@@ -431,6 +439,10 @@ impl ObjectClass {
     /// Private key object
     pub const PRIVATE_KEY: ObjectClass = ObjectClass {
         val: CKO_PRIVATE_KEY,
+    };
+    /// Secret key object
+    pub const SECRET_KEY: ObjectClass = ObjectClass {
+        val: CKO_SECRET_KEY,
     };
 }
 
