@@ -6,7 +6,12 @@ fn main() {
 
     #[cfg(not(feature = "generate-bindings"))]
     {
-        let supported_platforms = vec![String::from("x86_64-unknown-linux-gnu")];
+        let supported_platforms = vec![
+            "x86_64-unknown-linux-gnu".to_string(),
+            "aarch64-unknown-linux-gnu".to_string(),
+            "armv7-unknown-linux-gnueabi".to_string(),
+            "arm-unknown-linux-gnueabi".to_string(),
+        ];
         let target = std::env::var("TARGET").unwrap();
 
         // check if target is in the list of supported ones or panic with nice message

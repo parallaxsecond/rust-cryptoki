@@ -15,7 +15,7 @@ impl Pkcs11 {
 
         unsafe {
             Rv::from(get_pkcs11!(self, C_OpenSession)(
-                slot_id.id(),
+                slot_id.into(),
                 flags.into(),
                 // TODO: abstract those types or create new functions for callbacks
                 std::ptr::null_mut(),

@@ -4,6 +4,7 @@ use crate::types::Flags;
 use std::ptr;
 
 /// Argument for the initialize function
+#[derive(Copy, Clone, Debug)]
 pub enum CInitializeArgs {
     /// The library can use the native OS library for locking
     OsThreads,
@@ -16,7 +17,7 @@ impl From<CInitializeArgs> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
         let mut flags = Flags::default();
         match c_initialize_args {
             CInitializeArgs::OsThreads => {
-                flags.set_os_locking_ok(true);
+                let _ = flags.set_os_locking_ok(true);
                 Self {
                     flags: flags.into(),
                     CreateMutex: None,

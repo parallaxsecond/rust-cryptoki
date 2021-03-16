@@ -85,7 +85,7 @@ impl Pkcs11 {
         let label = [b' '; 32];
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
-                slot.id(),
+                slot.into(),
                 pin.expose_secret().as_ptr() as *mut u8,
                 pin.expose_secret().len().try_into()?,
                 label.as_ptr() as *mut u8,
