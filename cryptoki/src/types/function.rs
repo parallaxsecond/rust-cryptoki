@@ -5,7 +5,7 @@ use cryptoki_sys::*;
 use log::error;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 /// Return value of a PKCS11 function
 pub enum Rv {
     /// The function exited successfully
@@ -125,7 +125,7 @@ impl From<CK_RV> for Rv {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 /// Description of a return value error
 pub enum RvError {
     /// When a function executing in serial with an application decides to give the application a chance to do some work, it calls an application-supplied function with a CKN_SURRENDER callback (see Section 5.16).  If the callback returns the value CKR_CANCEL, then the function aborts and returns CKR_FUNCTION_CANCELED.

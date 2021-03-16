@@ -14,6 +14,11 @@ Please check the [**Contribution
 Guidelines**](https://parallaxsecond.github.io/parsec-book/contributing/index.html) to know more
 about the contribution process.
 
+# History
+
+This repository is based on [this original PR on rust-pkcs11](https://github.com/mheese/rust-pkcs11/pull/43).
+Read the PR discussion for more information.
+
 # License
 
 The software is provided under Apache-2.0. Contributions to this project are accepted under the same license.

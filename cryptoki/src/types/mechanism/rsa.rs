@@ -118,7 +118,7 @@ impl TryFrom<CK_RSA_PKCS_OAEP_SOURCE_TYPE> for PkcsOaepSourceType {
 }
 
 /// Parameters of the RsaPkcsPss mechanism
-#[derive(Debug, Clone)]
+#[derive(Copy, Debug, Clone)]
 #[repr(C)]
 pub struct PkcsPssParams {
     /// hash algorithm used in the PSS encoding; if the signature mechanism does not include
@@ -140,7 +140,7 @@ impl From<PkcsPssParams> for Mechanism {
 }
 
 /// Parameters of the RsaPkcsOaep mechanism
-#[derive(Debug, Clone)]
+#[derive(Copy, Debug, Clone)]
 #[repr(C)]
 pub struct PkcsOaepParams {
     /// mechanism ID of the message digest algorithm used to calculate the digest of the encoding

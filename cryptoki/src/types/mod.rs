@@ -14,7 +14,7 @@ use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::ops::Deref;
 
-#[derive(Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 /// Collection of boolean flags
 pub struct Flags {
     flags: CK_FLAGS,
@@ -341,7 +341,7 @@ impl Flags {
     }
 }
 
-impl From<Flags> for cryptoki_sys::CK_FLAGS {
+impl From<Flags> for CK_FLAGS {
     fn from(flags: Flags) -> Self {
         flags.flags
     }

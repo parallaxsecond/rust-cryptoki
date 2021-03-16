@@ -14,6 +14,7 @@ documentation = "https://docs.rs/crate/cryptoki"
 [dependencies]
 libloading = "0.6.1"
 log = "0.4.11"
+derivative = "2.2.0"
 secrecy = "0.7.0"
 psa-crypto = { git = "https://github.com/parallaxsecond/rust-psa-crypto", rev = "18dd4dda96d8b61d2e112b9e6ad83e90fe768d78", default-features = false, optional = true }
 cryptoki-sys = { path = "../cryptoki-sys" }

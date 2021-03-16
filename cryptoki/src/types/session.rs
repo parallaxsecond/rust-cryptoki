@@ -11,6 +11,7 @@ use log::error;
 /// Session does not implement Sync to prevent the same Session instance to be used from multiple
 /// threads. A Session needs to be created in its own thread or to be passed by ownership to
 /// another thread.
+#[derive(Debug)]
 pub struct Session<'a> {
     handle: CK_SESSION_HANDLE,
     client: &'a Pkcs11,
@@ -61,6 +62,7 @@ impl Drop for Session<'_> {
 }
 
 /// Types of PKCS11 users
+#[derive(Copy, Clone, Debug)]
 pub enum UserType {
     /// Security Officer
     So,

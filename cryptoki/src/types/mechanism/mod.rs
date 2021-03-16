@@ -10,7 +10,7 @@ use std::ffi::c_void;
 use std::ops::Deref;
 use std::ptr::null_mut;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
 // transparent so that a vector of MechanismType should have the same layout than a vector of
 // CK_MECHANISM_TYPE.
 /// Type of a mechanism
@@ -85,7 +85,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Copy, Debug, Clone)]
 /// Type defining a specific mechanism and its parameters
 pub enum Mechanism {
     // RSA

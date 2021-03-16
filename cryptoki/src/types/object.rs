@@ -416,7 +416,7 @@ impl ObjectHandle {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 /// Identifier of the class of an object
 pub struct ObjectClass {
@@ -425,9 +425,7 @@ pub struct ObjectClass {
 
 impl ObjectClass {
     /// Data objects
-    pub const DATA: ObjectClass = ObjectClass {
-        val: CKO_DATA,
-    };
+    pub const DATA: ObjectClass = ObjectClass { val: CKO_DATA };
     /// Certificate objects
     pub const CERTIFICATE: ObjectClass = ObjectClass {
         val: CKO_CERTIFICATE,
