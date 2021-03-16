@@ -1,3 +1,5 @@
+// Copyright 2021 Contributors to the Parsec project.
+// SPDX-License-Identifier: Apache-2.0
 //! Rust PKCS11 new abstraction
 //!
 //! The items in the new module only expose idiomatic and safe Rust types and functions to
