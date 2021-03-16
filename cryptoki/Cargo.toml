@@ -12,18 +12,18 @@ repository = "https://github.com/parallaxsecond/rust-cryptoki"
 documentation = "https://docs.rs/crate/cryptoki"
 
 [dependencies]
-libloading = "0.6.1"
-log = "0.4.11"
+libloading = "0.7.0"
+log = "0.4.14"
 derivative = "2.2.0"
 secrecy = "0.7.0"
-psa-crypto = { git = "https://github.com/parallaxsecond/rust-psa-crypto", rev = "18dd4dda96d8b61d2e112b9e6ad83e90fe768d78", default-features = false, optional = true }
+psa-crypto = { version = "0.7.0", default-features = false, optional = true }
 cryptoki-sys = { path = "../cryptoki-sys" }
 
 [dev-dependencies]
-num-traits = "0.2.11"
-hex = "0.4.2"
-serial_test = "0.4.0"
-serial_test_derive = "0.4.0"
+num-traits = "0.2.14"
+hex = "0.4.3"
+serial_test = "0.5.1"
+serial_test_derive = "0.5.1"
 
 [features]
 psa-crypto-conversions = ["psa-crypto"]
