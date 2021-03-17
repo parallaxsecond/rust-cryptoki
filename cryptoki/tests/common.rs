@@ -1,3 +1,5 @@
+// Copyright 2021 Contributors to the Parsec project.
+// SPDX-License-Identifier: Apache-2.0
 use cryptoki::types::locking::CInitializeArgs;
 use cryptoki::types::session::UserType;
 use cryptoki::types::slot_token::Slot;

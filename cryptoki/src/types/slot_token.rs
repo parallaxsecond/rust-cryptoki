@@ -1,3 +1,5 @@
+// Copyright 2021 Contributors to the Parsec project.
+// SPDX-License-Identifier: Apache-2.0
 // Depending on the target, CK_SLOT_ID is not u64
 #![allow(clippy::useless_conversion)]
 #![allow(trivial_numeric_casts)]
