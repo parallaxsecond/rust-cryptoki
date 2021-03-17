@@ -12,6 +12,7 @@ fn main() {
             "x86_64-unknown-linux-gnu".to_string(),
             "aarch64-unknown-linux-gnu".to_string(),
             "armv7-unknown-linux-gnueabi".to_string(),
+            "armv7-unknown-linux-gnueabihf".to_string(),
             "arm-unknown-linux-gnueabi".to_string(),
         ];
         let target = std::env::var("TARGET").unwrap();
