@@ -16,7 +16,7 @@ libloading = "0.7.0"
 log = "0.4.14"
 derivative = "2.2.0"
 secrecy = "0.7.0"
-psa-crypto = { version = "0.7.0", default-features = false, optional = true }
+psa-crypto = { version = "0.8.0", default-features = false, optional = true }
 cryptoki-sys = { path = "../cryptoki-sys" }
 
 [dev-dependencies]

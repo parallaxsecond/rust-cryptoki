@@ -1,5 +1,10 @@
 # Cryptoki Rust Wrapper
 
+<p align="center">
+  <a href="https://crates.io/crates/cryptoki-sys"><img alt="Crates.io" src="https://img.shields.io/crates/v/cryptoki-sys"></a>
+  <a href="https://docs.rs/cryptoki-sys"><img src="https://docs.rs/cryptoki-sys/badge.svg" alt="Code documentation"/></a>
+</p>
+
 This is the low-level wrapper crate for PKCS #11 exposing the bindgen types.
 
 ## Generating bindings
