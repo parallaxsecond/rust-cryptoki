@@ -30,16 +30,6 @@ include!(concat!(
 
 #[cfg(all(
     not(feature = "generate-bindings"),
-    target_arch = "armv7",
-    target_os = "linux"
-))]
-include!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/src/bindings/armv7-unknown-linux-gnueabi.rs"
-));
-
-#[cfg(all(
-    not(feature = "generate-bindings"),
     target_arch = "arm",
     target_os = "linux"
 ))]
