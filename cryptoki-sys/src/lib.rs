@@ -6,6 +6,8 @@
 #![allow(clippy::redundant_field_names)]
 #![allow(clippy::missing_safety_doc)]
 #![allow(clippy::string_lit_as_bytes)]
+// Public items exportedby this crate should match the C style
+#![allow(clippy::upper_case_acronyms)]
 
 // For supported targets: use the generated and committed bindings.
 #[cfg(all(
