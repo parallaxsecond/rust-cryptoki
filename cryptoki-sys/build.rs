@@ -37,6 +37,8 @@ fn generate_bindings() {
         // This is needed because no types will be generated if `whitelist_function` is used.
         // Unsure if this is a bug.
         .whitelist_type("*")
+        // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
+        .blacklist_type("max_align_t")
         // Derive the `Debug` trait for the generated structs where possible.
         .derive_debug(true)
         // Derive the `Default` trait for the generated structs where possible.
