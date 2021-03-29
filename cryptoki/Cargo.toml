@@ -27,3 +27,4 @@ serial_test_derive = "0.5.1"
 
 [features]
 psa-crypto-conversions = ["psa-crypto"]
+generate-bindings = ["cryptoki-sys/generate-bindings"]
