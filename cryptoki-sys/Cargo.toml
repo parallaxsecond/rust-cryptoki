@@ -1,6 +1,6 @@
 [package]
 name = "cryptoki-sys"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Contributors to the Parsec project"]
 edition = '2018'
 description = "FFI wrapper around the PKCS #11 API"
