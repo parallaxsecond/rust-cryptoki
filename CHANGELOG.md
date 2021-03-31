@@ -1,5 +1,28 @@
 # Changelog
 
+## [cryptoki-0.1.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.1.1) (2021-03-31)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.1...cryptoki-0.1.1)
+
+## [cryptoki-sys-0.1.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.1) (2021-03-31)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.1.0...cryptoki-sys-0.1.1)
+
+**Implemented enhancements:**
+
+- Add the generate-bindings feature to top-level [\#14](https://github.com/parallaxsecond/rust-cryptoki/pull/14) ([hug-dev](https://github.com/hug-dev))
+
+**Fixed bugs:**
+
+- bindgen\_test\_layout\_max\_align\_t test fails on i686 on cryptoki-sys crate [\#12](https://github.com/parallaxsecond/rust-cryptoki/issues/12)
+- Fix a bindgen test failing [\#13](https://github.com/parallaxsecond/rust-cryptoki/pull/13) ([hug-dev](https://github.com/hug-dev))
+- Remove armv7 bindings [\#11](https://github.com/parallaxsecond/rust-cryptoki/pull/11) ([ionut-arm](https://github.com/ionut-arm))
+
+**Merged pull requests:**
+
+- Prepare 0.1.1 release [\#16](https://github.com/parallaxsecond/rust-cryptoki/pull/16) ([hug-dev](https://github.com/hug-dev))
+- Add CHANGELOG file [\#10](https://github.com/parallaxsecond/rust-cryptoki/pull/10) ([hug-dev](https://github.com/hug-dev))
+
 ## [cryptoki-0.1.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.1.0) (2021-03-18)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.0...cryptoki-0.1.0)
