@@ -13,6 +13,9 @@ RUST_BACKTRACE=1 cargo build --target arm-unknown-linux-gnueabi
 RUST_BACKTRACE=1 cargo build --target armv7-unknown-linux-gnueabi
 RUST_BACKTRACE=1 cargo build --target armv7-unknown-linux-gnueabihf
 RUST_BACKTRACE=1 cargo build --target aarch64-unknown-linux-gnu
+RUST_BACKTRACE=1 cargo build --target i686-unknown-linux-gnu
+RUST_BACKTRACE=1 cargo build --target powerpc64-unknown-linux-gnu
+RUST_BACKTRACE=1 cargo build --target powerpc64le-unknown-linux-gnu
 
 pushd cryptoki-sys
 RUST_BACKTRACE=1 cargo build --features generate-bindings

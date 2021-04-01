@@ -22,6 +22,26 @@ include!(concat!(
 
 #[cfg(all(
     not(feature = "generate-bindings"),
+    target_arch = "x86",
+    target_os = "linux"
+))]
+include!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/bindings/i686-unknown-linux-gnu.rs"
+));
+
+#[cfg(all(
+    not(feature = "generate-bindings"),
+    target_arch = "powerpc64",
+    target_os = "linux"
+))]
+include!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/bindings/powerpc64-unknown-linux-gnu.rs"
+));
+
+#[cfg(all(
+    not(feature = "generate-bindings"),
     target_arch = "aarch64",
     target_os = "linux"
 ))]
