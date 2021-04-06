@@ -30,7 +30,7 @@ fn sign_verify() {
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
-    let modulus_bits: u64 = 1024;
+    let modulus_bits = 1024;
 
     // pub key template
     let pub_key_template = vec![
@@ -83,7 +83,7 @@ fn encrypt_decrypt() {
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
-    let modulus_bits: u64 = 1024;
+    let modulus_bits = 1024;
 
     // pub key template
     let pub_key_template = vec![
