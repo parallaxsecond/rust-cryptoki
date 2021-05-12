@@ -16,7 +16,7 @@ libloading = "0.7.0"
 log = "0.4.14"
 derivative = "2.2.0"
 secrecy = "0.7.0"
-psa-crypto = { version = "0.8.0", default-features = false, optional = true }
+psa-crypto = { git = "https://github.com/parallaxsecond/rust-psa-crypto.git", rev = "15ba7cd048923ae7193b268df51c004e8ceff48e", default-features = false, optional = true }
 cryptoki-sys = { path = "../cryptoki-sys", version = "0.1.1" }
 
 [dev-dependencies]
