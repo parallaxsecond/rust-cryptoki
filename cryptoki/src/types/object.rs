@@ -27,6 +27,8 @@ pub enum AttributeType {
     Decrypt,
     /// Determines if it is possible to derive other keys from the key
     Derive,
+    /// DER-encoded Elliptic Curve point
+    EcPoint,
     /// Determines if a key supports encryption
     Encrypt,
     /// Determines if a key is extractable and can be wrapped
@@ -80,6 +82,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Copyable => CKA_COPYABLE,
             AttributeType::Decrypt => CKA_DECRYPT,
             AttributeType::Derive => CKA_DERIVE,
+            AttributeType::EcPoint => CKA_EC_POINT,
             AttributeType::Encrypt => CKA_ENCRYPT,
             AttributeType::Extractable => CKA_EXTRACTABLE,
             AttributeType::Id => CKA_ID,
@@ -116,6 +119,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_COPYABLE => Ok(AttributeType::Copyable),
             CKA_DECRYPT => Ok(AttributeType::Decrypt),
             CKA_DERIVE => Ok(AttributeType::Derive),
+            CKA_EC_POINT => Ok(AttributeType::EcPoint),
             CKA_ENCRYPT => Ok(AttributeType::Encrypt),
             CKA_EXTRACTABLE => Ok(AttributeType::Extractable),
             CKA_ID => Ok(AttributeType::Id),
@@ -160,6 +164,8 @@ pub enum Attribute {
     Decrypt(Bbool),
     /// Determines if it is possible to derive other keys from the key
     Derive(Bbool),
+    /// Elliptic Curve point
+    EcPoint(Vec<u8>),
     /// Determines if a key supports encryption
     Encrypt(Bbool),
     /// Determines if a key is extractable and can be wrapped
@@ -214,6 +220,7 @@ impl Attribute {
             Attribute::Copyable(_) => AttributeType::Copyable,
             Attribute::Decrypt(_) => AttributeType::Decrypt,
             Attribute::Derive(_) => AttributeType::Derive,
+            Attribute::EcPoint(_) => AttributeType::EcPoint,
             Attribute::Encrypt(_) => AttributeType::Encrypt,
             Attribute::Extractable(_) => AttributeType::Extractable,
             Attribute::Id(_) => AttributeType::Id,
@@ -258,13 +265,14 @@ impl Attribute {
             | Attribute::Wrap(_) => 1,
             Attribute::Base(_) => 1,
             Attribute::Class(_) => std::mem::size_of::<CK_OBJECT_CLASS>(),
+            Attribute::EcPoint(bytes) => bytes.len(),
             Attribute::KeyType(_) => std::mem::size_of::<CK_KEY_TYPE>(),
             Attribute::Label(label) => std::mem::size_of::<CK_UTF8CHAR>() * label.len(),
             Attribute::ModulusBits(_) => std::mem::size_of::<CK_ULONG>(),
             Attribute::Prime(bytes) => bytes.len(),
             Attribute::PublicExponent(bytes) => bytes.len(),
             Attribute::Modulus(bytes) => bytes.len(),
-            Attribute::Value(bytes) => std::mem::size_of::<u8>() * bytes.len(),
+            Attribute::Value(bytes) => bytes.len(),
             Attribute::ValueLen(_) => std::mem::size_of::<CK_ULONG>(),
             Attribute::Id(bytes) => bytes.len(),
             Attribute::AllowedMechanisms(mechanisms) => {
@@ -305,6 +313,7 @@ impl Attribute {
             }
             // Vec<u8>
             Attribute::Base(bytes)
+            | Attribute::EcPoint(bytes)
             | Attribute::Label(bytes)
             | Attribute::Prime(bytes)
             | Attribute::PublicExponent(bytes)
@@ -371,6 +380,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             )),
             // Vec<u8>
             AttributeType::Base => Ok(Attribute::Base(val.to_vec())),
+            AttributeType::EcPoint => Ok(Attribute::EcPoint(val.to_vec())),
             AttributeType::Label => Ok(Attribute::Label(val.to_vec())),
             AttributeType::Prime => Ok(Attribute::Prime(val.to_vec())),
             AttributeType::PublicExponent => Ok(Attribute::PublicExponent(val.to_vec())),
@@ -484,6 +494,8 @@ pub struct KeyType {
 impl KeyType {
     /// RSA key
     pub const RSA: KeyType = KeyType { val: CKK_RSA };
+    /// EC key
+    pub const EC: KeyType = KeyType { val: CKK_EC };
 }
 
 impl Deref for KeyType {
@@ -506,6 +518,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
     fn try_from(key_type: CK_KEY_TYPE) -> Result<Self> {
         match key_type {
             CKK_RSA => Ok(KeyType::RSA),
+            CKK_EC => Ok(KeyType::EC),
             other => {
                 error!("Key type {} is not supported.", other);
                 Err(Error::NotSupported)
