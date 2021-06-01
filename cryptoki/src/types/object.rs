@@ -13,6 +13,7 @@ use std::ffi::c_void;
 use std::ops::Deref;
 
 #[derive(Debug, Copy, Clone)]
+#[non_exhaustive]
 /// Type of an attribute
 pub enum AttributeType {
     /// List of mechanisms allowed to be used with the key
@@ -27,6 +28,8 @@ pub enum AttributeType {
     Decrypt,
     /// Determines if it is possible to derive other keys from the key
     Derive,
+    /// Parameters defining an elliptic curve
+    EcParams,
     /// DER-encoded Elliptic Curve point
     EcPoint,
     /// Determines if a key supports encryption
@@ -82,6 +85,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Copyable => CKA_COPYABLE,
             AttributeType::Decrypt => CKA_DECRYPT,
             AttributeType::Derive => CKA_DERIVE,
+            AttributeType::EcParams => CKA_EC_PARAMS,
             AttributeType::EcPoint => CKA_EC_POINT,
             AttributeType::Encrypt => CKA_ENCRYPT,
             AttributeType::Extractable => CKA_EXTRACTABLE,
@@ -119,6 +123,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_COPYABLE => Ok(AttributeType::Copyable),
             CKA_DECRYPT => Ok(AttributeType::Decrypt),
             CKA_DERIVE => Ok(AttributeType::Derive),
+            CKA_EC_PARAMS => Ok(AttributeType::EcParams),
             CKA_EC_POINT => Ok(AttributeType::EcPoint),
             CKA_ENCRYPT => Ok(AttributeType::Encrypt),
             CKA_EXTRACTABLE => Ok(AttributeType::Extractable),
@@ -150,6 +155,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
 }
 
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 /// Attribute value
 pub enum Attribute {
     /// List of mechanisms allowed to be used with the key
@@ -164,6 +170,8 @@ pub enum Attribute {
     Decrypt(Bbool),
     /// Determines if it is possible to derive other keys from the key
     Derive(Bbool),
+    /// Parameters describing an elliptic curve
+    EcParams(Vec<u8>),
     /// Elliptic Curve point
     EcPoint(Vec<u8>),
     /// Determines if a key supports encryption
@@ -220,6 +228,7 @@ impl Attribute {
             Attribute::Copyable(_) => AttributeType::Copyable,
             Attribute::Decrypt(_) => AttributeType::Decrypt,
             Attribute::Derive(_) => AttributeType::Derive,
+            Attribute::EcParams(_) => AttributeType::EcParams,
             Attribute::EcPoint(_) => AttributeType::EcPoint,
             Attribute::Encrypt(_) => AttributeType::Encrypt,
             Attribute::Extractable(_) => AttributeType::Extractable,
@@ -265,6 +274,7 @@ impl Attribute {
             | Attribute::Wrap(_) => 1,
             Attribute::Base(_) => 1,
             Attribute::Class(_) => std::mem::size_of::<CK_OBJECT_CLASS>(),
+            Attribute::EcParams(bytes) => bytes.len(),
             Attribute::EcPoint(bytes) => bytes.len(),
             Attribute::KeyType(_) => std::mem::size_of::<CK_KEY_TYPE>(),
             Attribute::Label(label) => std::mem::size_of::<CK_UTF8CHAR>() * label.len(),
@@ -313,6 +323,7 @@ impl Attribute {
             }
             // Vec<u8>
             Attribute::Base(bytes)
+            | Attribute::EcParams(bytes)
             | Attribute::EcPoint(bytes)
             | Attribute::Label(bytes)
             | Attribute::Prime(bytes)
@@ -380,6 +391,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             )),
             // Vec<u8>
             AttributeType::Base => Ok(Attribute::Base(val.to_vec())),
+            AttributeType::EcParams => Ok(Attribute::EcParams(val.to_vec())),
             AttributeType::EcPoint => Ok(Attribute::EcPoint(val.to_vec())),
             AttributeType::Label => Ok(Attribute::Label(val.to_vec())),
             AttributeType::Prime => Ok(Attribute::Prime(val.to_vec())),
