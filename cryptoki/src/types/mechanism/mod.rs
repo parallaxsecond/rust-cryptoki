@@ -50,6 +50,9 @@ impl MechanismType {
     pub const SHA384: MechanismType = MechanismType { val: CKM_SHA384 };
     /// SHA-512 mechanism
     pub const SHA512: MechanismType = MechanismType { val: CKM_SHA512 };
+
+    /// ECDSA mechanism
+    pub const ECDSA: MechanismType = MechanismType { val: CKM_ECDSA };
 }
 
 impl Deref for MechanismType {
@@ -79,6 +82,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256 => Ok(MechanismType::SHA256),
             CKM_SHA384 => Ok(MechanismType::SHA384),
             CKM_SHA512 => Ok(MechanismType::SHA512),
+            CKM_ECDSA => Ok(MechanismType::ECDSA),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -112,6 +116,9 @@ pub enum Mechanism {
     Sha384,
     /// SHA-512 mechanism
     Sha512,
+
+    /// ECDSA mechanism
+    Ecdsa,
 }
 
 impl Mechanism {
@@ -127,6 +134,8 @@ impl Mechanism {
             Mechanism::Sha256 => MechanismType::SHA256,
             Mechanism::Sha384 => MechanismType::SHA384,
             Mechanism::Sha512 => MechanismType::SHA512,
+
+            Mechanism::Ecdsa => MechanismType::ECDSA,
         }
     }
 }
@@ -155,7 +164,8 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Sha1
             | Mechanism::Sha256
             | Mechanism::Sha384
-            | Mechanism::Sha512 => CK_MECHANISM {
+            | Mechanism::Sha512
+            | Mechanism::Ecdsa => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,
