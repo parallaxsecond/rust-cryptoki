@@ -41,6 +41,15 @@ impl MechanismType {
         val: CKM_RSA_PKCS_OAEP,
     };
 
+    // ECC
+    /// EC key pair generation mechanism
+    pub const ECC_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_EC_KEY_PAIR_GEN,
+    };
+
+    /// ECDSA mechanism
+    pub const ECDSA: MechanismType = MechanismType { val: CKM_ECDSA };
+
     // SHA-n
     /// SHA-1 mechanism
     pub const SHA1: MechanismType = MechanismType { val: CKM_SHA_1 };
@@ -50,9 +59,6 @@ impl MechanismType {
     pub const SHA384: MechanismType = MechanismType { val: CKM_SHA384 };
     /// SHA-512 mechanism
     pub const SHA512: MechanismType = MechanismType { val: CKM_SHA512 };
-
-    /// ECDSA mechanism
-    pub const ECDSA: MechanismType = MechanismType { val: CKM_ECDSA };
 }
 
 impl Deref for MechanismType {
@@ -92,6 +98,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
 }
 
 #[derive(Copy, Debug, Clone)]
+#[non_exhaustive]
 /// Type defining a specific mechanism and its parameters
 pub enum Mechanism {
     // RSA
@@ -107,6 +114,12 @@ pub enum Mechanism {
     /// defined in PKCS #1
     RsaPkcsOaep(rsa::PkcsOaepParams),
 
+    // ECC
+    /// EC key pair generation
+    EccKeyPairGen,
+    /// ECDSA mechanism
+    Ecdsa,
+
     // SHA-n
     /// SHA-1 mechanism
     Sha1,
@@ -116,9 +129,6 @@ pub enum Mechanism {
     Sha384,
     /// SHA-512 mechanism
     Sha512,
-
-    /// ECDSA mechanism
-    Ecdsa,
 }
 
 impl Mechanism {
@@ -130,12 +140,13 @@ impl Mechanism {
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
 
+            Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
+            Mechanism::Ecdsa => MechanismType::ECDSA,
+
             Mechanism::Sha1 => MechanismType::SHA1,
             Mechanism::Sha256 => MechanismType::SHA256,
             Mechanism::Sha384 => MechanismType::SHA384,
             Mechanism::Sha512 => MechanismType::SHA512,
-
-            Mechanism::Ecdsa => MechanismType::ECDSA,
         }
     }
 }
@@ -165,6 +176,7 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Sha256
             | Mechanism::Sha384
             | Mechanism::Sha512
+            | Mechanism::EccKeyPairGen
             | Mechanism::Ecdsa => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
@@ -200,6 +212,9 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 mgf: rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
                 s_len: hash_alg.hash_length().try_into()?,
             })),
+            Algorithm::AsymmetricSignature(AsymmetricSignature::Ecdsa { .. }) => {
+                Ok(Mechanism::Ecdsa)
+            }
             Algorithm::AsymmetricEncryption(AsymmetricEncryption::RsaOaep { hash_alg }) => {
                 Ok(Mechanism::RsaPkcsOaep(rsa::PkcsOaepParams {
                     hash_alg: Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
