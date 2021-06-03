@@ -212,6 +212,9 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 mgf: rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
                 s_len: hash_alg.hash_length().try_into()?,
             })),
+            Algorithm::AsymmetricSignature(AsymmetricSignature::Ecdsa { .. }) => {
+                Ok(Mechanism::Ecdsa)
+            }
             Algorithm::AsymmetricEncryption(AsymmetricEncryption::RsaOaep { hash_alg }) => {
                 Ok(Mechanism::RsaPkcsOaep(rsa::PkcsOaepParams {
                     hash_alg: Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
