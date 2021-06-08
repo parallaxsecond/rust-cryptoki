@@ -508,6 +508,10 @@ impl KeyType {
     pub const RSA: KeyType = KeyType { val: CKK_RSA };
     /// EC key
     pub const EC: KeyType = KeyType { val: CKK_EC };
+    /// Generic secret
+    pub const GENERIC_SECRET: KeyType = KeyType {
+        val: CKK_GENERIC_SECRET,
+    };
 }
 
 impl Deref for KeyType {
@@ -531,6 +535,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
         match key_type {
             CKK_RSA => Ok(KeyType::RSA),
             CKK_EC => Ok(KeyType::EC),
+            CKK_GENERIC_SECRET => Ok(KeyType::GENERIC_SECRET),
             other => {
                 error!("Key type {} is not supported.", other);
                 Err(Error::NotSupported)
