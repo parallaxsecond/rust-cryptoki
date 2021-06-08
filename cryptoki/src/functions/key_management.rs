@@ -45,4 +45,29 @@ impl<'a> Session<'a> {
             ObjectHandle::new(priv_handle),
         ))
     }
+
+    /// Derives a key from a base key
+    pub fn derive_key(
+        &self,
+        mechanism: &Mechanism,
+        base_key: ObjectHandle,
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut handle = 0;
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_DeriveKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                base_key.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(ObjectHandle::new(handle))
+    }
 }
