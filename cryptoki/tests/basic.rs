@@ -285,6 +285,14 @@ fn import_export() {
 
 #[test]
 #[serial]
+fn get_token_info() {
+    let (pkcs11, slot) = init_pins();
+    let info = pkcs11.get_token_info(slot).unwrap();
+    assert_eq!("SoftHSM project", info.get_manufacturer_id());
+}
+
+#[test]
+#[serial]
 fn login_feast() {
     const SESSIONS: usize = 100;
 
