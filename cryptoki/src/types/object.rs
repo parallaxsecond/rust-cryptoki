@@ -48,6 +48,8 @@ pub enum AttributeType {
     Modulus,
     /// Length in bits of the modulus of a key
     ModulusBits,
+    /// Object ID
+    ObjectId,
     /// Prime number value of a key
     Prime,
     /// Determines if the object is private
@@ -95,6 +97,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Modifiable => CKA_MODIFIABLE,
             AttributeType::Modulus => CKA_MODULUS,
             AttributeType::ModulusBits => CKA_MODULUS_BITS,
+            AttributeType::ObjectId => CKA_OBJECT_ID,
             AttributeType::Prime => CKA_PRIME,
             AttributeType::Private => CKA_PRIVATE,
             AttributeType::PublicExponent => CKA_PUBLIC_EXPONENT,
@@ -133,6 +136,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_MODIFIABLE => Ok(AttributeType::Modifiable),
             CKA_MODULUS => Ok(AttributeType::Modulus),
             CKA_MODULUS_BITS => Ok(AttributeType::ModulusBits),
+            CKA_OBJECT_ID => Ok(AttributeType::ObjectId),
             CKA_PRIME => Ok(AttributeType::Prime),
             CKA_PRIVATE => Ok(AttributeType::Private),
             CKA_PUBLIC_EXPONENT => Ok(AttributeType::PublicExponent),
@@ -190,6 +194,8 @@ pub enum Attribute {
     Modulus(Vec<u8>),
     /// Length in bits of the modulus of a key
     ModulusBits(Ulong),
+    /// Object ID
+    ObjectId(Vec<u8>),
     /// Prime number value of a key
     Prime(Vec<u8>),
     /// Determines if the object is private
@@ -238,6 +244,7 @@ impl Attribute {
             Attribute::Modifiable(_) => AttributeType::Modifiable,
             Attribute::Modulus(_) => AttributeType::Modulus,
             Attribute::ModulusBits(_) => AttributeType::ModulusBits,
+            Attribute::ObjectId(_) => AttributeType::ObjectId,
             Attribute::Prime(_) => AttributeType::Prime,
             Attribute::Private(_) => AttributeType::Private,
             Attribute::PublicExponent(_) => AttributeType::PublicExponent,
@@ -279,6 +286,7 @@ impl Attribute {
             Attribute::KeyType(_) => std::mem::size_of::<CK_KEY_TYPE>(),
             Attribute::Label(label) => std::mem::size_of::<CK_UTF8CHAR>() * label.len(),
             Attribute::ModulusBits(_) => std::mem::size_of::<CK_ULONG>(),
+            Attribute::ObjectId(bytes) => bytes.len(),
             Attribute::Prime(bytes) => bytes.len(),
             Attribute::PublicExponent(bytes) => bytes.len(),
             Attribute::Modulus(bytes) => bytes.len(),
@@ -326,6 +334,7 @@ impl Attribute {
             | Attribute::EcParams(bytes)
             | Attribute::EcPoint(bytes)
             | Attribute::Label(bytes)
+            | Attribute::ObjectId(bytes)
             | Attribute::Prime(bytes)
             | Attribute::PublicExponent(bytes)
             | Attribute::Modulus(bytes)
@@ -397,6 +406,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Prime => Ok(Attribute::Prime(val.to_vec())),
             AttributeType::PublicExponent => Ok(Attribute::PublicExponent(val.to_vec())),
             AttributeType::Modulus => Ok(Attribute::Modulus(val.to_vec())),
+            AttributeType::ObjectId => Ok(Attribute::ObjectId(val.to_vec())),
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
