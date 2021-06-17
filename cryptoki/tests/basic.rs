@@ -126,6 +126,104 @@ fn encrypt_decrypt() {
 
 #[test]
 #[serial]
+fn derive_key() {
+    let (pkcs11, slot) = init_pins();
+
+    // set flags
+    let mut flags = Flags::new();
+    let _ = flags.set_rw_session(true).set_serial_session(true);
+
+    // open a session
+    let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+
+    // log in the session
+    session.login(UserType::User).unwrap();
+
+    // get mechanism
+    let mechanism = Mechanism::EccKeyPairGen;
+
+    let secp256r1_oid: Vec<u8> = vec![0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07];
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true.into()),
+        Attribute::Private(false.into()),
+        Attribute::Derive(true.into()),
+        Attribute::KeyType(KeyType::EC),
+        Attribute::Verify(true.into()),
+        Attribute::EcParams(secp256r1_oid),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![
+        Attribute::Token(true.into()),
+        Attribute::Private(true.into()),
+        Attribute::Sensitive(true.into()),
+        Attribute::Extractable(false.into()),
+        Attribute::Derive(true.into()),
+        Attribute::Sign(true.into()),
+    ];
+
+    // generate a key pair
+    let (public, private) = session
+        .generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)
+        .unwrap();
+
+    let ec_point_attribute = session
+        .get_attributes(public, &[AttributeType::EcPoint])
+        .unwrap()
+        .remove(0);
+
+    let ec_point = if let Attribute::EcPoint(point) = ec_point_attribute {
+        point
+    } else {
+        panic!("Expected EC point attribute.");
+    };
+
+    use cryptoki::types::mechanism::elliptic_curve::*;
+    use std::convert::TryInto;
+
+    let params = Ecdh1DeriveParams {
+        kdf: EcKdfType::NULL,
+        shared_data_len: 0_usize.try_into().unwrap(),
+        shared_data: std::ptr::null(),
+        public_data_len: (*ec_point).len().try_into().unwrap(),
+        public_data: ec_point.as_ptr() as *const std::ffi::c_void,
+    };
+
+    let shared_secret = session
+        .derive_key(
+            &Mechanism::Ecdh1Derive(params),
+            private,
+            &[
+                Attribute::Class(ObjectClass::SECRET_KEY),
+                Attribute::KeyType(KeyType::GENERIC_SECRET),
+                Attribute::Sensitive(false.into()),
+                Attribute::Extractable(true.into()),
+                Attribute::Token(false.into()),
+            ],
+        )
+        .unwrap();
+
+    let value_attribute = session
+        .get_attributes(shared_secret, &[AttributeType::Value])
+        .unwrap()
+        .remove(0);
+    let value = if let Attribute::Value(value) = value_attribute {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    assert_eq!(value.len(), 32);
+
+    // delete keys
+    session.destroy_object(public).unwrap();
+    session.destroy_object(private).unwrap();
+}
+
+#[test]
+#[serial]
 fn import_export() {
     let (pkcs11, slot) = init_pins();
 

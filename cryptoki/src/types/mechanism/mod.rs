@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Data types for mechanisms
 
+pub mod elliptic_curve;
 pub mod rsa;
 
 use crate::Error;
@@ -47,6 +48,11 @@ impl MechanismType {
         val: CKM_EC_KEY_PAIR_GEN,
     };
 
+    /// ECDH key derivation mechanism
+    pub const ECDH1_DERIVE: MechanismType = MechanismType {
+        val: CKM_ECDH1_DERIVE,
+    };
+
     /// ECDSA mechanism
     pub const ECDSA: MechanismType = MechanismType { val: CKM_ECDSA };
 
@@ -88,6 +94,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256 => Ok(MechanismType::SHA256),
             CKM_SHA384 => Ok(MechanismType::SHA384),
             CKM_SHA512 => Ok(MechanismType::SHA512),
+            CKM_ECDH1_DERIVE => Ok(MechanismType::ECDH1_DERIVE),
             CKM_ECDSA => Ok(MechanismType::ECDSA),
             other => {
                 error!("Mechanism type {} is not supported.", other);
@@ -117,6 +124,8 @@ pub enum Mechanism {
     // ECC
     /// EC key pair generation
     EccKeyPairGen,
+    /// ECDH
+    Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams),
     /// ECDSA mechanism
     Ecdsa,
 
@@ -141,6 +150,7 @@ impl Mechanism {
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
 
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
+            Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
 
             Mechanism::Sha1 => MechanismType::SHA1,
@@ -166,6 +176,13 @@ impl From<&Mechanism> for CK_MECHANISM {
                 mechanism,
                 pParameter: params as *const _ as *mut c_void,
                 ulParameterLen: std::mem::size_of::<CK_RSA_PKCS_OAEP_PARAMS>()
+                    .try_into()
+                    .expect("usize can not fit in CK_ULONG"),
+            },
+            Mechanism::Ecdh1Derive(params) => CK_MECHANISM {
+                mechanism,
+                pParameter: params as *const _ as *mut c_void,
+                ulParameterLen: std::mem::size_of::<CK_ECDH1_DERIVE_PARAMS>()
                     .try_into()
                     .expect("usize can not fit in CK_ULONG"),
             },
