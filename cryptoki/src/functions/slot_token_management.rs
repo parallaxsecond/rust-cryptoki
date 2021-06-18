@@ -4,10 +4,11 @@
 
 use crate::get_pkcs11;
 use crate::types::function::Rv;
-use crate::types::slot_token::Slot;
+use crate::types::slot_token::{Slot, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;
 use crate::Session;
+use cryptoki_sys::CK_TOKEN_INFO;
 use secrecy::{ExposeSecret, Secret};
 use std::convert::TryInto;
 use std::ffi::CString;
@@ -93,6 +94,19 @@ impl Pkcs11 {
                 label.as_ptr() as *mut u8,
             ))
             .into_result()
+        }
+    }
+
+    /// Returns information about a specific token
+    pub fn get_token_info(&self, slot: Slot) -> Result<TokenInfo> {
+        unsafe {
+            let mut token_info = CK_TOKEN_INFO::default();
+            Rv::from(get_pkcs11!(self, C_GetTokenInfo)(
+                slot.into(),
+                &mut token_info,
+            ))
+            .into_result()?;
+            Ok(TokenInfo::new(token_info))
         }
     }
 }
