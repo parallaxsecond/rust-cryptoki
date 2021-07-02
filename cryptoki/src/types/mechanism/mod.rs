@@ -65,6 +65,20 @@ impl MechanismType {
     pub const SHA384: MechanismType = MechanismType { val: CKM_SHA384 };
     /// SHA-512 mechanism
     pub const SHA512: MechanismType = MechanismType { val: CKM_SHA512 };
+
+    // SHAn-RSA-PKCS
+    /// SHA256-RSA-PKCS mechanism
+    pub const SHA256_RSA_PKCS: MechanismType = MechanismType {
+        val: CKM_SHA256_RSA_PKCS,
+    };
+    /// SHA384-RSA-PKCS mechanism
+    pub const SHA384_RSA_PKCS: MechanismType = MechanismType {
+        val: CKM_SHA384_RSA_PKCS,
+    };
+    /// SHA512-RSA-PKCS mechanism
+    pub const SHA512_RSA_PKCS: MechanismType = MechanismType {
+        val: CKM_SHA512_RSA_PKCS,
+    };
 }
 
 impl Deref for MechanismType {
@@ -96,6 +110,9 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA512 => Ok(MechanismType::SHA512),
             CKM_ECDH1_DERIVE => Ok(MechanismType::ECDH1_DERIVE),
             CKM_ECDSA => Ok(MechanismType::ECDSA),
+            CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
+            CKM_SHA384_RSA_PKCS => Ok(MechanismType::SHA384_RSA_PKCS),
+            CKM_SHA512_RSA_PKCS => Ok(MechanismType::SHA512_RSA_PKCS),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -138,6 +155,14 @@ pub enum Mechanism {
     Sha384,
     /// SHA-512 mechanism
     Sha512,
+
+    // SHAn-RSA-PKCS
+    /// SHA256-RSA-PKCS mechanism
+    Sha256RsaPkcs,
+    /// SHA384-RSA-PKCS mechanism
+    Sha384RsaPkcs,
+    /// SHA512-RSA-PKCS mechanism
+    Sha512RsaPkcs,
 }
 
 impl Mechanism {
@@ -157,6 +182,10 @@ impl Mechanism {
             Mechanism::Sha256 => MechanismType::SHA256,
             Mechanism::Sha384 => MechanismType::SHA384,
             Mechanism::Sha512 => MechanismType::SHA512,
+
+            Mechanism::Sha256RsaPkcs => MechanismType::SHA256_RSA_PKCS,
+            Mechanism::Sha384RsaPkcs => MechanismType::SHA384_RSA_PKCS,
+            Mechanism::Sha512RsaPkcs => MechanismType::SHA512_RSA_PKCS,
         }
     }
 }
@@ -194,7 +223,10 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Sha384
             | Mechanism::Sha512
             | Mechanism::EccKeyPairGen
-            | Mechanism::Ecdsa => CK_MECHANISM {
+            | Mechanism::Ecdsa
+            | Mechanism::Sha256RsaPkcs
+            | Mechanism::Sha384RsaPkcs
+            | Mechanism::Sha512RsaPkcs => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,
