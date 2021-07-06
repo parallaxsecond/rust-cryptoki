@@ -84,7 +84,6 @@ impl Pkcs11 {
     pub fn init_token(&self, slot: Slot, pin: &str) -> Result<()> {
         let pin = Secret::new(CString::new(pin)?.into_bytes());
         // FIXME: make a good conversion to the label format
-        // 32 is the ASCII code for ' '
         let label = [b' '; 32];
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
