@@ -4,13 +4,14 @@
 
 use crate::get_pkcs11;
 use crate::types::function::Rv;
+use crate::types::mechanism::MechanismType;
 use crate::types::slot_token::{Slot, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;
 use crate::Session;
 use cryptoki_sys::CK_TOKEN_INFO;
 use secrecy::{ExposeSecret, Secret};
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 use std::ffi::CString;
 
 impl Pkcs11 {
@@ -107,6 +108,36 @@ impl Pkcs11 {
             .into_result()?;
             Ok(TokenInfo::new(token_info))
         }
+    }
+
+    /// Get all mechanisms support by a slot
+    pub fn get_slot_mechanisms(&self, slot: Slot) -> Result<Vec<MechanismType>> {
+        let mut mechanism_count = 0;
+
+        unsafe {
+            Rv::from(get_pkcs11!(self, C_GetMechanismList)(
+                slot.into(),
+                std::ptr::null_mut(),
+                &mut mechanism_count,
+            ))
+            .into_result()?;
+        }
+
+        let mut mechanisms = vec![0; mechanism_count.try_into()?];
+
+        unsafe {
+            Rv::from(get_pkcs11!(self, C_GetMechanismList)(
+                slot.into(),
+                mechanisms.as_mut_ptr(),
+                &mut mechanism_count,
+            ))
+            .into_result()?;
+        }
+
+        mechanisms
+            .into_iter()
+            .map(MechanismType::try_from)
+            .collect()
     }
 }
 
