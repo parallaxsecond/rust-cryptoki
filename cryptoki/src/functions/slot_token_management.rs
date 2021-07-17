@@ -11,7 +11,7 @@ use crate::Result;
 use crate::Session;
 use cryptoki_sys::CK_TOKEN_INFO;
 use secrecy::{ExposeSecret, Secret};
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryInto;
 use std::ffi::CString;
 
 impl Pkcs11 {
@@ -134,10 +134,10 @@ impl Pkcs11 {
             .into_result()?;
         }
 
-        mechanisms
+        Ok(mechanisms
             .into_iter()
-            .map(MechanismType::try_from)
-            .collect()
+            .filter_map(|type_| type_.try_into().ok())
+            .collect())
     }
 }
 
