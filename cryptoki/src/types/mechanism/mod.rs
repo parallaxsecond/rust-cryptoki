@@ -5,6 +5,7 @@
 pub mod elliptic_curve;
 pub mod rsa;
 
+use crate::types::Flags;
 use crate::Error;
 use cryptoki_sys::*;
 use log::error;
@@ -278,5 +279,46 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 Err(Error::NotSupported)
             }
         }
+    }
+}
+
+/// Contains information about a mechanism
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MechanismInfo {
+    val: CK_MECHANISM_INFO,
+}
+
+impl MechanismInfo {
+    pub(crate) fn new(val: CK_MECHANISM_INFO) -> Self {
+        Self { val }
+    }
+
+    /// Returns the minimum key size for this mechanism.
+    pub fn get_min_key_size(&self) -> u64 {
+        self.val.ulMinKeySize
+    }
+
+    /// Returns the maximum key size for this mechanism.
+    pub fn get_max_key_size(&self) -> u64 {
+        self.val.ulMaxKeySize
+    }
+
+    /// Returns the flags for this mechanism.
+    pub fn get_flags(&self) -> Flags {
+        self.val.flags.into()
+    }
+}
+
+impl Deref for MechanismInfo {
+    type Target = CK_MECHANISM_INFO;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<MechanismInfo> for CK_MECHANISM_INFO {
+    fn from(mechanism_info: MechanismInfo) -> Self {
+        *mechanism_info
     }
 }
