@@ -5,7 +5,7 @@
 pub mod elliptic_curve;
 pub mod rsa;
 
-use crate::types::Flags;
+use crate::types::{Flags, Ulong};
 use crate::Error;
 use cryptoki_sys::*;
 use log::error;
@@ -294,13 +294,13 @@ impl MechanismInfo {
     }
 
     /// Returns the minimum key size for this mechanism.
-    pub fn get_min_key_size(&self) -> u64 {
-        self.val.ulMinKeySize
+    pub fn get_min_key_size(&self) -> Ulong {
+        self.val.ulMinKeySize.into()
     }
 
     /// Returns the maximum key size for this mechanism.
-    pub fn get_max_key_size(&self) -> u64 {
-        self.val.ulMaxKeySize
+    pub fn get_max_key_size(&self) -> Ulong {
+        self.val.ulMaxKeySize.into()
     }
 
     /// Returns the flags for this mechanism.
