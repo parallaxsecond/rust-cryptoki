@@ -48,6 +48,14 @@ impl MechanismType {
     pub const ECC_KEY_PAIR_GEN: MechanismType = MechanismType {
         val: CKM_EC_KEY_PAIR_GEN,
     };
+    /// EC edwards key pair generation mechanism
+    pub const ECC_EDWARDS_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_EC_EDWARDS_KEY_PAIR_GEN,
+    };
+    /// EC montgomery key pair generation mechanism
+    pub const ECC_MONTGOMERY_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_EC_MONTGOMERY_KEY_PAIR_GEN,
+    };
 
     /// ECDH key derivation mechanism
     pub const ECDH1_DERIVE: MechanismType = MechanismType {
@@ -110,6 +118,8 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA384 => Ok(MechanismType::SHA384),
             CKM_SHA512 => Ok(MechanismType::SHA512),
             CKM_EC_KEY_PAIR_GEN => Ok(MechanismType::ECC_KEY_PAIR_GEN),
+            CKM_EC_EDWARDS_KEY_PAIR_GEN => Ok(MechanismType::ECC_EDWARDS_KEY_PAIR_GEN),
+            CKM_EC_MONTGOMERY_KEY_PAIR_GEN => Ok(MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN),
             CKM_ECDH1_DERIVE => Ok(MechanismType::ECDH1_DERIVE),
             CKM_ECDSA => Ok(MechanismType::ECDSA),
             CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
@@ -143,6 +153,10 @@ pub enum Mechanism {
     // ECC
     /// EC key pair generation
     EccKeyPairGen,
+    /// EC edwards key pair generation
+    EccEdwardsKeyPairGen,
+    /// EC montgomery key pair generation
+    EccMontgomeryKeyPairGen,
     /// ECDH
     Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams),
     /// ECDSA mechanism
@@ -177,6 +191,8 @@ impl Mechanism {
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
 
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
+            Mechanism::EccEdwardsKeyPairGen => MechanismType::ECC_EDWARDS_KEY_PAIR_GEN,
+            Mechanism::EccMontgomeryKeyPairGen => MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN,
             Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
 
@@ -225,6 +241,8 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Sha384
             | Mechanism::Sha512
             | Mechanism::EccKeyPairGen
+            | Mechanism::EccEdwardsKeyPairGen
+            | Mechanism::EccMontgomeryKeyPairGen
             | Mechanism::Ecdsa
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs
