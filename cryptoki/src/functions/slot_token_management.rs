@@ -111,7 +111,7 @@ impl Pkcs11 {
     }
 
     /// Get all mechanisms support by a slot
-    pub fn get_mechanisms(&self, slot: Slot) -> Result<Vec<MechanismType>> {
+    pub fn get_mechanism_list(&self, slot: Slot) -> Result<Vec<MechanismType>> {
         let mut mechanism_count = 0;
 
         unsafe {
