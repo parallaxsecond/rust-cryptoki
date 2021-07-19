@@ -884,6 +884,7 @@ typedef unsigned long ck_mechanism_type_t;
 
 /* From version 3.0 */
 #define CKM_EC_EDWARDS_KEY_PAIR_GEN	(0x1055UL)
+#define CKM_EC_MONTGOMERY_KEY_PAIR_GEN  (0x1056UL)
 #define CKM_EDDSA			(0x1057UL)
 
 /* Attribute and other constants related to OTP */

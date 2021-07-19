@@ -518,6 +518,14 @@ impl KeyType {
     pub const RSA: KeyType = KeyType { val: CKK_RSA };
     /// EC key
     pub const EC: KeyType = KeyType { val: CKK_EC };
+    /// EC edwards key
+    pub const EC_EDWARDS: KeyType = KeyType {
+        val: CKK_EC_EDWARDS,
+    };
+    /// EC montgomery key
+    pub const EC_MONTGOMERY: KeyType = KeyType {
+        val: CKK_EC_MONTGOMERY,
+    };
     /// Generic secret
     pub const GENERIC_SECRET: KeyType = KeyType {
         val: CKK_GENERIC_SECRET,
@@ -545,6 +553,8 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
         match key_type {
             CKK_RSA => Ok(KeyType::RSA),
             CKK_EC => Ok(KeyType::EC),
+            CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
+            CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_GENERIC_SECRET => Ok(KeyType::GENERIC_SECRET),
             other => {
                 error!("Key type {} is not supported.", other);
