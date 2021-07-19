@@ -134,6 +134,9 @@ impl Pkcs11 {
             .into_result()?;
         }
 
+        // Truncate mechanisms if count decreased.
+        mechanisms.truncate(mechanism_count.try_into()?);
+
         Ok(mechanisms
             .into_iter()
             .filter_map(|type_| type_.try_into().ok())
