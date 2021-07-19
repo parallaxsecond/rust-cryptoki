@@ -294,17 +294,17 @@ impl MechanismInfo {
     }
 
     /// Returns the minimum key size for this mechanism.
-    pub fn get_min_key_size(&self) -> Ulong {
+    pub fn min_key_size(&self) -> Ulong {
         self.val.ulMinKeySize.into()
     }
 
     /// Returns the maximum key size for this mechanism.
-    pub fn get_max_key_size(&self) -> Ulong {
+    pub fn max_key_size(&self) -> Ulong {
         self.val.ulMaxKeySize.into()
     }
 
     /// Returns the flags for this mechanism.
-    pub fn get_flags(&self) -> Flags {
+    pub fn flags(&self) -> Flags {
         self.val.flags.into()
     }
 }
