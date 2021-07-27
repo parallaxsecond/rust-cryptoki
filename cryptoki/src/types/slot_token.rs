@@ -6,6 +6,7 @@
 
 //! Slot and token types
 
+use crate::types::Flags;
 use crate::{Error, Result};
 use cryptoki_sys::{CK_SLOT_ID, CK_TOKEN_INFO};
 use std::convert::{TryFrom, TryInto};
@@ -67,6 +68,11 @@ impl TokenInfo {
         String::from_utf8_lossy(&self.val.serialNumber)
             .trim_end()
             .to_string()
+    }
+
+    /// Returns the Token's flags
+    pub fn get_flags(&self) -> Flags {
+        self.val.flags.into()
     }
 }
 

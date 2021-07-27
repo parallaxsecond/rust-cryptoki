@@ -47,6 +47,25 @@ impl Pkcs11 {
         Ok(slots)
     }
 
+    /// Get all slots available with a token
+    pub fn get_slots_with_initialized_token(&self) -> Result<Vec<Slot>> {
+        let slots = self.get_slots_with_token()?;
+
+        slots
+            .into_iter()
+            .filter_map(|slot| match self.get_token_info(slot) {
+                Ok(token_info) => {
+                    if token_info.get_flags().token_initialized() {
+                        Some(Ok(slot))
+                    } else {
+                        None
+                    }
+                }
+                Err(e) => Some(Err(e)),
+            })
+            .collect()
+    }
+
     /// Get all slots
     pub fn get_all_slots(&self) -> Result<Vec<Slot>> {
         let mut slot_count = 0;
