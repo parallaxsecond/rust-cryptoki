@@ -1,5 +1,42 @@
 # Changelog
 
+## [cryptoki-0.2.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.2.0) (2021-08-03)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.2...cryptoki-0.2.0)
+
+## [cryptoki-sys-0.1.2](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.2) (2021-08-03)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.1.1...cryptoki-sys-0.1.2)
+
+**Implemented enhancements:**
+
+- Supported targets might not need an exact target triple check [\#15](https://github.com/parallaxsecond/rust-cryptoki/issues/15)
+- Add get\_token\_info [\#27](https://github.com/parallaxsecond/rust-cryptoki/pull/27) ([wiktor-k](https://github.com/wiktor-k))
+- Add functions and types needed for ECDH-based decryption [\#24](https://github.com/parallaxsecond/rust-cryptoki/pull/24) ([wiktor-k](https://github.com/wiktor-k))
+- Add ECC key generation [\#23](https://github.com/parallaxsecond/rust-cryptoki/pull/23) ([ionut-arm](https://github.com/ionut-arm))
+- Add support for Elliptic Curves signing [\#22](https://github.com/parallaxsecond/rust-cryptoki/pull/22) ([wiktor-k](https://github.com/wiktor-k))
+- Add a new way to check for supported targets [\#18](https://github.com/parallaxsecond/rust-cryptoki/pull/18) ([hug-dev](https://github.com/hug-dev))
+
+**Fixed bugs:**
+
+- Issue with code comment [\#25](https://github.com/parallaxsecond/rust-cryptoki/issues/25)
+- Test fails on 32 bit platforms [\#19](https://github.com/parallaxsecond/rust-cryptoki/issues/19)
+- Implement `CKM\_EC\_KEY\_PAIR\_GEN` to `MechanismType` conversion [\#32](https://github.com/parallaxsecond/rust-cryptoki/pull/32) ([daxpedda](https://github.com/daxpedda))
+
+**Merged pull requests:**
+
+- Prepare the new release [\#36](https://github.com/parallaxsecond/rust-cryptoki/pull/36) ([hug-dev](https://github.com/hug-dev))
+- Added new methods to fix issue 375 - get slots with initialized token… [\#35](https://github.com/parallaxsecond/rust-cryptoki/pull/35) ([Sven-bg](https://github.com/Sven-bg))
+- EC Edward and Montgomery support [\#33](https://github.com/parallaxsecond/rust-cryptoki/pull/33) ([daxpedda](https://github.com/daxpedda))
+- Slot mechanisms [\#31](https://github.com/parallaxsecond/rust-cryptoki/pull/31) ([daxpedda](https://github.com/daxpedda))
+- Removed confusing comment [\#30](https://github.com/parallaxsecond/rust-cryptoki/pull/30) ([Kakemone](https://github.com/Kakemone))
+- Add x86\_64 macOS/Darwin bindings. [\#29](https://github.com/parallaxsecond/rust-cryptoki/pull/29) ([jeamland](https://github.com/jeamland))
+- Add SHAn-RSA-PKCS mechanisms. [\#28](https://github.com/parallaxsecond/rust-cryptoki/pull/28) ([jeamland](https://github.com/jeamland))
+- Add Object ID attribute [\#26](https://github.com/parallaxsecond/rust-cryptoki/pull/26) ([wiktor-k](https://github.com/wiktor-k))
+- Update psa-crypto [\#21](https://github.com/parallaxsecond/rust-cryptoki/pull/21) ([hug-dev](https://github.com/hug-dev))
+- Add dependency on the newest \(git only at the moment\) psa-crypto. [\#20](https://github.com/parallaxsecond/rust-cryptoki/pull/20) ([RobertDrazkowskiGL](https://github.com/RobertDrazkowskiGL))
+- Update CHANGELOG [\#17](https://github.com/parallaxsecond/rust-cryptoki/pull/17) ([hug-dev](https://github.com/hug-dev))
+
 ## [cryptoki-0.1.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.1.1) (2021-03-31)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.1...cryptoki-0.1.1)
