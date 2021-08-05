@@ -12,6 +12,29 @@ use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
 use std::convert::TryInto;
 
 impl<'a> Session<'a> {
+    /// Generate a secret key
+    pub fn generate_key(
+        &self,
+        mechanism: &Mechanism,
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut handle = 0;
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_GenerateKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(ObjectHandle::new(handle))
+    }
+
     /// Generate a public/private key pair
     pub fn generate_key_pair(
         &self,

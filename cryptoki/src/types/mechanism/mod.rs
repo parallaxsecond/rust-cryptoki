@@ -43,6 +43,12 @@ impl MechanismType {
         val: CKM_RSA_PKCS_OAEP,
     };
 
+    // DES
+    /// DES3
+    pub const DES3_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_DES3_KEY_GEN,
+    };
+
     // ECC
     /// EC key pair generation mechanism
     pub const ECC_KEY_PAIR_GEN: MechanismType = MechanismType {
@@ -117,6 +123,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256 => Ok(MechanismType::SHA256),
             CKM_SHA384 => Ok(MechanismType::SHA384),
             CKM_SHA512 => Ok(MechanismType::SHA512),
+            CKM_DES3_KEY_GEN => Ok(MechanismType::DES3_KEY_GEN),
             CKM_EC_KEY_PAIR_GEN => Ok(MechanismType::ECC_KEY_PAIR_GEN),
             CKM_EC_EDWARDS_KEY_PAIR_GEN => Ok(MechanismType::ECC_EDWARDS_KEY_PAIR_GEN),
             CKM_EC_MONTGOMERY_KEY_PAIR_GEN => Ok(MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN),
@@ -149,6 +156,10 @@ pub enum Mechanism {
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
     RsaPkcsOaep(rsa::PkcsOaepParams),
+
+    // DES
+    /// DES3
+    Des3KeyGen,
 
     // ECC
     /// EC key pair generation
@@ -189,6 +200,8 @@ impl Mechanism {
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
+
+            Mechanism::Des3KeyGen => MechanismType::DES3_KEY_GEN,
 
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
             Mechanism::EccEdwardsKeyPairGen => MechanismType::ECC_EDWARDS_KEY_PAIR_GEN,
@@ -240,6 +253,7 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Sha256
             | Mechanism::Sha384
             | Mechanism::Sha512
+            | Mechanism::Des3KeyGen
             | Mechanism::EccKeyPairGen
             | Mechanism::EccEdwardsKeyPairGen
             | Mechanism::EccMontgomeryKeyPairGen
