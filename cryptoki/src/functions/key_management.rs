@@ -93,4 +93,41 @@ impl<'a> Session<'a> {
 
         Ok(ObjectHandle::new(handle))
     }
+
+    /// Wrap key
+    pub fn wrap_key(
+        &self,
+        mechanism: &Mechanism,
+        wrapping_key: ObjectHandle,
+        key: ObjectHandle,
+    ) -> Result<Vec<u8>> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        unsafe {
+            let mut wrapped_key_len = 0;
+
+            Rv::from(get_pkcs11!(self.client(), C_WrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                wrapping_key.handle(),
+                key.handle(),
+                std::ptr::null_mut(),
+                &mut wrapped_key_len,
+            ))
+            .into_result()?;
+
+            let mut wrapped_key = vec![0; wrapped_key_len.try_into()?];
+
+            Rv::from(get_pkcs11!(self.client(), C_WrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                wrapping_key.handle(),
+                key.handle(),
+                wrapped_key.as_mut_ptr(),
+                &mut wrapped_key_len,
+            ))
+            .into_result()?;
+
+            Ok(wrapped_key)
+        }
+    }
 }

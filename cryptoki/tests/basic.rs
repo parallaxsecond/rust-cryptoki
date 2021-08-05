@@ -293,6 +293,59 @@ fn get_token_info() {
 
 #[test]
 #[serial]
+fn wrap_key() {
+    let (pkcs11, slot) = init_pins();
+    // set flags
+    let mut flags = Flags::new();
+    let _ = flags.set_rw_session(true).set_serial_session(true);
+
+    // open a session
+    let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+
+    // log in the session
+    session.login(UserType::User).unwrap();
+
+    let key_to_be_wrapped_template = vec![
+        Attribute::Token(true.into()),
+        // the key needs to be extractable to be suitable for being wrapped
+        Attribute::Extractable(true.into()),
+    ];
+
+    // generate a secret key that will be wrapped
+    let key_to_be_wrapped = session
+        .generate_key(&Mechanism::Des3KeyGen, &key_to_be_wrapped_template)
+        .unwrap();
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true.into()),
+        Attribute::Private(true.into()),
+        Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
+        Attribute::ModulusBits(1024.into()),
+        // key needs to have "wrap" attribute to wrap other keys
+        Attribute::Wrap(true.into()),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![Attribute::Token(true.into())];
+
+    let wrapping_key = session
+        .generate_key_pair(
+            &Mechanism::RsaPkcsKeyPairGen,
+            &pub_key_template,
+            &priv_key_template,
+        )
+        .unwrap()
+        .0;
+
+    let wrapped_key = session
+        .wrap_key(&Mechanism::RsaPkcs, wrapping_key, key_to_be_wrapped)
+        .unwrap();
+    assert_eq!(wrapped_key.len(), 128);
+}
+
+#[test]
+#[serial]
 fn login_feast() {
     const SESSIONS: usize = 100;
 
