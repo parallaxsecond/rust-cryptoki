@@ -293,7 +293,7 @@ fn get_token_info() {
 
 #[test]
 #[serial]
-fn wrap_key() {
+fn wrap_and_unwrap_key() {
     let (pkcs11, slot) = init_pins();
     // set flags
     let mut flags = Flags::new();
@@ -329,19 +329,32 @@ fn wrap_key() {
     // priv key template
     let priv_key_template = vec![Attribute::Token(true.into())];
 
-    let wrapping_key = session
+    let (wrapping_key, unwrapping_key) = session
         .generate_key_pair(
             &Mechanism::RsaPkcsKeyPairGen,
             &pub_key_template,
             &priv_key_template,
         )
-        .unwrap()
-        .0;
+        .unwrap();
 
     let wrapped_key = session
         .wrap_key(&Mechanism::RsaPkcs, wrapping_key, key_to_be_wrapped)
         .unwrap();
     assert_eq!(wrapped_key.len(), 128);
+
+    session
+        .unwrap_key(
+            &Mechanism::RsaPkcs,
+            unwrapping_key,
+            &wrapped_key,
+            &[
+                Attribute::Token(true.into()),
+                Attribute::Private(true.into()),
+                Attribute::Class(ObjectClass::SECRET_KEY),
+                Attribute::KeyType(KeyType::GENERIC_SECRET),
+            ],
+        )
+        .unwrap();
 }
 
 #[test]

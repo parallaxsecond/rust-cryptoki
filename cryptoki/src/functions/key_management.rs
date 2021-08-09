@@ -130,4 +130,32 @@ impl<'a> Session<'a> {
             Ok(wrapped_key)
         }
     }
+
+    /// Unwrap previously wrapped key
+    pub fn unwrap_key(
+        &self,
+        mechanism: &Mechanism,
+        unwrapping_key: ObjectHandle,
+        wrapped_key: &[u8],
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut handle = 0;
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_UnwrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                unwrapping_key.handle(),
+                wrapped_key.as_ptr() as *mut u8,
+                wrapped_key.len().try_into()?,
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(ObjectHandle::new(handle))
+    }
 }
