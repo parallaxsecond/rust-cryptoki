@@ -309,11 +309,22 @@ fn wrap_and_unwrap_key() {
         Attribute::Token(true.into()),
         // the key needs to be extractable to be suitable for being wrapped
         Attribute::Extractable(true.into()),
+        Attribute::Encrypt(true.into()),
     ];
 
     // generate a secret key that will be wrapped
     let key_to_be_wrapped = session
         .generate_key(&Mechanism::Des3KeyGen, &key_to_be_wrapped_template)
+        .unwrap();
+
+    // Des3Ecb input length must be a multiple of 8
+    // see: PKCS#11 spec Table 10-10, DES-ECB Key And Data Length Constraints
+    let encrypted_with_original = session
+        .encrypt(
+            &Mechanism::Des3Ecb,
+            key_to_be_wrapped,
+            &[1, 2, 3, 4, 5, 6, 7, 8],
+        )
         .unwrap();
 
     // pub key template
@@ -342,7 +353,7 @@ fn wrap_and_unwrap_key() {
         .unwrap();
     assert_eq!(wrapped_key.len(), 128);
 
-    session
+    let unwrapped_key = session
         .unwrap_key(
             &Mechanism::RsaPkcs,
             unwrapping_key,
@@ -350,11 +361,21 @@ fn wrap_and_unwrap_key() {
             &[
                 Attribute::Token(true.into()),
                 Attribute::Private(true.into()),
+                Attribute::Encrypt(true.into()),
                 Attribute::Class(ObjectClass::SECRET_KEY),
-                Attribute::KeyType(KeyType::GENERIC_SECRET),
+                Attribute::KeyType(KeyType::DES3),
             ],
         )
         .unwrap();
+
+    let encrypted_with_unwrapped = session
+        .encrypt(
+            &Mechanism::Des3Ecb,
+            unwrapped_key,
+            &[1, 2, 3, 4, 5, 6, 7, 8],
+        )
+        .unwrap();
+    assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
 }
 
 #[test]
