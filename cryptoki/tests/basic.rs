@@ -7,10 +7,20 @@ use cryptoki::types::mechanism::Mechanism;
 use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::types::session::UserType;
 use cryptoki::types::Flags;
-use cryptoki::Result;
 use serial_test::serial;
 use std::sync::Arc;
 use std::thread;
+
+#[derive(Debug)]
+struct ErrorWithStacktrace;
+
+impl<T: std::error::Error> From<T> for ErrorWithStacktrace {
+    fn from(p: T) -> Self {
+        panic!("Error: {:#?}", p);
+    }
+}
+
+type Result<T> = std::result::Result<T, ErrorWithStacktrace>;
 
 #[test]
 #[serial]
