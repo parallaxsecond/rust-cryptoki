@@ -531,6 +531,7 @@ impl KeyType {
         val: CKK_GENERIC_SECRET,
     };
     /// DES3 secret
+    /// Note that DES3 is deprecated. See https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf section 2, p. 6.
     pub const DES3: KeyType = KeyType { val: CKK_DES3 };
 }
 

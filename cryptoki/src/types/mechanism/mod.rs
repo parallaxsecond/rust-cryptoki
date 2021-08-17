@@ -45,10 +45,12 @@ impl MechanismType {
 
     // DES
     /// DES3
+    /// Note that DES3 is deprecated. See https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf section 2, p. 6.
     pub const DES3_KEY_GEN: MechanismType = MechanismType {
         val: CKM_DES3_KEY_GEN,
     };
-    /// DES3 CBC
+    /// DES3 ECB
+    /// Note that DES3 is deprecated. See https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf section 2, p. 6.
     pub const DES3_ECB: MechanismType = MechanismType { val: CKM_DES3_ECB };
 
     // ECC
