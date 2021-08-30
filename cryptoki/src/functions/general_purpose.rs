@@ -5,9 +5,10 @@
 use crate::get_pkcs11;
 use crate::types::function::Rv;
 use crate::types::locking::CInitializeArgs;
+use crate::types::Info;
 use crate::Pkcs11;
 use crate::Result;
-use cryptoki_sys::CK_C_INITIALIZE_ARGS;
+use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use std::ptr;
 
 impl Pkcs11 {
@@ -33,4 +34,13 @@ impl Pkcs11 {
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
     /// The library is also automatically finalized on drop.
     pub fn finalize(self) {}
+
+    /// Returns the information about the library
+    pub fn get_library_info(&self) -> Result<Info> {
+        let mut info = CK_INFO::default();
+        unsafe {
+            Rv::from(get_pkcs11!(self, C_GetInfo)(&mut info)).into_result()?;
+            Ok(Info::new(info))
+        }
+    }
 }
