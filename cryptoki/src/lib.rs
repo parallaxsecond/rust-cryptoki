@@ -44,6 +44,7 @@ pub mod types;
 use crate::types::function::{Rv, RvError};
 use crate::types::session::{Session, UserType};
 use crate::types::slot_token::Slot;
+use cryptoki_sys::CK_UTF8CHAR;
 use derivative::Derivative;
 use log::error;
 use secrecy::{ExposeSecret, Secret, SecretVec};
@@ -292,3 +293,26 @@ impl Drop for Pkcs11 {
 
 /// Main Result type
 pub type Result<T> = core::result::Result<T, Error>;
+
+fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {
+    let decoded_str = String::from_utf8_lossy(field);
+    decoded_str.trim_end_matches(' ').to_string()
+}
+
+fn label_from_str(label: &str) -> [CK_UTF8CHAR; 32] {
+    let mut lab: [CK_UTF8CHAR; 32] = [32; 32];
+    let mut i = 0;
+    for c in label.chars() {
+        if i + c.len_utf8() <= 32 {
+            let mut buf = [0; 4];
+            let bytes = c.encode_utf8(&mut buf).as_bytes();
+            for b in bytes {
+                lab[i] = *b;
+                i += 1;
+            }
+        } else {
+            break;
+        }
+    }
+    lab
+}

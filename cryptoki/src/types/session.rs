@@ -3,9 +3,13 @@
 //! Session types
 
 use crate::types::slot_token::Slot;
+use crate::types::{SessionFlags, Ulong};
 use crate::Pkcs11;
 use cryptoki_sys::*;
 use log::error;
+use std::convert::TryInto;
+use std::fmt::Formatter;
+use std::ops::Deref;
 
 /// Type that identifies a session
 ///
@@ -21,6 +25,24 @@ pub struct Session<'a> {
     slot: Slot,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: *mut u32,
+}
+
+impl std::fmt::Display for Session<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.handle)
+    }
+}
+
+impl std::fmt::LowerHex for Session<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:08x}", self.handle)
+    }
+}
+
+impl std::fmt::UpperHex for Session<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:08x}", self.handle)
+    }
 }
 
 // Session does not implement Sync to prevent the same Session instance to be used from multiple
@@ -81,5 +103,107 @@ impl From<UserType> for CK_USER_TYPE {
             UserType::User => CKU_USER,
             UserType::ContextSpecific => CKU_CONTEXT_SPECIFIC,
         }
+    }
+}
+
+/// Represents the state of a session
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct SessionState {
+    val: CK_STATE,
+}
+
+impl SessionState {
+    /// Read-only public session
+    pub const RO_PUBLIC_SESSION: SessionState = SessionState {
+        val: CKS_RO_PUBLIC_SESSION,
+    };
+
+    /// Read-only user access
+    pub const RO_USER_FUNCTIONS: SessionState = SessionState {
+        val: CKS_RO_USER_FUNCTIONS,
+    };
+
+    /// Read/write public session
+    pub const RW_PUBLIC_SESSION: SessionState = SessionState {
+        val: CKS_RW_PUBLIC_SESSION,
+    };
+
+    /// Read/write user access
+    pub const RW_USER_FUNCTIONS: SessionState = SessionState {
+        val: CKS_RW_USER_FUNCTIONS,
+    };
+
+    /// Read/write SO access
+    pub const RW_SO_FUNCTIONS: SessionState = SessionState {
+        val: CKS_RW_SO_FUNCTIONS,
+    };
+
+    fn state_to_str(&self) -> &'static str {
+        match self.val {
+            CKS_RO_PUBLIC_SESSION => stringify!(CKS_RO_PUBLIC_SESSION),
+            CKS_RO_USER_FUNCTIONS => stringify!(CKS_RO_USER_FUNCTIONS),
+            CKS_RW_PUBLIC_SESSION => stringify!(CKS_RW_PUBLIC_SESSION),
+            CKS_RW_USER_FUNCTIONS => stringify!(CKS_RW_USER_FUNCTIONS),
+            CKS_RW_SO_FUNCTIONS => stringify!(CKS_RW_SO_FUNCTIONS),
+            _ => "Unknown state value",
+        }
+    }
+}
+
+impl Deref for SessionState {
+    type Target = CK_STATE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<SessionState> for CK_STATE {
+    fn from(session_state: SessionState) -> Self {
+        *session_state
+    }
+}
+
+impl From<CK_STATE> for SessionState {
+    fn from(val: CK_STATE) -> Self {
+        Self { val }
+    }
+}
+
+impl std::fmt::Display for SessionState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.state_to_str())
+    }
+}
+
+/// Type identifying the session information
+#[derive(Copy, Clone, Debug)]
+pub struct SessionInfo {
+    val: CK_SESSION_INFO,
+}
+
+impl SessionInfo {
+    pub(crate) fn new(val: CK_SESSION_INFO) -> Self {
+        Self { val }
+    }
+
+    /// Returns an error code defined by the cryptographic device
+    pub fn get_device_error(&self) -> Ulong {
+        self.val.ulDeviceError.into()
+    }
+
+    /// Returns the flags for this session
+    pub fn get_flags(&self) -> SessionFlags {
+        self.val.flags.into()
+    }
+
+    /// Returns the state of the session
+    pub fn get_session_state(&self) -> SessionState {
+        self.val.state.into()
+    }
+
+    /// Returns the slot the session is on
+    pub fn get_slot_id(&self) -> Slot {
+        self.val.slotID.try_into().unwrap()
     }
 }

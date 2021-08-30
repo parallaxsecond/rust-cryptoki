@@ -497,7 +497,11 @@ impl TryFrom<CK_OBJECT_CLASS> for ObjectClass {
 
     fn try_from(object_class: CK_OBJECT_CLASS) -> Result<Self> {
         match object_class {
+            CKO_DATA => Ok(ObjectClass::DATA),
+            CKO_PRIVATE_KEY => Ok(ObjectClass::PRIVATE_KEY),
+            CKO_SECRET_KEY => Ok(ObjectClass::SECRET_KEY),
             CKO_PUBLIC_KEY => Ok(ObjectClass::PUBLIC_KEY),
+            CKO_CERTIFICATE => Ok(ObjectClass::CERTIFICATE),
             other => {
                 error!("Object class {} is not supported.", other);
                 Err(Error::NotSupported)

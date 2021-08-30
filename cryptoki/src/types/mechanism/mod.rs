@@ -5,7 +5,7 @@
 pub mod elliptic_curve;
 pub mod rsa;
 
-use crate::types::{Flags, Ulong};
+use crate::types::{MechanismFlags, Ulong};
 use crate::Error;
 use cryptoki_sys::*;
 use log::error;
@@ -346,7 +346,7 @@ impl MechanismInfo {
     }
 
     /// Returns the flags for this mechanism.
-    pub fn flags(&self) -> Flags {
+    pub fn flags(&self) -> MechanismFlags {
         self.val.flags.into()
     }
 }
