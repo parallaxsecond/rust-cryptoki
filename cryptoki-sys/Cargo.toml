@@ -12,7 +12,7 @@ repository = "https://github.com/parallaxsecond/rust-cryptoki"
 documentation = "https://docs.rs/crate/cryptoki"
 
 [build-dependencies]
-bindgen = { version = "0.57.0", optional = true }
+bindgen = { version = "0.59.1", optional = true }
 target-lexicon = "0.12.0"
 
 [dependencies]
