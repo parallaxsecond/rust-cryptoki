@@ -896,7 +896,7 @@ impl From<CK_FLAGS> for TokenFlags {
 }
 
 #[repr(u8)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 /// Byte-sized boolean
 pub enum Bbool {
     /// False value
@@ -929,6 +929,15 @@ impl From<bool> for Bbool {
     }
 }
 
+impl From<Bbool> for bool {
+    fn from(val: Bbool) -> Self {
+        match val {
+            Bbool::False => false,
+            Bbool::True => true,
+        }
+    }
+}
+
 impl TryFrom<CK_BBOOL> for Bbool {
     type Error = Error;
 
@@ -941,6 +950,89 @@ impl TryFrom<CK_BBOOL> for Bbool {
                 Err(Error::InvalidValue)
             }
         }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+#[repr(transparent)]
+/// Value that represents a date
+pub struct Date {
+    date: CK_DATE,
+}
+
+impl Date {
+    /// Creates a new `Date` structure
+    ///
+    /// # Arguments
+    ///
+    /// * `year` - A 4 character length year, e.g. "2021"
+    /// * `month` - A 2 character length mont, e.g. "02"
+    /// * `day` - A 2 character length day, e.g. "15"
+    ///
+    /// # Errors
+    ///
+    /// If the lengths are invalid a `Error::InvalidValue` will be returned
+    pub fn new_from_str_slice(year: &str, month: &str, day: &str) -> Result<Self> {
+        if year.len() != 4 || month.len() != 2 || day.len() != 2 {
+            Err(Error::InvalidValue)
+        } else {
+            let mut year_slice: [u8; 4] = Default::default();
+            let mut month_slice: [u8; 2] = Default::default();
+            let mut day_slice: [u8; 2] = Default::default();
+            year_slice.copy_from_slice(year.as_bytes());
+            month_slice.copy_from_slice(month.as_bytes());
+            day_slice.copy_from_slice(day.as_bytes());
+            Ok(Date::new(year_slice, month_slice, day_slice))
+        }
+    }
+
+    /// Creates a new `Date` structure from byte slices
+    ///
+    /// # Arguments
+    ///
+    /// * `year` - A 4 character length year, e.g. "2021"
+    /// * `month` - A 2 character length mont, e.g. "02"
+    /// * `day` - A 2 character length day, e.g. "15"
+    pub fn new(year: [u8; 4], month: [u8; 2], day: [u8; 2]) -> Self {
+        let date = CK_DATE { year, month, day };
+        Self { date }
+    }
+}
+
+impl Deref for Date {
+    type Target = CK_DATE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.date
+    }
+}
+
+impl From<Date> for CK_DATE {
+    fn from(date: Date) -> Self {
+        *date
+    }
+}
+
+impl From<CK_DATE> for Date {
+    fn from(date: CK_DATE) -> Self {
+        Self { date }
+    }
+}
+
+impl std::fmt::Display for Date {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let year = String::from_utf8_lossy(Vec::from(self.year).as_slice())
+            .trim_end()
+            .to_string();
+        let month = String::from_utf8_lossy(Vec::from(self.month).as_slice())
+            .trim_end()
+            .to_string();
+        let day = String::from_utf8_lossy(Vec::from(self.day).as_slice())
+            .trim_end()
+            .to_string();
+        // Prints this month/day/year
+        // todo - Figure out how to determine if US vs European since us Americans do it the 'right' way ;)
+        write!(f, "{}/{}/{}", month, day, year)
     }
 }
 
@@ -978,6 +1070,12 @@ impl TryFrom<usize> for Ulong {
         Ok(Ulong {
             val: ulong.try_into()?,
         })
+    }
+}
+
+impl From<Ulong> for usize {
+    fn from(ulong: Ulong) -> Self {
+        ulong.val as usize
     }
 }
 

@@ -516,7 +516,7 @@ fn get_session_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn generate_random_test() -> Result<(), Box<dyn Error>> {
+fn generate_random_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
