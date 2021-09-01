@@ -44,7 +44,7 @@ trait Flags: std::fmt::Display {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-/// Collection of flags defined for [`CK_SLOT_INFO`]
+/// Collection of flags defined for [`CK_C_INITIALIZE_ARGS`]
 pub struct InitializeFlags {
     flags: CK_FLAGS,
 }
@@ -128,7 +128,7 @@ impl From<CK_FLAGS> for InitializeFlags {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-/// Collection of flags defined for [`CK_SLOT_INFO`]
+/// Collection of flags defined for [`CK_MECHANISM_INFO`]
 pub struct MechanismFlags {
     flags: CK_FLAGS,
 }
@@ -421,7 +421,7 @@ impl From<CK_FLAGS> for MechanismFlags {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-/// Collection of flags defined for [`CK_SLOT_INFO`]
+/// Collection of flags defined for [`CK_SESSION_INFO`]
 pub struct SessionFlags {
     flags: CK_FLAGS,
 }
