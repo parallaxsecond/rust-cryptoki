@@ -66,6 +66,12 @@ impl TryFrom<u32> for Slot {
     }
 }
 
+impl From<Slot> for usize {
+    fn from(slot: Slot) -> Self {
+        slot.slot_id as usize
+    }
+}
+
 impl From<Slot> for CK_SLOT_ID {
     fn from(slot: Slot) -> Self {
         slot.slot_id
