@@ -778,9 +778,9 @@ impl TokenFlags {
         self.get_flag(CKF_USER_PIN_FINAL_TRY)
     }
 
-    /// Sets value of [`CKF_USER_PIN_COUNT_LOW`]
+    /// Sets value of [`CKF_USER_PIN_FINAL_TRY`]
     pub fn set_user_pin_final_try(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_USER_PIN_COUNT_LOW, b);
+        self.set_flag(CKF_USER_PIN_FINAL_TRY, b);
         self
     }
 
@@ -822,9 +822,9 @@ impl TokenFlags {
         self.get_flag(CKF_SO_PIN_FINAL_TRY)
     }
 
-    /// Sets value of [`CKF_SO_PIN_COUNT_LOW`]
+    /// Sets value of [`CKF_SO_PIN_FINAL_TRY`]
     pub fn set_so_pin_final_try(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_SO_PIN_COUNT_LOW, b);
+        self.set_flag(CKF_SO_PIN_FINAL_TRY, b);
         self
     }
 

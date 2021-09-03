@@ -41,7 +41,7 @@ impl std::fmt::LowerHex for Session<'_> {
 
 impl std::fmt::UpperHex for Session<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:08x}", self.handle)
+        write!(f, "{:08X}", self.handle)
     }
 }
 
