@@ -138,8 +138,9 @@ impl SessionState {
         val: CKS_RW_SO_FUNCTIONS,
     };
 
-    fn state_to_str(&self) -> &'static str {
-        match self.val {
+    /// Stringifies the value of a [CK_STATE]
+    pub(crate) fn stringify(state: CK_STATE) -> &'static str {
+        match state {
             CKS_RO_PUBLIC_SESSION => stringify!(CKS_RO_PUBLIC_SESSION),
             CKS_RO_USER_FUNCTIONS => stringify!(CKS_RO_USER_FUNCTIONS),
             CKS_RW_PUBLIC_SESSION => stringify!(CKS_RW_PUBLIC_SESSION),
@@ -172,7 +173,7 @@ impl From<CK_STATE> for SessionState {
 
 impl std::fmt::Display for SessionState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.state_to_str())
+        write!(f, "{}", SessionState::stringify(self.val))
     }
 }
 
@@ -188,22 +189,22 @@ impl SessionInfo {
     }
 
     /// Returns an error code defined by the cryptographic device
-    pub fn get_device_error(&self) -> Ulong {
+    pub fn device_error(&self) -> Ulong {
         self.val.ulDeviceError.into()
     }
 
     /// Returns the flags for this session
-    pub fn get_flags(&self) -> SessionFlags {
+    pub fn flags(&self) -> SessionFlags {
         self.val.flags.into()
     }
 
     /// Returns the state of the session
-    pub fn get_session_state(&self) -> SessionState {
+    pub fn session_state(&self) -> SessionState {
         self.val.state.into()
     }
 
     /// Returns the slot the session is on
-    pub fn get_slot_id(&self) -> Slot {
+    pub fn slot_id(&self) -> Slot {
         self.val.slotID.try_into().unwrap()
     }
 }

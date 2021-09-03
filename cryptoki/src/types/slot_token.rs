@@ -7,7 +7,7 @@
 //! Slot and token types
 
 use crate::types::{SlotFlags, TokenFlags, Ulong, Version};
-use crate::{str_from_blank_padded, Error, Result};
+use crate::{string_from_blank_padded, Error, Result};
 use cryptoki_sys::{CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Formatter;
@@ -90,28 +90,28 @@ impl SlotInfo {
     }
 
     /// Returns the firmware version
-    pub fn get_firmware_version(&self) -> Version {
+    pub fn firmware_version(&self) -> Version {
         self.val.firmwareVersion.into()
     }
 
     /// Returns the flags of the slot
-    pub fn get_flags(&self) -> SlotFlags {
+    pub fn flags(&self) -> SlotFlags {
         self.val.flags.into()
     }
 
     /// Returns the hardware version
-    pub fn get_hardware_version(&self) -> Version {
+    pub fn hardware_version(&self) -> Version {
         self.val.hardwareVersion.into()
     }
 
     /// Returns the manufacturer ID
-    pub fn get_manufacturer_id(&self) -> String {
-        str_from_blank_padded(&self.val.manufacturerID)
+    pub fn manufacturer_id(&self) -> String {
+        string_from_blank_padded(&self.val.manufacturerID)
     }
 
     /// Returns the slot description
-    pub fn get_slot_description(&self) -> String {
-        str_from_blank_padded(&self.val.slotDescription)
+    pub fn slot_description(&self) -> String {
+        string_from_blank_padded(&self.val.slotDescription)
     }
 }
 
@@ -141,87 +141,87 @@ impl TokenInfo {
     }
 
     /// Returns the firmware version
-    pub fn get_firmware_version(&self) -> Version {
+    pub fn firmware_version(&self) -> Version {
         self.val.firmwareVersion.into()
     }
 
     /// Returns the free private memory
-    pub fn get_free_private_memory(&self) -> Ulong {
+    pub fn free_private_memory(&self) -> Ulong {
         self.val.ulFreePrivateMemory.into()
     }
 
     /// Returns the free public memory
-    pub fn get_free_public_memory(&self) -> Ulong {
+    pub fn free_public_memory(&self) -> Ulong {
         self.val.ulFreePublicMemory.into()
     }
 
     /// Returns the hardware version
-    pub fn get_hardware_version(&self) -> Version {
+    pub fn hardware_version(&self) -> Version {
         self.val.hardwareVersion.into()
     }
 
     /// Returns the label of the token
-    pub fn get_label(&self) -> String {
-        str_from_blank_padded(&self.val.label)
+    pub fn label(&self) -> String {
+        string_from_blank_padded(&self.val.label)
     }
 
     /// Returns the ID of the device manufacturer
-    pub fn get_manufacturer_id(&self) -> String {
-        str_from_blank_padded(&self.val.manufacturerID)
+    pub fn manufacturer_id(&self) -> String {
+        string_from_blank_padded(&self.val.manufacturerID)
     }
 
     /// Returns the max PIN length
-    pub fn get_max_pin_length(&self) -> Ulong {
+    pub fn max_pin_length(&self) -> Ulong {
         self.val.ulMaxPinLen.into()
     }
 
     /// Returns the max session count
-    pub fn get_max_session_count(&self) -> Ulong {
+    pub fn max_session_count(&self) -> Ulong {
         self.val.ulMaxSessionCount.into()
     }
 
     /// Returns the max r/w session count
-    pub fn get_max_rw_session_count(&self) -> Ulong {
+    pub fn max_rw_session_count(&self) -> Ulong {
         self.val.ulMaxRwSessionCount.into()
     }
 
     /// Returns the min PIN length
-    pub fn get_min_pin_length(&self) -> Ulong {
+    pub fn min_pin_length(&self) -> Ulong {
         self.val.ulMinPinLen.into()
     }
 
     /// Returns the model of the token
-    pub fn get_model(&self) -> String {
-        str_from_blank_padded(&self.val.model)
+    pub fn model(&self) -> String {
+        string_from_blank_padded(&self.val.model)
     }
 
     /// Returns the r/w session count
-    pub fn get_rw_session_count(&self) -> Ulong {
+    pub fn rw_session_count(&self) -> Ulong {
         self.val.ulRwSessionCount.into()
     }
 
     /// Returns the character-string serial number of the device
-    pub fn get_serial_number(&self) -> String {
-        str_from_blank_padded(&self.val.serialNumber)
+    pub fn serial_number(&self) -> String {
+        string_from_blank_padded(&self.val.serialNumber)
     }
 
     /// Returns current session count
-    pub fn get_session_count(&self) -> Ulong {
+    pub fn session_count(&self) -> Ulong {
         self.val.ulSessionCount.into()
     }
 
     /// Returns the total private memory
-    pub fn get_total_private_memory(&self) -> Ulong {
+    pub fn total_private_memory(&self) -> Ulong {
         self.val.ulTotalPrivateMemory.into()
     }
 
     /// Returns the total public memory
-    pub fn get_total_public_memory(&self) -> Ulong {
+    pub fn total_public_memory(&self) -> Ulong {
         self.val.ulTotalPublicMemory.into()
     }
 
     /// Returns the UTC Time of the token
-    pub fn get_utc_time(&self) -> String {
+    pub fn utc_time(&self) -> String {
         // UTC time is not blank padded as it has the format YYYYMMDDhhmmssxx where
         // x is the '0' character
         String::from_utf8_lossy(&self.val.utcTime)
@@ -230,7 +230,7 @@ impl TokenInfo {
     }
 
     /// Returns the Token's flags
-    pub fn get_flags(&self) -> TokenFlags {
+    pub fn flags(&self) -> TokenFlags {
         self.val.flags.into()
     }
 }

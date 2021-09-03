@@ -55,7 +55,7 @@ impl Pkcs11 {
             .into_iter()
             .filter_map(|slot| match self.get_token_info(slot) {
                 Ok(token_info) => {
-                    if token_info.get_flags().token_initialized() {
+                    if token_info.flags().token_initialized() {
                         Some(Ok(slot))
                     } else {
                         None

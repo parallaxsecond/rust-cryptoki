@@ -290,7 +290,7 @@ fn import_export() {
 fn get_token_info() {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot).unwrap();
-    assert_eq!("SoftHSM project", info.get_manufacturer_id());
+    assert_eq!("SoftHSM project", info.manufacturer_id());
 }
 
 #[test]
@@ -331,9 +331,9 @@ fn get_info_test() -> Result<(), Box<dyn Error>> {
     let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
-    assert_eq!(info.get_cryptoki_version().get_major(), 2);
-    assert_eq!(info.get_cryptoki_version().get_minor(), 40);
-    assert_eq!(info.get_manufacturer_id(), String::from("SoftHSM"));
+    assert_eq!(info.cryptoki_version().major(), 2);
+    assert_eq!(info.cryptoki_version().minor(), 40);
+    assert_eq!(info.manufacturer_id(), String::from("SoftHSM"));
     Ok(())
 }
 
@@ -342,13 +342,10 @@ fn get_info_test() -> Result<(), Box<dyn Error>> {
 fn get_slot_info_test() -> Result<(), Box<dyn Error>> {
     let (pkcs11, slot) = init_pins();
     let slot_info = pkcs11.get_slot_info(slot)?;
-    assert!(slot_info.get_flags().token_present());
-    assert!(!slot_info.get_flags().hardware_slot());
-    assert!(!slot_info.get_flags().removable_device());
-    assert_eq!(
-        slot_info.get_manufacturer_id(),
-        String::from("SoftHSM project")
-    );
+    assert!(slot_info.flags().token_present());
+    assert!(!slot_info.flags().hardware_slot());
+    assert!(!slot_info.flags().removable_device());
+    assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
     Ok(())
 }
 
@@ -370,19 +367,19 @@ fn get_session_info_test() -> Result<(), Box<dyn Error>> {
     {
         let session = pkcs11.open_session_no_callback(slot, flags)?;
         let session_info = session.get_session_info()?;
-        assert_eq!(session_info.get_flags(), flags);
-        assert_eq!(session_info.get_slot_id(), slot);
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
         assert_eq!(
-            session_info.get_session_state(),
+            session_info.session_state(),
             SessionState::RO_PUBLIC_SESSION
         );
 
         session.login(UserType::User)?;
         let session_info = session.get_session_info()?;
-        assert_eq!(session_info.get_flags(), flags);
-        assert_eq!(session_info.get_slot_id(), slot);
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
         assert_eq!(
-            session_info.get_session_state(),
+            session_info.session_state(),
             SessionState::RO_USER_FUNCTIONS
         );
         session.logout()?;
@@ -397,30 +394,27 @@ fn get_session_info_test() -> Result<(), Box<dyn Error>> {
 
     let session = pkcs11.open_session_no_callback(slot, flags)?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.get_flags(), flags);
-    assert_eq!(session_info.get_slot_id(), slot);
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
     assert_eq!(
-        session_info.get_session_state(),
+        session_info.session_state(),
         SessionState::RW_PUBLIC_SESSION
     );
 
     session.login(UserType::User)?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.get_flags(), flags);
-    assert_eq!(session_info.get_slot_id(), slot);
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
     assert_eq!(
-        session_info.get_session_state(),
+        session_info.session_state(),
         SessionState::RW_USER_FUNCTIONS
     );
     session.logout()?;
     session.login(UserType::So)?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.get_flags(), flags);
-    assert_eq!(session_info.get_slot_id(), slot);
-    assert_eq!(
-        session_info.get_session_state(),
-        SessionState::RW_SO_FUNCTIONS
-    );
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(session_info.session_state(), SessionState::RW_SO_FUNCTIONS);
 
     Ok(())
 }
