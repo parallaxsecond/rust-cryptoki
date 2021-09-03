@@ -530,6 +530,9 @@ impl KeyType {
     pub const GENERIC_SECRET: KeyType = KeyType {
         val: CKK_GENERIC_SECRET,
     };
+    /// DES3 secret
+    /// Note that DES3 is deprecated. See https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf section 2, p. 6.
+    pub const DES3: KeyType = KeyType { val: CKK_DES3 };
 }
 
 impl Deref for KeyType {
@@ -556,6 +559,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_GENERIC_SECRET => Ok(KeyType::GENERIC_SECRET),
+            CKK_DES3 => Ok(KeyType::DES3),
             other => {
                 error!("Key type {} is not supported.", other);
                 Err(Error::NotSupported)

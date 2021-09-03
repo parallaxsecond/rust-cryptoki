@@ -12,6 +12,29 @@ use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
 use std::convert::TryInto;
 
 impl<'a> Session<'a> {
+    /// Generate a secret key
+    pub fn generate_key(
+        &self,
+        mechanism: &Mechanism,
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut handle = 0;
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_GenerateKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(ObjectHandle::new(handle))
+    }
+
     /// Generate a public/private key pair
     pub fn generate_key_pair(
         &self,
@@ -61,6 +84,71 @@ impl<'a> Session<'a> {
                 self.handle(),
                 &mut mechanism as CK_MECHANISM_PTR,
                 base_key.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(ObjectHandle::new(handle))
+    }
+
+    /// Wrap key
+    pub fn wrap_key(
+        &self,
+        mechanism: &Mechanism,
+        wrapping_key: ObjectHandle,
+        key: ObjectHandle,
+    ) -> Result<Vec<u8>> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        unsafe {
+            let mut wrapped_key_len = 0;
+
+            Rv::from(get_pkcs11!(self.client(), C_WrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                wrapping_key.handle(),
+                key.handle(),
+                std::ptr::null_mut(),
+                &mut wrapped_key_len,
+            ))
+            .into_result()?;
+
+            let mut wrapped_key = vec![0; wrapped_key_len.try_into()?];
+
+            Rv::from(get_pkcs11!(self.client(), C_WrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                wrapping_key.handle(),
+                key.handle(),
+                wrapped_key.as_mut_ptr(),
+                &mut wrapped_key_len,
+            ))
+            .into_result()?;
+
+            Ok(wrapped_key)
+        }
+    }
+
+    /// Unwrap previously wrapped key
+    pub fn unwrap_key(
+        &self,
+        mechanism: &Mechanism,
+        unwrapping_key: ObjectHandle,
+        wrapped_key: &[u8],
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut handle = 0;
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_UnwrapKey)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                unwrapping_key.handle(),
+                wrapped_key.as_ptr() as *mut u8,
+                wrapped_key.len().try_into()?,
                 template.as_mut_ptr(),
                 template.len().try_into()?,
                 &mut handle,
