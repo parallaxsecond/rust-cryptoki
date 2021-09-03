@@ -121,9 +121,15 @@ impl From<InitializeFlags> for CK_FLAGS {
     }
 }
 
-impl From<CK_FLAGS> for InitializeFlags {
-    fn from(flags: CK_FLAGS) -> Self {
-        Self { flags }
+impl TryFrom<CK_FLAGS> for InitializeFlags {
+    type Error = Error;
+
+    fn try_from(flags: CK_FLAGS) -> Result<Self> {
+        if flags & !(CKF_OS_LOCKING_OK | CKF_LIBRARY_CANT_CREATE_OS_THREADS) != 0 {
+            Err(Error::InvalidValue)
+        } else {
+            Ok(Self { flags })
+        }
     }
 }
 
