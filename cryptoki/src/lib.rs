@@ -294,7 +294,7 @@ impl Drop for Pkcs11 {
 /// Main Result type
 pub type Result<T> = core::result::Result<T, Error>;
 
-fn str_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {
+fn string_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {
     let decoded_str = String::from_utf8_lossy(field);
     decoded_str.trim_end_matches(' ').to_string()
 }

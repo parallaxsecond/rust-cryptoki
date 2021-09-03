@@ -9,7 +9,7 @@ pub mod object;
 pub mod session;
 pub mod slot_token;
 
-use crate::{str_from_blank_padded, Error, Result};
+use crate::{string_from_blank_padded, Error, Result};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;
@@ -20,9 +20,9 @@ use std::ops::Deref;
 trait Flags: std::fmt::Display {
     type FlagType: Copy;
 
-    fn get_flag_value(&self) -> Self::FlagType;
+    fn flag_value(&self) -> Self::FlagType;
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool;
+    fn flag(&self, flag: Self::FlagType) -> bool;
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool);
 
@@ -31,7 +31,7 @@ trait Flags: std::fmt::Display {
     fn stringify_fmt(&self, f: &mut Formatter<'_>, flags: Vec<Self::FlagType>) -> std::fmt::Result {
         let mut first_done = false;
         for flag in flags.iter() {
-            if self.get_flag(*flag) {
+            if self.flag(*flag) {
                 if first_done {
                     write!(f, ", ")?;
                 }
@@ -52,12 +52,12 @@ pub struct InitializeFlags {
 impl Flags for InitializeFlags {
     type FlagType = CK_FLAGS;
 
-    fn get_flag_value(&self) -> Self::FlagType {
+    fn flag_value(&self) -> Self::FlagType {
         self.flags
     }
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool {
-        self.get_flag_value() & flag == flag
+    fn flag(&self, flag: Self::FlagType) -> bool {
+        self.flag_value() & flag == flag
     }
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
@@ -87,7 +87,7 @@ impl InitializeFlags {
 
     /// Gets value of [`CKF_LIBRARY_CANT_CREATE_OS_THREADS`]
     pub fn library_cant_create_os_threads(&self) -> bool {
-        self.get_flag(CKF_LIBRARY_CANT_CREATE_OS_THREADS)
+        self.flag(CKF_LIBRARY_CANT_CREATE_OS_THREADS)
     }
 
     /// Sets value of [`CKF_LIBRARY_CANT_CREATE_OS_THREADS`]
@@ -98,7 +98,7 @@ impl InitializeFlags {
 
     /// Gets value of [`CKF_OS_LOCKING_OK`]
     pub fn os_locking_ok(&self) -> bool {
-        self.get_flag(CKF_OS_LOCKING_OK)
+        self.flag(CKF_OS_LOCKING_OK)
     }
 
     /// Sets value of [`CKF_OS_LOCKING_OK`]
@@ -136,12 +136,12 @@ pub struct MechanismFlags {
 impl Flags for MechanismFlags {
     type FlagType = CK_FLAGS;
 
-    fn get_flag_value(&self) -> Self::FlagType {
+    fn flag_value(&self) -> Self::FlagType {
         self.flags
     }
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool {
-        self.get_flag_value() & flag == flag
+    fn flag(&self, flag: Self::FlagType) -> bool {
+        self.flag_value() & flag == flag
     }
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
@@ -185,7 +185,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_HW`]
     pub fn hardware(&self) -> bool {
-        self.get_flag(CKF_HW)
+        self.flag(CKF_HW)
     }
 
     /// Sets value of [`CKF_HW`]
@@ -196,7 +196,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_ENCRYPT`]
     pub fn encrypt(&self) -> bool {
-        self.get_flag(CKF_ENCRYPT)
+        self.flag(CKF_ENCRYPT)
     }
 
     /// Sets value of [`CKF_ENCRYPT`]
@@ -207,7 +207,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_DECRYPT`]
     pub fn decrypt(&self) -> bool {
-        self.get_flag(CKF_DECRYPT)
+        self.flag(CKF_DECRYPT)
     }
 
     /// Sets value of [`CKF_DECRYPT`]
@@ -218,7 +218,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_DIGEST`]
     pub fn digest(&self) -> bool {
-        self.get_flag(CKF_DIGEST)
+        self.flag(CKF_DIGEST)
     }
 
     /// Sets value of [`CKF_DIGEST`]
@@ -229,7 +229,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_SIGN`]
     pub fn sign(&self) -> bool {
-        self.get_flag(CKF_SIGN)
+        self.flag(CKF_SIGN)
     }
 
     /// Sets value of [`CKF_SIGN`]
@@ -240,7 +240,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_SIGN_RECOVER`]
     pub fn sign_recover(&self) -> bool {
-        self.get_flag(CKF_SIGN_RECOVER)
+        self.flag(CKF_SIGN_RECOVER)
     }
 
     /// Sets value of [`CKF_SIGN_RECOVER`]
@@ -251,7 +251,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_VERIFY`]
     pub fn verify(&self) -> bool {
-        self.get_flag(CKF_VERIFY)
+        self.flag(CKF_VERIFY)
     }
 
     /// Sets value of [`CKF_VERIFY`]
@@ -262,7 +262,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_VERIFY_RECOVER`]
     pub fn verify_recover(&self) -> bool {
-        self.get_flag(CKF_VERIFY_RECOVER)
+        self.flag(CKF_VERIFY_RECOVER)
     }
 
     /// Sets value of [`CKF_VERIFY_RECOVER`]
@@ -273,7 +273,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_GENERATE`]
     pub fn generate(&self) -> bool {
-        self.get_flag(CKF_GENERATE)
+        self.flag(CKF_GENERATE)
     }
 
     /// Sets value of [`CKF_GENERATE`]
@@ -284,7 +284,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_GENERATE_KEY_PAIR`]
     pub fn generate_key_pair(&self) -> bool {
-        self.get_flag(CKF_GENERATE_KEY_PAIR)
+        self.flag(CKF_GENERATE_KEY_PAIR)
     }
 
     /// Sets value of [`CKF_GENERATE_KEY_PAIR`]
@@ -295,7 +295,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_WRAP`]
     pub fn wrap(&self) -> bool {
-        self.get_flag(CKF_WRAP)
+        self.flag(CKF_WRAP)
     }
 
     /// Sets value of [`CKF_WRAP`]
@@ -306,7 +306,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_UNWRAP`]
     pub fn unwrap(&self) -> bool {
-        self.get_flag(CKF_UNWRAP)
+        self.flag(CKF_UNWRAP)
     }
 
     /// Sets value of [`CKF_UNWRAP`]
@@ -317,7 +317,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_DERIVE`]
     pub fn derive(&self) -> bool {
-        self.get_flag(CKF_DERIVE)
+        self.flag(CKF_DERIVE)
     }
 
     /// Sets value of [`CKF_DERIVE`]
@@ -328,7 +328,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_EXTENSION`]
     pub fn extension(&self) -> bool {
-        self.get_flag(CKF_EXTENSION)
+        self.flag(CKF_EXTENSION)
     }
 
     /// Sets value of [`CKF_EXTENSION`]
@@ -339,7 +339,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_EC_F_P`]
     pub fn ec_f_p(&self) -> bool {
-        self.get_flag(CKF_EC_F_P)
+        self.flag(CKF_EC_F_P)
     }
 
     /// Sets value of [`CKF_EC_F_P`]
@@ -350,7 +350,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_EC_NAMEDCURVE`]
     pub fn ec_namedcurve(&self) -> bool {
-        self.get_flag(CKF_EC_NAMEDCURVE)
+        self.flag(CKF_EC_NAMEDCURVE)
     }
 
     /// Sets value of [`CKF_EC_NAMEDCURVE`]
@@ -361,7 +361,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_EC_UNCOMPRESS`]
     pub fn ec_uncompress(&self) -> bool {
-        self.get_flag(CKF_EC_UNCOMPRESS)
+        self.flag(CKF_EC_UNCOMPRESS)
     }
 
     /// Sets value of [`CKF_EC_UNCOMPRESS`]
@@ -372,7 +372,7 @@ impl MechanismFlags {
 
     /// Gets value of [`CKF_EC_COMPRESS`]
     pub fn ec_compress(&self) -> bool {
-        self.get_flag(CKF_EC_COMPRESS)
+        self.flag(CKF_EC_COMPRESS)
     }
 
     /// Sets value of [`CKF_EC_COMPRESS`]
@@ -429,12 +429,12 @@ pub struct SessionFlags {
 impl Flags for SessionFlags {
     type FlagType = CK_FLAGS;
 
-    fn get_flag_value(&self) -> Self::FlagType {
+    fn flag_value(&self) -> Self::FlagType {
         self.flags
     }
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool {
-        self.get_flag_value() & flag == flag
+    fn flag(&self, flag: Self::FlagType) -> bool {
+        self.flag_value() & flag == flag
     }
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
@@ -462,7 +462,7 @@ impl SessionFlags {
 
     /// Gets value of [`CKF_RW_SESSION`]
     pub fn rw_session(&self) -> bool {
-        self.get_flag(CKF_RW_SESSION)
+        self.flag(CKF_RW_SESSION)
     }
 
     /// Sets value of [`CKF_RW_SESSION`]
@@ -473,7 +473,7 @@ impl SessionFlags {
 
     /// Gets value of [`CKF_SERIAL_SESSION`]
     pub fn serial_session(&self) -> bool {
-        self.get_flag(CKF_SERIAL_SESSION)
+        self.flag(CKF_SERIAL_SESSION)
     }
 
     /// Sets value of [`CKF_SERIAL_SESSION`]
@@ -511,12 +511,12 @@ pub struct SlotFlags {
 impl Flags for SlotFlags {
     type FlagType = CK_FLAGS;
 
-    fn get_flag_value(&self) -> Self::FlagType {
+    fn flag_value(&self) -> Self::FlagType {
         self.flags
     }
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool {
-        self.get_flag_value() & flag == flag
+    fn flag(&self, flag: Self::FlagType) -> bool {
+        self.flag_value() & flag == flag
     }
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
@@ -545,7 +545,7 @@ impl SlotFlags {
 
     /// Gets value of [`CKF_TOKEN_PRESENT`]
     pub fn token_present(&self) -> bool {
-        self.get_flag(CKF_TOKEN_PRESENT)
+        self.flag(CKF_TOKEN_PRESENT)
     }
 
     /// Sets value of [`CKF_TOKEN_PRESENT`]
@@ -556,7 +556,7 @@ impl SlotFlags {
 
     /// Gets value of [`CKF_REMOVABLE_DEVICE`]
     pub fn removable_device(&self) -> bool {
-        self.get_flag(CKF_REMOVABLE_DEVICE)
+        self.flag(CKF_REMOVABLE_DEVICE)
     }
 
     /// Sets value of [`CKF_REMOVABLE_DEVICE`]
@@ -567,7 +567,7 @@ impl SlotFlags {
 
     /// Gets value of [`CKF_HW_SLOT`]
     pub fn hardware_slot(&self) -> bool {
-        self.get_flag(CKF_HW_SLOT)
+        self.flag(CKF_HW_SLOT)
     }
 
     /// Sets value of [`CKF_HW_SLOT`]
@@ -605,12 +605,12 @@ pub struct TokenFlags {
 impl Flags for TokenFlags {
     type FlagType = CK_FLAGS;
 
-    fn get_flag_value(&self) -> Self::FlagType {
+    fn flag_value(&self) -> Self::FlagType {
         self.flags
     }
 
-    fn get_flag(&self, flag: Self::FlagType) -> bool {
-        self.get_flag_value() & flag == flag
+    fn flag(&self, flag: Self::FlagType) -> bool {
+        self.flag_value() & flag == flag
     }
 
     fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
@@ -654,7 +654,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_RNG`]
     pub fn random_number_generator(&self) -> bool {
-        self.get_flag(CKF_RNG)
+        self.flag(CKF_RNG)
     }
 
     /// Sets value of [`CKF_RNG`]
@@ -665,7 +665,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_WRITE_PROTECTED`]
     pub fn write_protected(&self) -> bool {
-        self.get_flag(CKF_WRITE_PROTECTED)
+        self.flag(CKF_WRITE_PROTECTED)
     }
 
     /// Sets value of [`CKF_WRITE_PROTECTED`]
@@ -676,7 +676,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_LOGIN_REQUIRED`]
     pub fn login_required(&self) -> bool {
-        self.get_flag(CKF_LOGIN_REQUIRED)
+        self.flag(CKF_LOGIN_REQUIRED)
     }
 
     /// Sets value of [`CKF_LOGIN_REQUIRED`]
@@ -687,7 +687,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_USER_PIN_INITIALIZED`]
     pub fn user_pin_initialized(&self) -> bool {
-        self.get_flag(CKF_USER_PIN_INITIALIZED)
+        self.flag(CKF_USER_PIN_INITIALIZED)
     }
 
     /// Sets value of [`CKF_USER_PIN_INITIALIZED`]
@@ -698,7 +698,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_RESTORE_KEY_NOT_NEEDED`]
     pub fn restore_key_not_needed(&self) -> bool {
-        self.get_flag(CKF_RESTORE_KEY_NOT_NEEDED)
+        self.flag(CKF_RESTORE_KEY_NOT_NEEDED)
     }
 
     /// Sets value of [`CKF_RESTORE_KEY_NOT_NEEDED`]
@@ -709,7 +709,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_CLOCK_ON_TOKEN`]
     pub fn clock_on_token(&self) -> bool {
-        self.get_flag(CKF_CLOCK_ON_TOKEN)
+        self.flag(CKF_CLOCK_ON_TOKEN)
     }
 
     /// Sets value of [`CKF_CLOCK_ON_TOKEN`]
@@ -720,7 +720,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_PROTECTED_AUTHENTICATION_PATH`]
     pub fn protected_authentication_path(&self) -> bool {
-        self.get_flag(CKF_PROTECTED_AUTHENTICATION_PATH)
+        self.flag(CKF_PROTECTED_AUTHENTICATION_PATH)
     }
 
     /// Sets value of [`CKF_PROTECTED_AUTHENTICATION_PATH`]
@@ -731,7 +731,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_DUAL_CRYPTO_OPERATIONS`]
     pub fn dual_crypto_operations(&self) -> bool {
-        self.get_flag(CKF_DUAL_CRYPTO_OPERATIONS)
+        self.flag(CKF_DUAL_CRYPTO_OPERATIONS)
     }
 
     /// Sets value of [`CKF_DUAL_CRYPTO_OPERATIONS`]
@@ -742,7 +742,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_TOKEN_INITIALIZED`]
     pub fn token_initialized(&self) -> bool {
-        self.get_flag(CKF_TOKEN_INITIALIZED)
+        self.flag(CKF_TOKEN_INITIALIZED)
     }
 
     /// Sets value of [`CKF_TOKEN_INITIALIZED`]
@@ -753,7 +753,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_SECONDARY_AUTHENTICATION`]
     pub fn secondary_authentication(&self) -> bool {
-        self.get_flag(CKF_SECONDARY_AUTHENTICATION)
+        self.flag(CKF_SECONDARY_AUTHENTICATION)
     }
 
     /// Sets value of [`CKF_SECONDARY_AUTHENTICATION`]
@@ -764,7 +764,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_USER_PIN_COUNT_LOW`]
     pub fn user_pin_count_low(&self) -> bool {
-        self.get_flag(CKF_USER_PIN_COUNT_LOW)
+        self.flag(CKF_USER_PIN_COUNT_LOW)
     }
 
     /// Sets value of [`CKF_USER_PIN_COUNT_LOW`]
@@ -775,7 +775,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_USER_PIN_FINAL_TRY`]
     pub fn user_pin_final_try(&self) -> bool {
-        self.get_flag(CKF_USER_PIN_FINAL_TRY)
+        self.flag(CKF_USER_PIN_FINAL_TRY)
     }
 
     /// Sets value of [`CKF_USER_PIN_FINAL_TRY`]
@@ -786,7 +786,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_USER_PIN_LOCKED`]
     pub fn user_pin_locked(&self) -> bool {
-        self.get_flag(CKF_USER_PIN_LOCKED)
+        self.flag(CKF_USER_PIN_LOCKED)
     }
 
     /// Sets value of [`CKF_USER_PIN_LOCKED`]
@@ -797,7 +797,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_USER_PIN_TO_BE_CHANGED`]
     pub fn user_pin_to_be_changed(&self) -> bool {
-        self.get_flag(CKF_USER_PIN_TO_BE_CHANGED)
+        self.flag(CKF_USER_PIN_TO_BE_CHANGED)
     }
 
     /// Sets value of [`CKF_USER_PIN_TO_BE_CHANGED`]
@@ -808,7 +808,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_SO_PIN_COUNT_LOW`]
     pub fn so_pin_count_low(&self) -> bool {
-        self.get_flag(CKF_SO_PIN_COUNT_LOW)
+        self.flag(CKF_SO_PIN_COUNT_LOW)
     }
 
     /// Sets value of [`CKF_SO_PIN_COUNT_LOW`]
@@ -819,7 +819,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_SO_PIN_FINAL_TRY`]
     pub fn so_pin_final_try(&self) -> bool {
-        self.get_flag(CKF_SO_PIN_FINAL_TRY)
+        self.flag(CKF_SO_PIN_FINAL_TRY)
     }
 
     /// Sets value of [`CKF_SO_PIN_FINAL_TRY`]
@@ -830,7 +830,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_SO_PIN_LOCKED`]
     pub fn so_pin_locked(&self) -> bool {
-        self.get_flag(CKF_SO_PIN_LOCKED)
+        self.flag(CKF_SO_PIN_LOCKED)
     }
 
     /// Sets value of [`CKF_SO_PIN_LOCKED`]
@@ -841,7 +841,7 @@ impl TokenFlags {
 
     /// Gets value of [`CKF_SO_PIN_TO_BE_CHANGED`]
     pub fn so_pin_to_be_changed(&self) -> bool {
-        self.get_flag(CKF_SO_PIN_TO_BE_CHANGED)
+        self.flag(CKF_SO_PIN_TO_BE_CHANGED)
     }
 
     /// Sets value of [`CKF_SO_PIN_TO_BE_CHANGED`]
@@ -996,12 +996,12 @@ impl std::fmt::Display for Version {
 
 impl Version {
     /// Returns the major version
-    pub fn get_major(&self) -> CK_BYTE {
+    pub fn major(&self) -> CK_BYTE {
         self.major
     }
 
     /// Returns the minor version
-    pub fn get_minor(&self) -> CK_BYTE {
+    pub fn minor(&self) -> CK_BYTE {
         self.minor
     }
 }
@@ -1036,28 +1036,28 @@ impl Info {
     }
 
     /// Returns the version of Cryptoki that the library is compatible with
-    pub fn get_cryptoki_version(&self) -> Version {
+    pub fn cryptoki_version(&self) -> Version {
         self.val.cryptokiVersion.into()
     }
 
     /// Returns the flags of the library (should be zero!)
-    pub fn get_flags(&self) -> CK_FLAGS {
+    pub fn flags(&self) -> CK_FLAGS {
         self.val.flags
     }
 
     /// Returns the description of the library
-    pub fn get_library_description(&self) -> String {
-        str_from_blank_padded(&self.val.libraryDescription)
+    pub fn library_description(&self) -> String {
+        string_from_blank_padded(&self.val.libraryDescription)
     }
 
     /// Returns the version of the library
-    pub fn get_library_version(&self) -> Version {
+    pub fn library_version(&self) -> Version {
         self.val.libraryVersion.into()
     }
 
     /// Returns the manufacturer of the library
-    pub fn get_manufacturer_id(&self) -> String {
-        str_from_blank_padded(&self.val.manufacturerID)
+    pub fn manufacturer_id(&self) -> String {
+        string_from_blank_padded(&self.val.manufacturerID)
     }
 }
 
