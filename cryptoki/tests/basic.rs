@@ -513,3 +513,29 @@ fn get_session_info_test() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn generate_random_test() -> Result<(), Box<dyn Error>> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    let _ = flags.set_serial_session(true);
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    let poor_seed: [u8; 32] = [0; 32];
+    session.seed_random(&poor_seed)?;
+
+    let mut random_data: [u8; 32] = [0; 32];
+    session.generate_random_slice(&mut random_data)?;
+
+    // This of course assumes the RBG in the the SoftHSM is not terrible
+    assert!(!random_data.iter().all(|&x| x == 0));
+
+    let random_vec = session.generate_random_vec(32)?;
+    assert_eq!(random_vec.len(), 32);
+
+    assert!(!random_vec.iter().all(|&x| x == 0));
+    Ok(())
+}
