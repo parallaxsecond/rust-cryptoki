@@ -205,6 +205,8 @@ impl SessionInfo {
 
     /// Returns the slot the session is on
     pub fn slot_id(&self) -> Slot {
+        // The unwrap should not fail as `slotID` is a `CK_SLOT_ID ` which is the same type as
+        // `slot_id` within the `Slot` structure
         self.val.slotID.try_into().unwrap()
     }
 }
