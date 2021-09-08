@@ -2,14 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Slot and token management functions
 
-use crate::get_pkcs11;
 use crate::types::function::Rv;
 use crate::types::mechanism::{MechanismInfo, MechanismType};
-use crate::types::slot_token::{Slot, TokenInfo};
+use crate::types::slot_token::{Slot, SlotInfo, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;
 use crate::Session;
-use cryptoki_sys::{CK_MECHANISM_INFO, CK_TOKEN_INFO};
+use crate::{get_pkcs11, label_from_str};
+use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use secrecy::{ExposeSecret, Secret};
 use std::convert::TryInto;
 use std::ffi::CString;
@@ -55,7 +55,7 @@ impl Pkcs11 {
             .into_iter()
             .filter_map(|slot| match self.get_token_info(slot) {
                 Ok(token_info) => {
-                    if token_info.get_flags().token_initialized() {
+                    if token_info.flags().token_initialized() {
                         Some(Ok(slot))
                     } else {
                         None
@@ -101,13 +101,12 @@ impl Pkcs11 {
     /// Initialize a token
     ///
     /// Currently will use an empty label for all tokens.
-    pub fn init_token(&self, slot: Slot, pin: &str) -> Result<()> {
+    pub fn init_token(&self, slot: Slot, pin: &str, label: &str) -> Result<()> {
         let pin = Secret::new(CString::new(pin)?.into_bytes());
-        // FIXME: make a good conversion to the label format
-        let label = [b' '; 32];
+        let label = label_from_str(label);
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
-                slot.into(),
+                slot.try_into()?,
                 pin.expose_secret().as_ptr() as *mut u8,
                 pin.expose_secret().len().try_into()?,
                 label.as_ptr() as *mut u8,
@@ -116,12 +115,25 @@ impl Pkcs11 {
         }
     }
 
+    /// Returns the slot info
+    pub fn get_slot_info(&self, slot: Slot) -> Result<SlotInfo> {
+        unsafe {
+            let mut slot_info = CK_SLOT_INFO::default();
+            Rv::from(get_pkcs11!(self, C_GetSlotInfo)(
+                slot.try_into()?,
+                &mut slot_info,
+            ))
+            .into_result()?;
+            Ok(SlotInfo::new(slot_info))
+        }
+    }
+
     /// Returns information about a specific token
     pub fn get_token_info(&self, slot: Slot) -> Result<TokenInfo> {
         unsafe {
             let mut token_info = CK_TOKEN_INFO::default();
             Rv::from(get_pkcs11!(self, C_GetTokenInfo)(
-                slot.into(),
+                slot.try_into()?,
                 &mut token_info,
             ))
             .into_result()?;
@@ -135,7 +147,7 @@ impl Pkcs11 {
 
         unsafe {
             Rv::from(get_pkcs11!(self, C_GetMechanismList)(
-                slot.into(),
+                slot.try_into()?,
                 std::ptr::null_mut(),
                 &mut mechanism_count,
             ))
@@ -146,7 +158,7 @@ impl Pkcs11 {
 
         unsafe {
             Rv::from(get_pkcs11!(self, C_GetMechanismList)(
-                slot.into(),
+                slot.try_into()?,
                 mechanisms.as_mut_ptr(),
                 &mut mechanism_count,
             ))
@@ -167,7 +179,7 @@ impl Pkcs11 {
         unsafe {
             let mut mechanism_info = CK_MECHANISM_INFO::default();
             Rv::from(get_pkcs11!(self, C_GetMechanismInfo)(
-                slot.into(),
+                slot.try_into()?,
                 type_.into(),
                 &mut mechanism_info,
             ))

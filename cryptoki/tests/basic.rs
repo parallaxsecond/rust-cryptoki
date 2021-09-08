@@ -3,11 +3,13 @@
 mod common;
 
 use common::init_pins;
+use cryptoki::types::function::RvError;
 use cryptoki::types::mechanism::Mechanism;
 use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
-use cryptoki::types::session::UserType;
-use cryptoki::types::Flags;
+use cryptoki::types::session::{SessionState, UserType};
+use cryptoki::types::SessionFlags;
 use serial_test::serial;
+use std::error::Error;
 use std::sync::Arc;
 use std::thread;
 
@@ -17,7 +19,7 @@ fn sign_verify() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -70,7 +72,7 @@ fn encrypt_decrypt() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -130,7 +132,7 @@ fn derive_key() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -228,7 +230,7 @@ fn import_export() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -288,7 +290,7 @@ fn import_export() {
 fn get_token_info() {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot).unwrap();
-    assert_eq!("SoftHSM project", info.get_manufacturer_id());
+    assert_eq!("SoftHSM project", info.manufacturer_id());
 }
 
 #[test]
@@ -299,7 +301,7 @@ fn login_feast() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     let pkcs11 = Arc::from(pkcs11);
@@ -321,4 +323,98 @@ fn login_feast() {
     for thread in threads {
         thread.join().unwrap();
     }
+}
+
+#[test]
+#[serial]
+fn get_info_test() -> Result<(), Box<dyn Error>> {
+    let (pkcs11, _) = init_pins();
+    let info = pkcs11.get_library_info()?;
+
+    assert_eq!(info.cryptoki_version().major(), 2);
+    assert_eq!(info.cryptoki_version().minor(), 40);
+    assert_eq!(info.manufacturer_id(), String::from("SoftHSM"));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_slot_info_test() -> Result<(), Box<dyn Error>> {
+    let (pkcs11, slot) = init_pins();
+    let slot_info = pkcs11.get_slot_info(slot)?;
+    assert!(slot_info.flags().token_present());
+    assert!(!slot_info.flags().hardware_slot());
+    assert!(!slot_info.flags().removable_device());
+    assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_session_info_test() -> Result<(), Box<dyn Error>> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    // Check that OpenSession errors when CKF_SERIAL_SESSION is not set
+    if let Err(cryptoki::Error::Pkcs11(rv_error)) = pkcs11.open_session_no_callback(slot, flags) {
+        assert_eq!(rv_error, RvError::SessionParallelNotSupported);
+    } else {
+        panic!("Should error when CKF_SERIAL_SESSION is not set");
+    }
+
+    let _ = flags.set_serial_session(true);
+    {
+        let session = pkcs11.open_session_no_callback(slot, flags)?;
+        let session_info = session.get_session_info()?;
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
+        assert_eq!(
+            session_info.session_state(),
+            SessionState::RO_PUBLIC_SESSION
+        );
+
+        session.login(UserType::User)?;
+        let session_info = session.get_session_info()?;
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
+        assert_eq!(
+            session_info.session_state(),
+            SessionState::RO_USER_FUNCTIONS
+        );
+        session.logout()?;
+        if let Err(cryptoki::Error::Pkcs11(rv_error)) = session.login(UserType::So) {
+            assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+        } else {
+            panic!("Should error when attempting to log in as CKU_SO on a read-only session");
+        }
+    }
+
+    let _ = flags.set_rw_session(true);
+
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(
+        session_info.session_state(),
+        SessionState::RW_PUBLIC_SESSION
+    );
+
+    session.login(UserType::User)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(
+        session_info.session_state(),
+        SessionState::RW_USER_FUNCTIONS
+    );
+    session.logout()?;
+    session.login(UserType::So)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(session_info.session_state(), SessionState::RW_SO_FUNCTIONS);
+
+    Ok(())
 }

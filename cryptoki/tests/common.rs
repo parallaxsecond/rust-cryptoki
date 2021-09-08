@@ -3,7 +3,7 @@
 use cryptoki::types::locking::CInitializeArgs;
 use cryptoki::types::session::UserType;
 use cryptoki::types::slot_token::Slot;
-use cryptoki::types::Flags;
+use cryptoki::types::SessionFlags;
 use cryptoki::Pkcs11;
 use std::env;
 
@@ -20,11 +20,11 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     // find a slot, get the first one
     let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
-    pkcs11.init_token(slot, "1234").unwrap();
+    pkcs11.init_token(slot, "1234", "Test Token").unwrap();
     pkcs11.set_pin(slot, "1234").unwrap();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     {
