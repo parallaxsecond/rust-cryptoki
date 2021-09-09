@@ -135,6 +135,134 @@ pub enum AttributeType {
     WrapWithTrusted,
 }
 
+impl AttributeType {
+    pub(crate) fn stringify(val: CK_ATTRIBUTE_TYPE) -> String {
+        match val {
+            CKA_CLASS => String::from(stringify!(CKA_CLASS)),
+            CKA_TOKEN => String::from(stringify!(CKA_TOKEN)),
+            CKA_PRIVATE => String::from(stringify!(CKA_PRIVATE)),
+            CKA_LABEL => String::from(stringify!(CKA_LABEL)),
+            CKA_APPLICATION => String::from(stringify!(CKA_APPLICATION)),
+            CKA_VALUE => String::from(stringify!(CKA_VALUE)),
+            CKA_OBJECT_ID => String::from(stringify!(CKA_OBJECT_ID)),
+            CKA_CERTIFICATE_TYPE => String::from(stringify!(CKA_CERTIFICATE_TYPE)),
+            CKA_ISSUER => String::from(stringify!(CKA_ISSUER)),
+            CKA_SERIAL_NUMBER => String::from(stringify!(CKA_SERIAL_NUMBER)),
+            CKA_AC_ISSUER => String::from(stringify!(CKA_AC_ISSUER)),
+            CKA_OWNER => String::from(stringify!(CKA_OWNER)),
+            CKA_ATTR_TYPES => String::from(stringify!(CKA_ATTR_TYPES)),
+            CKA_TRUSTED => String::from(stringify!(CKA_TRUSTED)),
+            CKA_CERTIFICATE_CATEGORY => String::from(stringify!(CKA_CERTIFICATE_CATEGORY)),
+            CKA_JAVA_MIDP_SECURITY_DOMAIN => {
+                String::from(stringify!(CKA_JAVA_MIDP_SECURITY_DOMAIN))
+            }
+            CKA_URL => String::from(stringify!(CKA_URL)),
+            CKA_HASH_OF_SUBJECT_PUBLIC_KEY => {
+                String::from(stringify!(CKA_HASH_OF_SUBJECT_PUBLIC_KEY))
+            }
+            CKA_HASH_OF_ISSUER_PUBLIC_KEY => {
+                String::from(stringify!(CKA_HASH_OF_ISSUER_PUBLIC_KEY))
+            }
+            CKA_NAME_HASH_ALGORITHM => String::from(stringify!(CKA_NAME_HASH_ALGORITHM)),
+            CKA_CHECK_VALUE => String::from(stringify!(CKA_CHECK_VALUE)),
+            CKA_KEY_TYPE => String::from(stringify!(CKA_KEY_TYPE)),
+            CKA_SUBJECT => String::from(stringify!(CKA_SUBJECT)),
+            CKA_ID => String::from(stringify!(CKA_ID)),
+            CKA_SENSITIVE => String::from(stringify!(CKA_SENSITIVE)),
+            CKA_ENCRYPT => String::from(stringify!(CKA_ENCRYPT)),
+            CKA_DECRYPT => String::from(stringify!(CKA_DECRYPT)),
+            CKA_WRAP => String::from(stringify!(CKA_WRAP)),
+            CKA_UNWRAP => String::from(stringify!(CKA_UNWRAP)),
+            CKA_SIGN => String::from(stringify!(CKA_SIGN)),
+            CKA_SIGN_RECOVER => String::from(stringify!(CKA_SIGN_RECOVER)),
+            CKA_VERIFY => String::from(stringify!(CKA_VERIFY)),
+            CKA_VERIFY_RECOVER => String::from(stringify!(CKA_VERIFY_RECOVER)),
+            CKA_DERIVE => String::from(stringify!(CKA_DERIVE)),
+            CKA_START_DATE => String::from(stringify!(CKA_START_DATE)),
+            CKA_END_DATE => String::from(stringify!(CKA_END_DATE)),
+            CKA_MODULUS => String::from(stringify!(CKA_MODULUS)),
+            CKA_MODULUS_BITS => String::from(stringify!(CKA_MODULUS_BITS)),
+            CKA_PUBLIC_EXPONENT => String::from(stringify!(CKA_PUBLIC_EXPONENT)),
+            CKA_PRIVATE_EXPONENT => String::from(stringify!(CKA_PRIVATE_EXPONENT)),
+            CKA_PRIME_1 => String::from(stringify!(CKA_PRIME_1)),
+            CKA_PRIME_2 => String::from(stringify!(CKA_PRIME_2)),
+            CKA_EXPONENT_1 => String::from(stringify!(CKA_EXPONENT_1)),
+            CKA_EXPONENT_2 => String::from(stringify!(CKA_EXPONENT_2)),
+            CKA_COEFFICIENT => String::from(stringify!(CKA_COEFFICIENT)),
+            CKA_PUBLIC_KEY_INFO => String::from(stringify!(CKA_PUBLIC_KEY_INFO)),
+            CKA_PRIME => String::from(stringify!(CKA_PRIME)),
+            CKA_SUBPRIME => String::from(stringify!(CKA_SUBPRIME)),
+            CKA_BASE => String::from(stringify!(CKA_BASE)),
+            CKA_PRIME_BITS => String::from(stringify!(CKA_PRIME_BITS)),
+            CKA_SUB_PRIME_BITS => String::from(stringify!(CKA_SUB_PRIME_BITS)),
+            CKA_VALUE_BITS => String::from(stringify!(CKA_VALUE_BITS)),
+            CKA_VALUE_LEN => String::from(stringify!(CKA_VALUE_LEN)),
+            CKA_EXTRACTABLE => String::from(stringify!(CKA_EXTRACTABLE)),
+            CKA_LOCAL => String::from(stringify!(CKA_LOCAL)),
+            CKA_NEVER_EXTRACTABLE => String::from(stringify!(CKA_NEVER_EXTRACTABLE)),
+            CKA_ALWAYS_SENSITIVE => String::from(stringify!(CKA_ALWAYS_SENSITIVE)),
+            CKA_KEY_GEN_MECHANISM => String::from(stringify!(CKA_KEY_GEN_MECHANISM)),
+            CKA_MODIFIABLE => String::from(stringify!(CKA_MODIFIABLE)),
+            CKA_COPYABLE => String::from(stringify!(CKA_COPYABLE)),
+            CKA_DESTROYABLE => String::from(stringify!(CKA_DESTROYABLE)),
+            CKA_EC_PARAMS => String::from(stringify!(CKA_EC_PARAMS)),
+            CKA_EC_POINT => String::from(stringify!(CKA_EC_POINT)),
+            CKA_SECONDARY_AUTH => String::from(stringify!(CKA_SECONDARY_AUTH)),
+            CKA_AUTH_PIN_FLAGS => String::from(stringify!(CKA_AUTH_PIN_FLAGS)),
+            CKA_ALWAYS_AUTHENTICATE => String::from(stringify!(CKA_ALWAYS_AUTHENTICATE)),
+            CKA_WRAP_WITH_TRUSTED => String::from(stringify!(CKA_WRAP_WITH_TRUSTED)),
+            CKA_OTP_FORMAT => String::from(stringify!(CKA_OTP_FORMAT)),
+            CKA_OTP_LENGTH => String::from(stringify!(CKA_OTP_LENGTH)),
+            CKA_OTP_TIME_INTERVAL => String::from(stringify!(CKA_OTP_TIME_INTERVAL)),
+            CKA_OTP_USER_FRIENDLY_MODE => String::from(stringify!(CKA_OTP_USER_FRIENDLY_MODE)),
+            CKA_OTP_CHALLENGE_REQUIREMENT => {
+                String::from(stringify!(CKA_OTP_CHALLENGE_REQUIREMENT))
+            }
+            CKA_OTP_TIME_REQUIREMENT => String::from(stringify!(CKA_OTP_TIME_REQUIREMENT)),
+            CKA_OTP_COUNTER_REQUIREMENT => String::from(stringify!(CKA_OTP_COUNTER_REQUIREMENT)),
+            CKA_OTP_PIN_REQUIREMENT => String::from(stringify!(CKA_OTP_PIN_REQUIREMENT)),
+            CKA_OTP_USER_IDENTIFIER => String::from(stringify!(CKA_OTP_USER_IDENTIFIER)),
+            CKA_OTP_SERVICE_IDENTIFIER => String::from(stringify!(CKA_OTP_SERVICE_IDENTIFIER)),
+            CKA_OTP_SERVICE_LOGO => String::from(stringify!(CKA_OTP_SERVICE_LOGO)),
+            CKA_OTP_SERVICE_LOGO_TYPE => String::from(stringify!(CKA_OTP_SERVICE_LOGO_TYPE)),
+            CKA_OTP_COUNTER => String::from(stringify!(CKA_OTP_COUNTER)),
+            CKA_OTP_TIME => String::from(stringify!(CKA_OTP_TIME)),
+            CKA_GOSTR3410_PARAMS => String::from(stringify!(CKA_GOSTR3410_PARAMS)),
+            CKA_GOSTR3411_PARAMS => String::from(stringify!(CKA_GOSTR3411_PARAMS)),
+            CKA_GOST28147_PARAMS => String::from(stringify!(CKA_GOST28147_PARAMS)),
+            CKA_HW_FEATURE_TYPE => String::from(stringify!(CKA_HW_FEATURE_TYPE)),
+            CKA_RESET_ON_INIT => String::from(stringify!(CKA_RESET_ON_INIT)),
+            CKA_HAS_RESET => String::from(stringify!(CKA_HAS_RESET)),
+            CKA_PIXEL_X => String::from(stringify!(CKA_PIXEL_X)),
+            CKA_PIXEL_Y => String::from(stringify!(CKA_PIXEL_Y)),
+            CKA_RESOLUTION => String::from(stringify!(CKA_RESOLUTION)),
+            CKA_CHAR_ROWS => String::from(stringify!(CKA_CHAR_ROWS)),
+            CKA_CHAR_COLUMNS => String::from(stringify!(CKA_CHAR_COLUMNS)),
+            CKA_COLOR => String::from(stringify!(CKA_COLOR)),
+            CKA_BITS_PER_PIXEL => String::from(stringify!(CKA_BITS_PER_PIXEL)),
+            CKA_CHAR_SETS => String::from(stringify!(CKA_CHAR_SETS)),
+            CKA_ENCODING_METHODS => String::from(stringify!(CKA_ENCODING_METHODS)),
+            CKA_MIME_TYPES => String::from(stringify!(CKA_MIME_TYPES)),
+            CKA_MECHANISM_TYPE => String::from(stringify!(CKA_MECHANISM_TYPE)),
+            CKA_REQUIRED_CMS_ATTRIBUTES => String::from(stringify!(CKA_REQUIRED_CMS_ATTRIBUTES)),
+            CKA_DEFAULT_CMS_ATTRIBUTES => String::from(stringify!(CKA_DEFAULT_CMS_ATTRIBUTES)),
+            CKA_SUPPORTED_CMS_ATTRIBUTES => String::from(stringify!(CKA_SUPPORTED_CMS_ATTRIBUTES)),
+            CKA_WRAP_TEMPLATE => String::from(stringify!(CKA_WRAP_TEMPLATE)),
+            CKA_UNWRAP_TEMPLATE => String::from(stringify!(CKA_UNWRAP_TEMPLATE)),
+            CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
+            CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
+            _ => format!("unknown ({:08x})", val),
+        }
+    }
+}
+
+impl std::fmt::Display for AttributeType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let attrib: CK_ATTRIBUTE_TYPE = (*self).into();
+        write!(f, "{}", AttributeType::stringify(attrib))
+    }
+}
+
 impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
     fn from(attribute_type: AttributeType) -> Self {
         match attribute_type {
@@ -842,7 +970,7 @@ impl ObjectClass {
             CKO_DOMAIN_PARAMETERS => String::from(stringify!(CKO_DOMAIN_PARAMETERS)),
             CKO_MECHANISM => String::from(stringify!(CKO_MECHANISM)),
             CKO_OTP_KEY => String::from(stringify!(CKO_OTP_KEY)),
-            val => format!("unknown ({:08x})", val),
+            _ => format!("unknown ({:08x})", class),
         }
     }
 }
@@ -882,8 +1010,8 @@ impl TryFrom<CK_OBJECT_CLASS> for ObjectClass {
             CKO_MECHANISM => Ok(ObjectClass::MECHANISM),
             CKO_OTP_KEY => Ok(ObjectClass::OTP_KEY),
 
-            other => {
-                error!("Object class {} is not supported.", other);
+            _ => {
+                error!("Object class {} is not supported.", object_class);
                 Err(Error::NotSupported)
             }
         }
@@ -1059,7 +1187,7 @@ impl KeyType {
             CKK_GOSTR3411 => String::from(stringify!(CKK_GOSTR3411)),
             CKK_GOST28147 => String::from(stringify!(CKK_GOST28147)),
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
-            val => format!("unknown ({:08x})", val),
+            _ => format!("unknown ({:08x})", key_type),
         }
     }
 }
@@ -1132,8 +1260,8 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_GOST28147 => Ok(KeyType::GOST28147),
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
-            other => {
-                error!("Key type {} is not supported.", other);
+            _ => {
+                error!("Key type {} is not supported.", key_type);
                 Err(Error::NotSupported)
             }
         }
@@ -1171,7 +1299,7 @@ impl CertificateType {
             CKC_X_509 => String::from(stringify!(CKC_X_509)),
             CKC_X_509_ATTR_CERT => String::from(stringify!(CKC_X_509_ATTR_CERT)),
             CKC_WTLS => String::from(stringify!(CKC_WTLS)),
-            val => format!("unknown ({:08x})", val),
+            _ => format!("unknown ({:08x})", cert_type),
         }
     }
 }
@@ -1204,8 +1332,8 @@ impl TryFrom<CK_CERTIFICATE_TYPE> for CertificateType {
             CKC_X_509 => Ok(CertificateType::X_509),
             CKC_X_509_ATTR_CERT => Ok(CertificateType::X_509_ATTR),
             CKC_WTLS => Ok(CertificateType::WTLS),
-            other => {
-                error!("Certificate type {} is not supported.", other);
+            _ => {
+                error!("Certificate type {} is not supported.", certificate_type);
                 Err(Error::NotSupported)
             }
         }
