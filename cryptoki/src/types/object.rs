@@ -31,6 +31,8 @@ pub enum AttributeType {
     AttrTypes,
     /// Base number value of a key
     Base,
+    /// Type of certificate
+    CertificateType,
     /// Checksum
     CheckValue,
     /// Type of an object
@@ -273,6 +275,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Application => CKA_APPLICATION,
             AttributeType::AttrTypes => CKA_ATTR_TYPES,
             AttributeType::Base => CKA_BASE,
+            AttributeType::CertificateType => CKA_CERTIFICATE_TYPE,
             AttributeType::CheckValue => CKA_CHECK_VALUE,
             AttributeType::Class => CKA_CLASS,
             AttributeType::Coefficient => CKA_COEFFICIENT,
@@ -340,6 +343,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_APPLICATION => Ok(AttributeType::Application),
             CKA_ATTR_TYPES => Ok(AttributeType::AttrTypes),
             CKA_BASE => Ok(AttributeType::Base),
+            CKA_CERTIFICATE_CATEGORY => Ok(AttributeType::CertificateType),
             CKA_CHECK_VALUE => Ok(AttributeType::CheckValue),
             CKA_CLASS => Ok(AttributeType::Class),
             CKA_COEFFICIENT => Ok(AttributeType::Coefficient),
@@ -417,6 +421,8 @@ pub enum Attribute {
     AttrTypes(Vec<u8>),
     /// Base number value of a key
     Base(Vec<u8>),
+    /// Type of certificate
+    CertificateType(CertificateType),
     /// Checksum
     CheckValue(Vec<u8>),
     /// Type of an object
@@ -532,6 +538,7 @@ impl Attribute {
             Attribute::Application(_) => AttributeType::Application,
             Attribute::AttrTypes(_) => AttributeType::AttrTypes,
             Attribute::Base(_) => AttributeType::Base,
+            Attribute::CertificateType(_) => AttributeType::CertificateType,
             Attribute::CheckValue(_) => AttributeType::CheckValue,
             Attribute::Class(_) => AttributeType::Class,
             Attribute::Coefficient(_) => AttributeType::Coefficient,
@@ -617,6 +624,7 @@ impl Attribute {
             }
             Attribute::AcIssuer(bytes) => bytes.len(),
             Attribute::AttrTypes(bytes) => bytes.len(),
+            Attribute::CertificateType(_) => std::mem::size_of::<CK_CERTIFICATE_TYPE>(),
             Attribute::CheckValue(bytes) => bytes.len(),
             Attribute::Class(_) => std::mem::size_of::<CK_OBJECT_CLASS>(),
             Attribute::Coefficient(bytes) => bytes.len(),
@@ -719,6 +727,9 @@ impl Attribute {
             | Attribute::Value(bytes)
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
+            Attribute::CertificateType(certificate_type) => {
+                certificate_type as *const _ as *mut c_void
+            }
             Attribute::Class(object_class) => object_class as *const _ as *mut c_void,
             Attribute::KeyGenMechanism(mech) => mech as *const _ as *mut c_void,
             Attribute::KeyType(key_type) => key_type as *const _ as *mut c_void,
@@ -821,6 +832,9 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
+            AttributeType::CertificateType => Ok(Attribute::CertificateType(
+                CK_CERTIFICATE_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
+            )),
             AttributeType::Class => Ok(Attribute::Class(
                 CK_OBJECT_CLASS::from_ne_bytes(val.try_into()?).try_into()?,
             )),
