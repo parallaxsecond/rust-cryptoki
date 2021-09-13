@@ -1030,9 +1030,8 @@ impl std::fmt::Display for Date {
         let day = String::from_utf8_lossy(Vec::from(self.day).as_slice())
             .trim_end()
             .to_string();
-        // Prints this month/day/year
-        // todo - Figure out how to determine if US vs European since us Americans do it the 'right' way ;)
-        write!(f, "{}/{}/{}", month, day, year)
+
+        write!(f, "Month: {}\nDay: {}\nYear: {}", month, day, year)
     }
 }
 
