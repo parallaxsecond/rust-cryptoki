@@ -8,6 +8,7 @@ use crate::types::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle
 use crate::types::session::Session;
 use crate::Result;
 use cryptoki_sys::*;
+use std::collections::HashMap;
 use std::convert::TryInto;
 
 // Search 10 elements at a time
@@ -97,6 +98,66 @@ impl<'a> Session<'a> {
     }
 
     /// Get the attribute info of an object: if the attribute is present and its size.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object
+    /// * `attributes` - The list of attributes to get the information of
+    ///
+    /// # Returns
+    ///
+    /// This function will return a Vector of [AttributeInfo] enums that will either contain
+    /// the size of the requested attribute or [AttributeInfo::Unavailable] if the attribute is
+    /// not available to be read from `object`.
+    ///
+    /// _Note: An attribute returning [AttributeInfo::Unavailable] may mean that the attribute is
+    /// either sensitive or not a valid type for `object`.  This function does not distinguish
+    /// between those two errors._
+    ///
+    /// The list of returned attributes is 1-to-1 matched with the provided vector of attribute
+    /// types.  If you wish, you may create a hash table simply by:
+    ///
+    /// ```rust
+    /// use cryptoki::Pkcs11;
+    /// use cryptoki::types::locking::CInitializeArgs;
+    /// use cryptoki::types::object::AttributeType;
+    /// use cryptoki::types::session::UserType;
+    /// use cryptoki::types::SessionFlags;
+    /// use std::collections::HashMap;
+    /// use std::env;
+    ///
+    /// let pkcs11 = Pkcs11::new(
+    ///         env::var("PKCS11_SOFTHSM2_MODULE")
+    ///             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
+    ///     )
+    ///     .unwrap();
+    ///
+    /// pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+    /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
+    /// let mut flags = SessionFlags::new();
+    /// let _ = flags.set_rw_session(true).set_serial_session(true);
+    ///
+    /// pkcs11.set_pin(slot, "1234").unwrap();
+    /// let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+    /// session.login(UserType::User);
+    ///
+    /// let empty_attrib= vec![];
+    /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().get(0) {
+    ///     let attribute_types = vec![
+    ///         AttributeType::Token,
+    ///         AttributeType::Private,
+    ///         AttributeType::Modulus,
+    ///         AttributeType::KeyType,
+    ///         AttributeType::Verify,];
+    ///
+    ///     let attribute_info = session.get_attribute_info(*object, &attribute_types).unwrap();
+    ///
+    ///     let hash = attribute_types
+    ///         .iter()
+    ///         .zip(attribute_info.iter())
+    ///         .collect::<HashMap<_, _>>();
+    /// }
+    /// ```
     pub fn get_attribute_info(
         &self,
         object: ObjectHandle,
@@ -128,6 +189,86 @@ impl<'a> Session<'a> {
                     len => Ok(AttributeInfo::Available(len.try_into()?)),
                 })
                 .collect::<Result<Vec<AttributeInfo>>>()?),
+            Rv::Error(rv_error) => Err(rv_error.into()),
+        }
+    }
+
+    /// Get the attribute info of an object: if the attribute is present and its size.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object
+    /// * `attributes` - The list of attributes to get the information of
+    ///
+    /// # Returns
+    ///
+    /// This function will return a HashMap of [AttributeType] and [AttributeInfo] enums that will
+    /// either contain the size of the requested attribute or [AttributeInfo::Unavailable] if the
+    /// attribute is not available to be read from `object`.
+    ///
+    /// _Note: An attribute returning [AttributeInfo::Unavailable] may mean that the attribute is
+    /// either sensitive or not a valid type for `object`.  This function does not distinguish
+    /// between those two errors._
+    pub fn get_attribute_info_map(
+        &self,
+        object: ObjectHandle,
+        attributes: Vec<AttributeType>,
+    ) -> Result<HashMap<AttributeType, AttributeInfo>> {
+        let attrib_info = self.get_attribute_info(object, attributes.as_slice())?;
+
+        Ok(attributes
+            .iter()
+            .cloned()
+            .zip(attrib_info.iter().cloned())
+            .collect::<HashMap<_, _>>())
+    }
+
+    /// Returns information about a single attributes
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] to get the attribute from
+    /// * `attribute_type` - The attribute to get
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the return code from `C_GetAttributeInfo` and the [AttributeInfo] for
+    /// the requested attribute.
+    ///
+    /// The return code may be [Rv::Ok] or an `Rv::Error` containing either
+    /// [RvError::AttributeTypeInvalid] (if the attribute is not a valid attribute for the object),
+    /// or a [RvError::AttributeSensitive] (if the attribute is a sensitive attribute for an
+    /// object marked as sensitive, e.g. the private exponent of an RSA key)
+    pub fn get_single_attribute_info(
+        &self,
+        object: ObjectHandle,
+        attribute_type: AttributeType,
+    ) -> Result<(Rv, AttributeInfo)> {
+        let mut template: Vec<CK_ATTRIBUTE> = vec![CK_ATTRIBUTE {
+            type_: attribute_type.into(),
+            pValue: std::ptr::null_mut(),
+            ulValueLen: 0,
+        }];
+
+        let rv = unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+            ))
+        };
+
+        match rv {
+            Rv::Ok
+            | Rv::Error(RvError::AttributeSensitive)
+            | Rv::Error(RvError::AttributeTypeInvalid) => Ok((
+                rv,
+                match template[0].ulValueLen {
+                    CK_UNAVAILABLE_INFORMATION => AttributeInfo::Unavailable,
+                    len => AttributeInfo::Available(len.try_into()?),
+                },
+            )),
             Rv::Error(rv_error) => Err(rv_error.into()),
         }
     }

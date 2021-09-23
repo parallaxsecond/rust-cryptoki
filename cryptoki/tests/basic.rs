@@ -3,12 +3,13 @@
 mod common;
 
 use common::init_pins;
-use cryptoki::types::function::RvError;
+use cryptoki::types::function::{Rv, RvError};
 use cryptoki::types::mechanism::Mechanism;
 use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::types::session::{SessionState, UserType};
 use cryptoki::types::SessionFlags;
 use serial_test::serial;
+use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::thread;
@@ -537,5 +538,102 @@ fn generate_random_test() -> Result<()> {
     assert_eq!(random_vec.len(), 32);
 
     assert!(!random_vec.iter().all(|&x| x == 0));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_attribute_info_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+    let _ = flags.set_rw_session(true).set_serial_session(true);
+
+    // open a session
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    // log in the session
+    session.login(UserType::User)?;
+
+    // get mechanism
+    let mechanism = Mechanism::RsaPkcsKeyPairGen;
+
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 2048;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(false.into()),
+        Attribute::Private(false.into()),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![
+        Attribute::Token(false.into()),
+        Attribute::Sensitive(true.into()),
+        Attribute::Extractable(false.into()),
+    ];
+
+    // generate a key pair
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
+
+    let attrib_info = session.get_attribute_info(public, &pub_attribs)?;
+    let hash = pub_attribs
+        .iter()
+        .zip(attrib_info.iter())
+        .collect::<HashMap<_, _>>();
+
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(*size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable for an RSA public key");
+    }
+
+    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
+        panic!("Public Exponent should not return Unavailable for an RSA public key");
+    }
+
+    let (rv, attrib_info) =
+        session.get_single_attribute_info(private, AttributeType::PrivateExponent)?;
+
+    if let Rv::Error(rv_err) = rv {
+        assert_eq!(rv_err, RvError::AttributeSensitive);
+        if let AttributeInfo::Available(_) = attrib_info {
+            panic!("PrivateExponent on a sensitive, private RSA key should return Unavailable");
+        }
+    } else {
+        panic!("PrivateExponent should return an error on a sensitive, private RSA key");
+    }
+
+    let attrib_info = session.get_attribute_info(private, &pub_attribs)?;
+    let hash = pub_attribs
+        .iter()
+        .zip(attrib_info.iter())
+        .collect::<HashMap<_, _>>();
+
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(*size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable on an RSA private key");
+    }
+    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
+        panic!("PublicExponent should not return Unavailable on an RSA private key");
+    }
+
+    let hash = session.get_attribute_info_map(private, pub_attribs)?;
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable on an RSA private key");
+    }
+    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
+        panic!("PublicExponent should not return Unavailable on an RSA private key");
+    }
+
     Ok(())
 }

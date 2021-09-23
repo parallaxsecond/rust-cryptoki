@@ -13,7 +13,7 @@ use std::ffi::c_void;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
 pub enum AttributeType {
