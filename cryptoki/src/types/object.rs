@@ -1286,8 +1286,10 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
 #[derive(Debug, Copy, Clone)]
 /// Information about the attribute of an object
 pub enum AttributeInfo {
-    /// The attribute is not defined for the object
-    Unavailable,
+    /// The requested attribute is not a valid attribute for the object
+    TypeInvalid,
+    /// The value of the attribute is sensitive and will not be returned
+    Sensitive,
     /// The attribute is available to get from the object and has the specified size in bytes.
     Available(usize),
 }

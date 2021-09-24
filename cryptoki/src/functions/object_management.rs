@@ -107,12 +107,10 @@ impl<'a> Session<'a> {
     /// # Returns
     ///
     /// This function will return a Vector of [AttributeInfo] enums that will either contain
-    /// the size of the requested attribute or [AttributeInfo::Unavailable] if the attribute is
-    /// not available to be read from `object`.
-    ///
-    /// _Note: An attribute returning [AttributeInfo::Unavailable] may mean that the attribute is
-    /// either sensitive or not a valid type for `object`.  This function does not distinguish
-    /// between those two errors._
+    /// the size of the requested attribute, [AttributeInfo::Empty] if the attribute is
+    /// empty, [AttributeInfo::TypeInvalid] if the attribute is not a valid type for the object,
+    /// or [AttributeInfo::Sensitive] if the requested attribute is sensitive and will not be
+    /// returned to the user.
     ///
     /// The list of returned attributes is 1-to-1 matched with the provided vector of attribute
     /// types.  If you wish, you may create a hash table simply by:
@@ -163,34 +161,34 @@ impl<'a> Session<'a> {
         object: ObjectHandle,
         attributes: &[AttributeType],
     ) -> Result<Vec<AttributeInfo>> {
-        let mut template: Vec<CK_ATTRIBUTE> = attributes
-            .iter()
-            .map(|attr_type| CK_ATTRIBUTE {
-                type_: (*attr_type).into(),
+        let mut results = Vec::new();
+
+        for attrib in attributes.iter() {
+            let mut template: Vec<CK_ATTRIBUTE> = vec![CK_ATTRIBUTE {
+                type_: (*attrib).into(),
                 pValue: std::ptr::null_mut(),
                 ulValueLen: 0,
-            })
-            .collect();
+            }];
 
-        match unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
-                self.handle(),
-                object.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
-            ))
-        } {
-            Rv::Ok
-            | Rv::Error(RvError::AttributeSensitive)
-            | Rv::Error(RvError::AttributeTypeInvalid) => Ok(template
-                .iter()
-                .map(|attr| match attr.ulValueLen {
-                    CK_UNAVAILABLE_INFORMATION => Ok(AttributeInfo::Unavailable),
-                    len => Ok(AttributeInfo::Available(len.try_into()?)),
-                })
-                .collect::<Result<Vec<AttributeInfo>>>()?),
-            Rv::Error(rv_error) => Err(rv_error.into()),
+            match unsafe {
+                Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                    self.handle(),
+                    object.handle(),
+                    template.as_mut_ptr(),
+                    template.len().try_into()?,
+                ))
+            } {
+                Rv::Ok => {
+                    results.push(AttributeInfo::Available(template[0].ulValueLen.try_into()?))
+                }
+                Rv::Error(RvError::AttributeSensitive) => results.push(AttributeInfo::Sensitive),
+                Rv::Error(RvError::AttributeTypeInvalid) => {
+                    results.push(AttributeInfo::TypeInvalid)
+                }
+                rv => rv.into_result()?,
+            }
         }
+        Ok(results)
     }
 
     /// Get the attribute info of an object: if the attribute is present and its size.
@@ -221,56 +219,6 @@ impl<'a> Session<'a> {
             .cloned()
             .zip(attrib_info.iter().cloned())
             .collect::<HashMap<_, _>>())
-    }
-
-    /// Returns information about a single attributes
-    ///
-    /// # Arguments
-    ///
-    /// * `object` - The [ObjectHandle] to get the attribute from
-    /// * `attribute_type` - The attribute to get
-    ///
-    /// # Returns
-    ///
-    /// A tuple containing the return code from `C_GetAttributeInfo` and the [AttributeInfo] for
-    /// the requested attribute.
-    ///
-    /// The return code may be [Rv::Ok] or an `Rv::Error` containing either
-    /// [RvError::AttributeTypeInvalid] (if the attribute is not a valid attribute for the object),
-    /// or a [RvError::AttributeSensitive] (if the attribute is a sensitive attribute for an
-    /// object marked as sensitive, e.g. the private exponent of an RSA key)
-    pub fn get_single_attribute_info(
-        &self,
-        object: ObjectHandle,
-        attribute_type: AttributeType,
-    ) -> Result<(Rv, AttributeInfo)> {
-        let mut template: Vec<CK_ATTRIBUTE> = vec![CK_ATTRIBUTE {
-            type_: attribute_type.into(),
-            pValue: std::ptr::null_mut(),
-            ulValueLen: 0,
-        }];
-
-        let rv = unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
-                self.handle(),
-                object.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
-            ))
-        };
-
-        match rv {
-            Rv::Ok
-            | Rv::Error(RvError::AttributeSensitive)
-            | Rv::Error(RvError::AttributeTypeInvalid) => Ok((
-                rv,
-                match template[0].ulValueLen {
-                    CK_UNAVAILABLE_INFORMATION => AttributeInfo::Unavailable,
-                    len => AttributeInfo::Available(len.try_into()?),
-                },
-            )),
-            Rv::Error(rv_error) => Err(rv_error.into()),
-        }
     }
 
     /// Get the attributes values of an object.

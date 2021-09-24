@@ -10,7 +10,6 @@ use cryptoki::types::session::{SessionState, UserType};
 use cryptoki::types::SessionFlags;
 use serial_test::serial;
 use std::collections::HashMap;
-use std::error::Error;
 use std::sync::Arc;
 use std::thread;
 
@@ -581,6 +580,8 @@ fn get_attribute_info_test() -> Result<()> {
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
+    let mut priv_attribs = pub_attribs.clone();
+    priv_attribs.push(AttributeType::PrivateExponent);
 
     let attrib_info = session.get_attribute_info(public, &pub_attribs)?;
     let hash = pub_attribs
@@ -594,24 +595,13 @@ fn get_attribute_info_test() -> Result<()> {
         panic!("Modulus should not return Unavailable for an RSA public key");
     }
 
-    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
-        panic!("Public Exponent should not return Unavailable for an RSA public key");
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("Public Exponent should not return Unavailable for an RSA public key"),
     }
 
-    let (rv, attrib_info) =
-        session.get_single_attribute_info(private, AttributeType::PrivateExponent)?;
-
-    if let Rv::Error(rv_err) = rv {
-        assert_eq!(rv_err, RvError::AttributeSensitive);
-        if let AttributeInfo::Available(_) = attrib_info {
-            panic!("PrivateExponent on a sensitive, private RSA key should return Unavailable");
-        }
-    } else {
-        panic!("PrivateExponent should return an error on a sensitive, private RSA key");
-    }
-
-    let attrib_info = session.get_attribute_info(private, &pub_attribs)?;
-    let hash = pub_attribs
+    let attrib_info = session.get_attribute_info(private, &priv_attribs)?;
+    let hash = priv_attribs
         .iter()
         .zip(attrib_info.iter())
         .collect::<HashMap<_, _>>();
@@ -621,18 +611,32 @@ fn get_attribute_info_test() -> Result<()> {
     } else {
         panic!("Modulus should not return Unavailable on an RSA private key");
     }
-    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
-        panic!("PublicExponent should not return Unavailable on an RSA private key");
+
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("PublicExponent should not return Unavailable on an RSA private key"),
     }
 
-    let hash = session.get_attribute_info_map(private, pub_attribs)?;
+    match hash[&AttributeType::PrivateExponent] {
+        AttributeInfo::Sensitive => {}
+        _ => panic!("Private Exponent of RSA private key should be sensitive"),
+    }
+
+    let hash = session.get_attribute_info_map(private, priv_attribs)?;
     if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
         assert_eq!(size, 2048 / 8);
     } else {
         panic!("Modulus should not return Unavailable on an RSA private key");
     }
-    if let AttributeInfo::Unavailable = hash[&AttributeType::PublicExponent] {
-        panic!("PublicExponent should not return Unavailable on an RSA private key");
+
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("Public Exponent should not return Unavailable for an RSA private key"),
+    }
+
+    match hash[&AttributeType::PrivateExponent] {
+        AttributeInfo::Sensitive => {}
+        _ => panic!("Private Exponent of RSA private key should be sensitive"),
     }
 
     Ok(())
