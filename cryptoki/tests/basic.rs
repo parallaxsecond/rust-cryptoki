@@ -3,11 +3,13 @@
 mod common;
 
 use common::init_pins;
+use cryptoki::types::function::RvError;
 use cryptoki::types::mechanism::Mechanism;
 use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
-use cryptoki::types::session::UserType;
-use cryptoki::types::Flags;
+use cryptoki::types::session::{SessionState, UserType};
+use cryptoki::types::SessionFlags;
 use serial_test::serial;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::thread;
 
@@ -28,7 +30,7 @@ fn sign_verify() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -80,7 +82,7 @@ fn encrypt_decrypt() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -139,7 +141,7 @@ fn derive_key() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -234,7 +236,7 @@ fn import_export() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -294,7 +296,7 @@ fn import_export() -> Result<()> {
 fn get_token_info() -> Result<()> {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
-    assert_eq!("SoftHSM project", info.get_manufacturer_id());
+    assert_eq!("SoftHSM project", info.manufacturer_id());
 
     Ok(())
 }
@@ -304,7 +306,7 @@ fn get_token_info() -> Result<()> {
 fn wrap_and_unwrap_key() {
     let (pkcs11, slot) = init_pins();
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
@@ -394,7 +396,7 @@ fn login_feast() {
     let (pkcs11, slot) = init_pins();
 
     // set flags
-    let mut flags = Flags::new();
+    let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     let pkcs11 = Arc::from(pkcs11);
@@ -416,4 +418,246 @@ fn login_feast() {
     for thread in threads {
         thread.join().unwrap();
     }
+}
+
+#[test]
+#[serial]
+fn get_info_test() -> Result<()> {
+    let (pkcs11, _) = init_pins();
+    let info = pkcs11.get_library_info()?;
+
+    assert_eq!(info.cryptoki_version().major(), 2);
+    assert_eq!(info.cryptoki_version().minor(), 40);
+    assert_eq!(info.manufacturer_id(), String::from("SoftHSM"));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_slot_info_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let slot_info = pkcs11.get_slot_info(slot)?;
+    assert!(slot_info.flags().token_present());
+    assert!(!slot_info.flags().hardware_slot());
+    assert!(!slot_info.flags().removable_device());
+    assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_session_info_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    // Check that OpenSession errors when CKF_SERIAL_SESSION is not set
+    if let Err(cryptoki::Error::Pkcs11(rv_error)) = pkcs11.open_session_no_callback(slot, flags) {
+        assert_eq!(rv_error, RvError::SessionParallelNotSupported);
+    } else {
+        panic!("Should error when CKF_SERIAL_SESSION is not set");
+    }
+
+    let _ = flags.set_serial_session(true);
+    {
+        let session = pkcs11.open_session_no_callback(slot, flags)?;
+        let session_info = session.get_session_info()?;
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
+        assert_eq!(
+            session_info.session_state(),
+            SessionState::RO_PUBLIC_SESSION
+        );
+
+        session.login(UserType::User)?;
+        let session_info = session.get_session_info()?;
+        assert_eq!(session_info.flags(), flags);
+        assert_eq!(session_info.slot_id(), slot);
+        assert_eq!(
+            session_info.session_state(),
+            SessionState::RO_USER_FUNCTIONS
+        );
+        session.logout()?;
+        if let Err(cryptoki::Error::Pkcs11(rv_error)) = session.login(UserType::So) {
+            assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+        } else {
+            panic!("Should error when attempting to log in as CKU_SO on a read-only session");
+        }
+    }
+
+    let _ = flags.set_rw_session(true);
+
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(
+        session_info.session_state(),
+        SessionState::RW_PUBLIC_SESSION
+    );
+
+    session.login(UserType::User)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(
+        session_info.session_state(),
+        SessionState::RW_USER_FUNCTIONS
+    );
+    session.logout()?;
+    session.login(UserType::So)?;
+    let session_info = session.get_session_info()?;
+    assert_eq!(session_info.flags(), flags);
+    assert_eq!(session_info.slot_id(), slot);
+    assert_eq!(session_info.session_state(), SessionState::RW_SO_FUNCTIONS);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn generate_random_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    let _ = flags.set_serial_session(true);
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    let poor_seed: [u8; 32] = [0; 32];
+    session.seed_random(&poor_seed)?;
+
+    let mut random_data: [u8; 32] = [0; 32];
+    session.generate_random_slice(&mut random_data)?;
+
+    // This of course assumes the RBG in the the SoftHSM is not terrible
+    assert!(!random_data.iter().all(|&x| x == 0));
+
+    let random_vec = session.generate_random_vec(32)?;
+    assert_eq!(random_vec.len(), 32);
+
+    assert!(!random_vec.iter().all(|&x| x == 0));
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn set_pin_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    let _ = flags.set_serial_session(true).set_rw_session(true);
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    pkcs11.set_pin(slot, "1234")?;
+    session.login(UserType::User)?;
+    session.set_pin("1234", "5678")?;
+    session.logout();
+    pkcs11.set_pin(slot, "5678");
+    session.login(UserType::User)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn get_attribute_info_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+    let _ = flags.set_rw_session(true).set_serial_session(true);
+
+    // open a session
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    // log in the session
+    session.login(UserType::User)?;
+
+    // get mechanism
+    let mechanism = Mechanism::RsaPkcsKeyPairGen;
+
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 2048;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(false.into()),
+        Attribute::Private(false.into()),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![
+        Attribute::Token(false.into()),
+        Attribute::Sensitive(true.into()),
+        Attribute::Extractable(false.into()),
+    ];
+
+    // generate a key pair
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
+    let mut priv_attribs = pub_attribs.clone();
+    priv_attribs.push(AttributeType::PrivateExponent);
+
+    let attrib_info = session.get_attribute_info(public, &pub_attribs)?;
+    let hash = pub_attribs
+        .iter()
+        .zip(attrib_info.iter())
+        .collect::<HashMap<_, _>>();
+
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(*size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable for an RSA public key");
+    }
+
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("Public Exponent should not return Unavailable for an RSA public key"),
+    }
+
+    let attrib_info = session.get_attribute_info(private, &priv_attribs)?;
+    let hash = priv_attribs
+        .iter()
+        .zip(attrib_info.iter())
+        .collect::<HashMap<_, _>>();
+
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(*size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable on an RSA private key");
+    }
+
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("PublicExponent should not return Unavailable on an RSA private key"),
+    }
+
+    match hash[&AttributeType::PrivateExponent] {
+        AttributeInfo::Sensitive => {}
+        _ => panic!("Private Exponent of RSA private key should be sensitive"),
+    }
+
+    let hash = session.get_attribute_info_map(private, priv_attribs)?;
+    if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
+        assert_eq!(size, 2048 / 8);
+    } else {
+        panic!("Modulus should not return Unavailable on an RSA private key");
+    }
+
+    match hash[&AttributeType::PublicExponent] {
+        AttributeInfo::Available(_) => {}
+        _ => panic!("Public Exponent should not return Unavailable for an RSA private key"),
+    }
+
+    match hash[&AttributeType::PrivateExponent] {
+        AttributeInfo::Sensitive => {}
+        _ => panic!("Private Exponent of RSA private key should be sensitive"),
+    }
+
+    Ok(())
 }

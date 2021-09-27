@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Locking related type
 
-use crate::types::Flags;
+use crate::types::InitializeFlags;
 use std::ptr;
 
 /// Argument for the initialize function
@@ -16,7 +16,7 @@ pub enum CInitializeArgs {
 
 impl From<CInitializeArgs> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
     fn from(c_initialize_args: CInitializeArgs) -> Self {
-        let mut flags = Flags::default();
+        let mut flags = InitializeFlags::default();
         match c_initialize_args {
             CInitializeArgs::OsThreads => {
                 let _ = flags.set_os_locking_ok(true);

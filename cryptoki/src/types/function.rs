@@ -226,7 +226,7 @@ pub enum RvError {
     SessionCount,
     /// The specified session handle was invalid at the time that the function was invoked.  Note that this can happen if the session’s token is removed before the function invocation, since removing a token closes all sessions with it.
     SessionHandleInvalid,
-    /// The specified token does not support parallel sessions.  This is a legacy error code—in Cryptoki Version 2.01 and up, no token supports parallel sessions.  CKR_SESSION_PARALLEL_NOT_SUPPORTED can only be returned by C_OpenSession, and it is only returned when C_OpenSession is called in a particular [deprecated] way.
+    /// The specified token does not support parallel sessions.  This is a legacy error code—in Cryptoki Version 2.01 and up, no token supports parallel sessions.  CKR_SESSION_PARALLEL_NOT_SUPPORTED can only be returned by C_OpenSession, and it is only returned when C_OpenSession is called in a particular `deprecated` way.
     SessionParallelNotSupported,
     /// The specified session was unable to accomplish the desired action because it is a read-only session.  This return value has lower priority than CKR_TOKEN_WRITE_PROTECTED.
     SessionReadOnly,
