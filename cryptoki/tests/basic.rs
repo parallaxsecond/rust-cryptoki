@@ -3,7 +3,7 @@
 mod common;
 
 use common::init_pins;
-use cryptoki::types::function::{Rv, RvError};
+use cryptoki::types::function::RvError;
 use cryptoki::types::mechanism::Mechanism;
 use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::types::session::{SessionState, UserType};

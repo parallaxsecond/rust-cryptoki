@@ -107,10 +107,9 @@ impl<'a> Session<'a> {
     /// # Returns
     ///
     /// This function will return a Vector of [AttributeInfo] enums that will either contain
-    /// the size of the requested attribute, [AttributeInfo::Empty] if the attribute is
-    /// empty, [AttributeInfo::TypeInvalid] if the attribute is not a valid type for the object,
-    /// or [AttributeInfo::Sensitive] if the requested attribute is sensitive and will not be
-    /// returned to the user.
+    /// the size of the requested attribute, [AttributeInfo::TypeInvalid] if the attribute is not a
+    /// valid type for the object, or [AttributeInfo::Sensitive] if the requested attribute is
+    /// sensitive and will not be returned to the user.
     ///
     /// The list of returned attributes is 1-to-1 matched with the provided vector of attribute
     /// types.  If you wish, you may create a hash table simply by:
@@ -156,6 +155,8 @@ impl<'a> Session<'a> {
     ///         .collect::<HashMap<_, _>>();
     /// }
     /// ```
+    ///
+    /// Alternatively, you can call [Session::get_attribute_info_map], found below.
     pub fn get_attribute_info(
         &self,
         object: ObjectHandle,
@@ -201,12 +202,9 @@ impl<'a> Session<'a> {
     /// # Returns
     ///
     /// This function will return a HashMap of [AttributeType] and [AttributeInfo] enums that will
-    /// either contain the size of the requested attribute or [AttributeInfo::Unavailable] if the
-    /// attribute is not available to be read from `object`.
-    ///
-    /// _Note: An attribute returning [AttributeInfo::Unavailable] may mean that the attribute is
-    /// either sensitive or not a valid type for `object`.  This function does not distinguish
-    /// between those two errors._
+    /// either contain the size of the requested attribute, [AttributeInfo::TypeInvalid] if the
+    /// attribute is not a valid type for the object, or [AttributeInfo::Sensitive] if the requested
+    /// attribute is sensitive and will not be returned to the user.
     pub fn get_attribute_info_map(
         &self,
         object: ObjectHandle,
