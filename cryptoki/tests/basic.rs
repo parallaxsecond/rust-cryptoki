@@ -542,6 +542,26 @@ fn generate_random_test() -> Result<()> {
 
 #[test]
 #[serial]
+fn set_pin_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    let mut flags = SessionFlags::new();
+
+    let _ = flags.set_serial_session(true).set_rw_session(true);
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+
+    pkcs11.set_pin(slot, "1234")?;
+    session.login(UserType::User)?;
+    session.set_pin("1234", "5678")?;
+    session.logout();
+    pkcs11.set_pin(slot, "5678");
+    session.login(UserType::User)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn get_attribute_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 

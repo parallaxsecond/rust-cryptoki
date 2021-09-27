@@ -202,4 +202,25 @@ impl<'a> Session<'a> {
             .into_result()
         }
     }
+
+    /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
+    /// logged in.
+    pub fn set_pin(&self, old_pin: &str, new_pin: &str) -> Result<()> {
+        let old_pin = Secret::new(CString::new(old_pin)?.into_bytes());
+        let new_pin_secret = Secret::new(CString::new(new_pin)?.into_bytes());
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
+                self.handle(),
+                old_pin.expose_secret().as_ptr() as *mut u8,
+                old_pin.expose_secret().len().try_into()?,
+                new_pin_secret.expose_secret().as_ptr() as *mut u8,
+                new_pin_secret.expose_secret().len().try_into()?,
+            ))
+            .into_result()?;
+        }
+        // Remove the old pin
+        self.client().clear_pin(self.slot());
+        // Set the new pin
+        self.client().set_pin(self.slot(), new_pin)
+    }
 }
