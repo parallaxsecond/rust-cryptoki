@@ -13,7 +13,7 @@ use std::ffi::c_void;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
 pub enum AttributeType {
@@ -1065,7 +1065,7 @@ impl KeyType {
     /// DES2 key
     pub const DES2: KeyType = KeyType { val: CKK_DES2 };
     /// DES3 secret
-    /// Note that DES3 is deprecated. See https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf section 2, p. 6.
+    /// Note that DES3 is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
     pub const DES3: KeyType = KeyType { val: CKK_DES3 };
     /// CAST key
     pub const CAST: KeyType = KeyType { val: CKK_CAST };
@@ -1286,8 +1286,10 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
 #[derive(Debug, Copy, Clone)]
 /// Information about the attribute of an object
 pub enum AttributeInfo {
-    /// The attribute is not defined for the object
-    Unavailable,
+    /// The requested attribute is not a valid attribute for the object
+    TypeInvalid,
+    /// The value of the attribute is sensitive and will not be returned
+    Sensitive,
     /// The attribute is available to get from the object and has the specified size in bytes.
     Available(usize),
 }
