@@ -7,7 +7,12 @@ use cryptoki::types::SessionFlags;
 use cryptoki::Pkcs11;
 use std::env;
 
-pub fn init_pins(so_pin: &str, user_pin: &str) -> (Pkcs11, Slot) {
+// The default user pin
+pub static USER_PIN: &str = "fedcba";
+// The default SO pin
+pub static SO_PIN: &str = "abcdef";
+
+pub fn init_pins() -> (Pkcs11, Slot) {
     let pkcs11 = Pkcs11::new(
         env::var("PKCS11_SOFTHSM2_MODULE")
             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
@@ -20,7 +25,7 @@ pub fn init_pins(so_pin: &str, user_pin: &str) -> (Pkcs11, Slot) {
     // find a slot, get the first one
     let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
-    pkcs11.init_token(slot, so_pin, "Test Token").unwrap();
+    pkcs11.init_token(slot, SO_PIN, "Test Token").unwrap();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -30,8 +35,8 @@ pub fn init_pins(so_pin: &str, user_pin: &str) -> (Pkcs11, Slot) {
         // open a session
         let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
         // log in the session
-        session.login(UserType::So, so_pin).unwrap();
-        session.init_pin(user_pin).unwrap();
+        session.login(UserType::So, Some(SO_PIN)).unwrap();
+        session.init_pin(USER_PIN).unwrap();
     }
 
     (pkcs11, slot)

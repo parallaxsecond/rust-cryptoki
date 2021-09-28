@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
+use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::types::function::RvError;
 use cryptoki::types::mechanism::Mechanism;
@@ -28,9 +29,7 @@ type Result<T> = std::result::Result<T, ErrorWithStacktrace>;
 #[test]
 #[serial]
 fn sign_verify() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -40,7 +39,7 @@ fn sign_verify() -> Result<()> {
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
     // log in the session
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -82,9 +81,7 @@ fn sign_verify() -> Result<()> {
 #[test]
 #[serial]
 fn encrypt_decrypt() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -94,7 +91,7 @@ fn encrypt_decrypt() -> Result<()> {
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
     // log in the session
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -143,9 +140,7 @@ fn encrypt_decrypt() -> Result<()> {
 #[test]
 #[serial]
 fn derive_key() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -155,7 +150,7 @@ fn derive_key() -> Result<()> {
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
     // log in the session
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
 
     // get mechanism
     let mechanism = Mechanism::EccKeyPairGen;
@@ -240,9 +235,7 @@ fn derive_key() -> Result<()> {
 #[test]
 #[serial]
 fn import_export() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -252,7 +245,7 @@ fn import_export() -> Result<()> {
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
     // log in the session
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let modulus = vec![0xFF; 1024];
@@ -303,9 +296,7 @@ fn import_export() -> Result<()> {
 #[test]
 #[serial]
 fn get_token_info() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
     assert_eq!("SoftHSM project", info.manufacturer_id());
 
@@ -315,9 +306,7 @@ fn get_token_info() -> Result<()> {
 #[test]
 #[serial]
 fn wrap_and_unwrap_key() {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
     // set flags
     let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
@@ -326,7 +315,7 @@ fn wrap_and_unwrap_key() {
     let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
 
     // log in the session
-    session.login(UserType::User, user_pin).unwrap();
+    session.login(UserType::User, Some(USER_PIN)).unwrap();
 
     let key_to_be_wrapped_template = vec![
         Attribute::Token(true.into()),
@@ -406,9 +395,7 @@ fn wrap_and_unwrap_key() {
 fn login_feast() {
     const SESSIONS: usize = 100;
 
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -421,15 +408,15 @@ fn login_feast() {
         let pkcs11 = pkcs11.clone();
         threads.push(thread::spawn(move || {
             let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
-            match session.login(UserType::User, user_pin) {
+            match session.login(UserType::User, Some(USER_PIN)) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, user_pin) {
+            match session.login(UserType::User, Some(USER_PIN)) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, user_pin) {
+            match session.login(UserType::User, Some(USER_PIN)) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
@@ -456,9 +443,7 @@ fn login_feast() {
 #[test]
 #[serial]
 fn get_info_test() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, _) = init_pins(so_pin, user_pin);
+    let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
     assert_eq!(info.cryptoki_version().major(), 2);
@@ -470,9 +455,7 @@ fn get_info_test() -> Result<()> {
 #[test]
 #[serial]
 fn get_slot_info_test() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
     let slot_info = pkcs11.get_slot_info(slot)?;
     assert!(slot_info.flags().token_present());
     assert!(!slot_info.flags().hardware_slot());
@@ -484,9 +467,7 @@ fn get_slot_info_test() -> Result<()> {
 #[test]
 #[serial]
 fn get_session_info_test() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
 
@@ -508,7 +489,7 @@ fn get_session_info_test() -> Result<()> {
             SessionState::RO_PUBLIC_SESSION
         );
 
-        session.login(UserType::User, user_pin)?;
+        session.login(UserType::User, Some(USER_PIN))?;
         let session_info = session.get_session_info()?;
         assert_eq!(session_info.flags(), flags);
         assert_eq!(session_info.slot_id(), slot);
@@ -517,7 +498,7 @@ fn get_session_info_test() -> Result<()> {
             SessionState::RO_USER_FUNCTIONS
         );
         session.logout()?;
-        if let Err(cryptoki::Error::Pkcs11(rv_error)) = session.login(UserType::So, so_pin) {
+        if let Err(cryptoki::Error::Pkcs11(rv_error)) = session.login(UserType::So, Some(SO_PIN)) {
             assert_eq!(rv_error, RvError::SessionReadOnlyExists)
         } else {
             panic!("Should error when attempting to log in as CKU_SO on a read-only session");
@@ -535,7 +516,7 @@ fn get_session_info_test() -> Result<()> {
         SessionState::RW_PUBLIC_SESSION
     );
 
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
     let session_info = session.get_session_info()?;
     assert_eq!(session_info.flags(), flags);
     assert_eq!(session_info.slot_id(), slot);
@@ -544,7 +525,7 @@ fn get_session_info_test() -> Result<()> {
         SessionState::RW_USER_FUNCTIONS
     );
     session.logout()?;
-    session.login(UserType::So, so_pin)?;
+    session.login(UserType::So, Some(SO_PIN))?;
     let session_info = session.get_session_info()?;
     assert_eq!(session_info.flags(), flags);
     assert_eq!(session_info.slot_id(), slot);
@@ -556,9 +537,7 @@ fn get_session_info_test() -> Result<()> {
 #[test]
 #[serial]
 fn generate_random_test() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
 
@@ -584,20 +563,18 @@ fn generate_random_test() -> Result<()> {
 #[test]
 #[serial]
 fn set_pin_test() -> Result<()> {
-    let user_pin = "fedcba";
     let new_user_pin = "123456";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
 
     let _ = flags.set_serial_session(true).set_rw_session(true);
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
-    session.login(UserType::User, user_pin)?;
-    session.set_pin(user_pin, new_user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+    session.set_pin(USER_PIN, new_user_pin)?;
     session.logout()?;
-    session.login(UserType::User, new_user_pin)?;
+    session.login(UserType::User, Some(new_user_pin))?;
 
     Ok(())
 }
@@ -605,9 +582,7 @@ fn set_pin_test() -> Result<()> {
 #[test]
 #[serial]
 fn get_attribute_info_test() -> Result<()> {
-    let user_pin = "fedcba";
-    let so_pin = "abcdef";
-    let (pkcs11, slot) = init_pins(so_pin, user_pin);
+    let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
@@ -616,7 +591,7 @@ fn get_attribute_info_test() -> Result<()> {
     let session = pkcs11.open_session_no_callback(slot, flags)?;
 
     // log in the session
-    session.login(UserType::User, user_pin)?;
+    session.login(UserType::User, Some(USER_PIN))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;

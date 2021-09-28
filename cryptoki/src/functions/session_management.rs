@@ -43,17 +43,25 @@ impl<'a> Session<'a> {
     }
 
     /// Log a session in.
-    pub fn login(&self, user_type: UserType, pin: &str) -> Result<()> {
-        let pin_ptr = match pin.len() {
-            0 => std::ptr::null_mut(),
-            _ => pin.as_ptr() as *mut u8,
+    ///
+    /// # Arguments
+    ///
+    /// * `user_type` - The type of user to log in as
+    /// * `pin` - The PIN to use, or `None` if you wish to use the protected authentication path
+    ///
+    /// _NOTE: By passing `None` into `login`, you must ensure that the
+    /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
+    pub fn login(&self, user_type: UserType, pin: Option<&str>) -> Result<()> {
+        let (pin, pin_len) = match pin {
+            Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
+            None => (std::ptr::null_mut(), 0),
         };
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_Login)(
                 self.handle(),
                 user_type.into(),
-                pin_ptr,
-                pin.len().try_into()?,
+                pin,
+                pin_len.try_into()?,
             ))
             .into_result()
         }
