@@ -10,9 +10,7 @@ use crate::Result;
 use crate::Session;
 use crate::{get_pkcs11, label_from_str};
 use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
-use secrecy::{ExposeSecret, Secret};
 use std::convert::TryInto;
-use std::ffi::CString;
 
 impl Pkcs11 {
     /// Get all slots available with a token
@@ -102,13 +100,12 @@ impl Pkcs11 {
     ///
     /// Currently will use an empty label for all tokens.
     pub fn init_token(&self, slot: Slot, pin: &str, label: &str) -> Result<()> {
-        let pin = Secret::new(CString::new(pin)?.into_bytes());
         let label = label_from_str(label);
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
                 slot.try_into()?,
-                pin.expose_secret().as_ptr() as *mut u8,
-                pin.expose_secret().len().try_into()?,
+                pin.as_ptr() as *mut u8,
+                pin.len().try_into()?,
                 label.as_ptr() as *mut u8,
             ))
             .into_result()
@@ -192,12 +189,11 @@ impl Pkcs11 {
 impl<'a> Session<'a> {
     /// Initialize the normal user's pin for a token
     pub fn init_pin(&self, pin: &str) -> Result<()> {
-        let pin = Secret::new(CString::new(pin)?.into_bytes());
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_InitPIN)(
                 self.handle(),
-                pin.expose_secret().as_ptr() as *mut u8,
-                pin.expose_secret().len().try_into()?,
+                pin.as_ptr() as *mut u8,
+                pin.len().try_into()?,
             ))
             .into_result()
         }
@@ -206,21 +202,15 @@ impl<'a> Session<'a> {
     /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
     /// logged in.
     pub fn set_pin(&self, old_pin: &str, new_pin: &str) -> Result<()> {
-        let old_pin = Secret::new(CString::new(old_pin)?.into_bytes());
-        let new_pin_secret = Secret::new(CString::new(new_pin)?.into_bytes());
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
                 self.handle(),
-                old_pin.expose_secret().as_ptr() as *mut u8,
-                old_pin.expose_secret().len().try_into()?,
-                new_pin_secret.expose_secret().as_ptr() as *mut u8,
-                new_pin_secret.expose_secret().len().try_into()?,
+                old_pin.as_ptr() as *mut u8,
+                old_pin.len().try_into()?,
+                new_pin.as_ptr() as *mut u8,
+                new_pin.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result()
         }
-        // Remove the old pin
-        self.client().clear_pin(self.slot());
-        // Set the new pin
-        self.client().set_pin(self.slot(), new_pin)
     }
 }

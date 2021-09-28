@@ -42,20 +42,26 @@ impl<'a> Session<'a> {
         unsafe { Rv::from(get_pkcs11!(self.client(), C_CloseSession)(self.handle())).into_result() }
     }
 
-    /// Log a session in
-    ///
-    /// Do not fail if the user is already logged in. It happens if another session on the same slot
-    /// has already called the log in operation. Record the login call and only log out when there
-    /// aren't anymore sessions requiring log in state.
-    pub fn login(&self, user_type: UserType) -> Result<()> {
-        self.client().login(self, user_type)
+    /// Log a session in.
+    pub fn login(&self, user_type: UserType, pin: &str) -> Result<()> {
+        let pin_ptr = match pin.len() {
+            0 => std::ptr::null_mut(),
+            _ => pin.as_ptr() as *mut u8,
+        };
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_Login)(
+                self.handle(),
+                user_type.into(),
+                pin_ptr,
+                pin.len().try_into()?,
+            ))
+            .into_result()
+        }
     }
 
     /// Log a session out
-    ///
-    /// Will also be called on drop.
     pub fn logout(&self) -> Result<()> {
-        self.client().logout(self)
+        unsafe { Rv::from(get_pkcs11!(self.client(), C_Logout)(self.handle())).into_result() }
     }
 
     /// Returns the information about a session

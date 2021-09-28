@@ -42,19 +42,13 @@ pub mod objects;
 pub mod types;
 
 use crate::types::function::{Rv, RvError};
-use crate::types::session::{Session, UserType};
-use crate::types::slot_token::Slot;
+use crate::types::session::Session;
 use cryptoki_sys::CK_UTF8CHAR;
 use derivative::Derivative;
 use log::error;
-use secrecy::{ExposeSecret, Secret, SecretVec};
-use std::collections::{HashMap, HashSet};
-use std::convert::TryInto;
-use std::ffi::CString;
 use std::fmt;
 use std::mem;
 use std::path::Path;
-use std::sync::{Mutex, RwLock};
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
 #[macro_export]
@@ -76,11 +70,6 @@ pub struct Pkcs11 {
     #[derivative(Debug = "ignore")]
     _pkcs11_lib: cryptoki_sys::Pkcs11,
     function_list: cryptoki_sys::_CK_FUNCTION_LIST,
-    // Handle of sessions currently logged in per slot. This is used for logging in and out.
-    logged_sessions: Mutex<HashMap<Slot, HashSet<cryptoki_sys::CK_SESSION_HANDLE>>>,
-    // Pin per slot, will be used for login. Ideally this should also be filtered by user type.
-    #[derivative(Debug = "ignore")]
-    pins: RwLock<HashMap<Slot, SecretVec<u8>>>,
 }
 
 impl Pkcs11 {
@@ -101,91 +90,8 @@ impl Pkcs11 {
             Ok(Pkcs11 {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: *list_ptr,
-                logged_sessions: Mutex::new(HashMap::new()),
-                pins: RwLock::new(HashMap::new()),
             })
         }
-    }
-
-    /// Set the PIN used when logging in sessions.
-    /// The pin set is the one that is going to be use with all user type specified when logging in.
-    /// It needs to be changed before calling login with a different user type.
-    pub fn set_pin(&self, slot: Slot, pin: &str) -> Result<()> {
-        let _ = self
-            .pins
-            .write()
-            .expect("Pins lock poisoned")
-            .insert(slot, Secret::new(CString::new(pin)?.into_bytes()));
-        Ok(())
-    }
-
-    /// Clear the pin store.
-    /// Ignore if the pin was not set previously on the slot. Note that the pin will be cleared
-    /// anyway on drop.
-    pub fn clear_pin(&self, slot: Slot) {
-        // The removed pin will be zeroized on drop as it is a SecretVec
-        let _ = self.pins.write().expect("Pins lock poisoned").remove(&slot);
-    }
-
-    // Do not fail if the user is already logged in. It happens if another session on the same slot
-    // has already called the log in operation. Record the login call and only log out when there
-    // aren't anymore sessions requiring log in state.
-    fn login(&self, session: &Session, user_type: UserType) -> Result<()> {
-        let pins = self.pins.read().expect("Pins lock poisoned");
-        let pin = pins
-            .get(&session.slot())
-            .ok_or(Error::PinNotSet)?
-            .expose_secret();
-
-        let mut logged_sessions = self
-            .logged_sessions
-            .lock()
-            .expect("Logged sessions mutex poisoned!");
-
-        match unsafe {
-            Rv::from(get_pkcs11!(self, C_Login)(
-                session.handle(),
-                user_type.into(),
-                pin.as_ptr() as *mut u8,
-                pin.len().try_into()?,
-            ))
-        } {
-            Rv::Ok | Rv::Error(RvError::UserAlreadyLoggedIn) => {
-                if let Some(session_handles) = logged_sessions.get_mut(&session.slot()) {
-                    // It might already been present in if this session already tried to log in.
-                    let _ = session_handles.insert(session.handle());
-                } else {
-                    let mut new_set = HashSet::new();
-                    let _ = new_set.insert(session.handle());
-                    let _ = logged_sessions.insert(session.slot(), new_set);
-                }
-                Ok(())
-            }
-            Rv::Error(err) => Err(err.into()),
-        }
-    }
-
-    fn logout(&self, session: &Session) -> Result<()> {
-        let mut logged_sessions = self
-            .logged_sessions
-            .lock()
-            .expect("Logged sessions mutex poisoned!");
-
-        // A non-logged in session might call this method.
-
-        if let Some(session_handles) = logged_sessions.get_mut(&session.slot()) {
-            if session_handles.contains(&session.handle()) {
-                if session_handles.len() == 1 {
-                    // Only this session is logged in, we can logout.
-                    unsafe {
-                        Rv::from(get_pkcs11!(self, C_Logout)(session.handle())).into_result()?;
-                    }
-                }
-                let _ = session_handles.remove(&session.handle());
-            }
-        }
-
-        Ok(())
     }
 }
 
