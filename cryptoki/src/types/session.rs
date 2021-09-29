@@ -66,19 +66,10 @@ impl<'a> Session<'a> {
     pub(crate) fn client(&self) -> &Pkcs11 {
         self.client
     }
-
-    pub(crate) fn slot(&self) -> Slot {
-        self.slot
-    }
 }
 
 impl Drop for Session<'_> {
     fn drop(&mut self) {
-        // logout is ignored if the session is not logged in
-        if let Err(e) = self.logout() {
-            error!("Failed to logout session: {}", e);
-        }
-
         if let Err(e) = self.close_private() {
             error!("Failed to close session: {}", e);
         }

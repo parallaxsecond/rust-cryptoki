@@ -134,9 +134,8 @@ impl<'a> Session<'a> {
     /// let mut flags = SessionFlags::new();
     /// let _ = flags.set_rw_session(true).set_serial_session(true);
     ///
-    /// pkcs11.set_pin(slot, "1234").unwrap();
     /// let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
-    /// session.login(UserType::User);
+    /// session.login(UserType::User, Some("fedcba"));
     ///
     /// let empty_attrib= vec![];
     /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().get(0) {

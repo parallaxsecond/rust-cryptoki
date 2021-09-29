@@ -7,6 +7,11 @@ use cryptoki::types::SessionFlags;
 use cryptoki::Pkcs11;
 use std::env;
 
+// The default user pin
+pub static USER_PIN: &str = "fedcba";
+// The default SO pin
+pub static SO_PIN: &str = "abcdef";
+
 pub fn init_pins() -> (Pkcs11, Slot) {
     let pkcs11 = Pkcs11::new(
         env::var("PKCS11_SOFTHSM2_MODULE")
@@ -20,8 +25,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     // find a slot, get the first one
     let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
-    pkcs11.init_token(slot, "1234", "Test Token").unwrap();
-    pkcs11.set_pin(slot, "1234").unwrap();
+    pkcs11.init_token(slot, SO_PIN, "Test Token").unwrap();
 
     // set flags
     let mut flags = SessionFlags::new();
@@ -31,8 +35,8 @@ pub fn init_pins() -> (Pkcs11, Slot) {
         // open a session
         let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
         // log in the session
-        session.login(UserType::So).unwrap();
-        session.init_pin("1234").unwrap();
+        session.login(UserType::So, Some(SO_PIN)).unwrap();
+        session.init_pin(USER_PIN).unwrap();
     }
 
     (pkcs11, slot)
