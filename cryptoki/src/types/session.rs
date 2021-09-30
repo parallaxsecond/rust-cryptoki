@@ -21,8 +21,6 @@ use std::ops::Deref;
 pub struct Session<'a> {
     handle: CK_SESSION_HANDLE,
     client: &'a Pkcs11,
-    // Slot to know the token this session was opened on
-    slot: Slot,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: *mut u32,
 }
@@ -50,11 +48,10 @@ impl std::fmt::UpperHex for Session<'_> {
 unsafe impl<'a> Send for Session<'a> {}
 
 impl<'a> Session<'a> {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: &'a Pkcs11, slot: Slot) -> Self {
+    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: &'a Pkcs11) -> Self {
         Session {
             handle,
             client,
-            slot,
             _guard: std::ptr::null_mut::<u32>(),
         }
     }

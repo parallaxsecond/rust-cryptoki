@@ -29,7 +29,7 @@ impl Pkcs11 {
             .into_result()?;
         }
 
-        Ok(Session::new(session_handle, self, slot_id))
+        Ok(Session::new(session_handle, self))
     }
 }
 
