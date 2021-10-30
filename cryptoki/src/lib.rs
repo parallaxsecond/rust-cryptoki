@@ -38,7 +38,7 @@
        unused_results)]
 
 pub mod functions;
-pub mod objects;
+pub(crate) mod objects;
 pub mod types;
 
 use crate::types::function::{Rv, RvError};
