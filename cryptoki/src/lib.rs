@@ -39,9 +39,49 @@
 
 pub(crate) mod functions;
 pub(crate) mod objects;
-pub mod types;
+pub(crate) mod types;
 
-use crate::types::function::{Rv, RvError};
+pub use crate::types::function::*;
+
+pub mod init {
+    //! Initialization for the the Pkcs11 context
+    pub use crate::types::Info;
+    pub use crate::types::locking::CInitializeArgs;
+    pub use crate::types::InitializeFlags;
+}
+
+pub mod misc {
+    //! Miscellaneous common data types
+    pub use crate::types::Date;
+    pub use crate::types::Ulong;
+    pub use crate::types::Version;
+    pub use crate::types::Bbool;
+}
+
+pub mod mechanism {
+    //! Data types for mechanisms
+    pub use crate::types::mechanism::*;
+    pub use crate::types::MechanismFlags;
+}
+
+pub mod session {
+    //! Data types for sessions
+    pub use crate::types::session::*;
+    pub use crate::types::SessionFlags;
+}
+
+pub mod object {
+    //! Data types for objects
+    pub use crate::types::object::*;
+}
+
+pub mod slot {
+    //! Data types to interact with slots and tokens
+    pub use crate::types::slot_token::*;
+    pub use crate::types::SlotFlags;
+    pub use crate::types::TokenFlags;
+}
+
 use crate::types::session::Session;
 use cryptoki_sys::CK_UTF8CHAR;
 use derivative::Derivative;

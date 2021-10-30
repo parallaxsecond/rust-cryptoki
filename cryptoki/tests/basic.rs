@@ -4,12 +4,10 @@ mod common;
 
 use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
-use cryptoki::types::function::RvError;
-use cryptoki::types::mechanism::Mechanism;
-use cryptoki::types::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
-use cryptoki::types::session::{SessionState, UserType};
-use cryptoki::types::SessionFlags;
-use cryptoki::Error;
+use cryptoki::{Error,RvError};
+use cryptoki::mechanism::Mechanism;
+use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
+use cryptoki::session::{SessionState, UserType, SessionFlags};
 use serial_test::serial;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -191,7 +189,7 @@ fn derive_key() -> Result<()> {
         panic!("Expected EC point attribute.");
     };
 
-    use cryptoki::types::mechanism::elliptic_curve::*;
+    use cryptoki::mechanism::elliptic_curve::*;
     use std::convert::TryInto;
 
     let params = Ecdh1DeriveParams {

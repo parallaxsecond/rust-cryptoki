@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 General Data Types
 
-pub mod function;
-pub mod locking;
-pub mod mechanism;
-pub mod object;
-pub mod session;
-pub mod slot_token;
+pub(crate) mod function;
+pub(crate) mod locking;
+pub(crate) mod mechanism;
+pub(crate) mod object;
+pub(crate) mod session;
+pub(crate) mod slot_token;
 
 use crate::{string_from_blank_padded, Error, Result};
 use cryptoki_sys::*;
