@@ -37,7 +37,7 @@
        unused_qualifications,
        unused_results)]
 
-pub mod functions;
+pub(crate) mod functions;
 pub(crate) mod objects;
 pub mod types;
 

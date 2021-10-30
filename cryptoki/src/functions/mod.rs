@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 functions
 
-pub mod decryption;
-pub mod encryption;
-pub mod general_purpose;
-pub mod key_management;
-pub mod object_management;
-pub mod random;
-pub mod session_management;
-pub mod signing_macing;
-pub mod slot_token_management;
+pub(crate) mod decryption;
+pub(crate) mod encryption;
+pub(crate) mod general_purpose;
+pub(crate) mod key_management;
+pub(crate) mod object_management;
+pub(crate) mod random;
+pub(crate) mod session_management;
+pub(crate) mod signing_macing;
+pub(crate) mod slot_token_management;
