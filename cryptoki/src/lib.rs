@@ -60,11 +60,7 @@ pub mod misc {
 
 pub mod mechanism;
 pub mod session;
-
-pub mod object {
-    //! Data types for objects
-    pub use crate::types::object::*;
-}
+pub mod object;
 
 pub mod slot {
     //! Data types to interact with slots and tokens

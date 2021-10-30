@@ -4,7 +4,6 @@
 
 pub(crate) mod function;
 pub(crate) mod locking;
-pub(crate) mod object;
 pub(crate) mod slot_token;
 
 use crate::{string_from_blank_padded, Error, Result};

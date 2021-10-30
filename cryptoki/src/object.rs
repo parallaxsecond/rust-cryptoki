@@ -1,6 +1,6 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-//! Object types
+//! Object types (including Attributes)
 
 use crate::mechanism::MechanismType;
 use crate::types::{Bbool, Date, Ulong};

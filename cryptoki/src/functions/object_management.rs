@@ -4,7 +4,7 @@
 
 use crate::get_pkcs11;
 use crate::types::function::{Rv, RvError};
-use crate::types::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
+use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
 use crate::Result;
 use cryptoki_sys::*;

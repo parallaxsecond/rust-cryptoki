@@ -5,7 +5,7 @@
 use crate::get_pkcs11;
 use crate::types::function::Rv;
 use crate::mechanism::Mechanism;
-use crate::types::object::{Attribute, ObjectHandle};
+use crate::object::{Attribute, ObjectHandle};
 use crate::session::Session;
 use crate::Result;
 use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
