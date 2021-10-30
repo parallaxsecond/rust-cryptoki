@@ -4,8 +4,10 @@
 
 pub mod elliptic_curve;
 pub mod rsa;
+mod flags;
+pub use flags::*;
 
-use crate::types::{MechanismFlags, Ulong};
+use crate::types::Ulong;
 use crate::Error;
 use cryptoki_sys::*;
 use log::error;

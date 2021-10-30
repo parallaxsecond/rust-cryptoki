@@ -58,11 +58,7 @@ pub mod misc {
     pub use crate::types::Bbool;
 }
 
-pub mod mechanism {
-    //! Data types for mechanisms
-    pub use crate::types::mechanism::*;
-    pub use crate::types::MechanismFlags;
-}
+pub mod mechanism;
 
 pub mod session {
     //! Data types for sessions

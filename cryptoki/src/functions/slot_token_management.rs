@@ -3,7 +3,7 @@
 //! Slot and token management functions
 
 use crate::types::function::Rv;
-use crate::types::mechanism::{MechanismInfo, MechanismType};
+use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::types::slot_token::{Slot, SlotInfo, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;

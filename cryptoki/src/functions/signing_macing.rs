@@ -4,7 +4,7 @@
 
 use crate::get_pkcs11;
 use crate::types::function::Rv;
-use crate::types::mechanism::Mechanism;
+use crate::mechanism::Mechanism;
 use crate::types::object::ObjectHandle;
 use crate::types::session::Session;
 use crate::Result;

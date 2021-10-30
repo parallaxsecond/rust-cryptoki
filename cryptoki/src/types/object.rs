@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Object types
 
-use crate::types::mechanism::MechanismType;
+use crate::mechanism::MechanismType;
 use crate::types::{Bbool, Date, Ulong};
 use crate::{Error, Result};
 use cryptoki_sys::*;
