@@ -3,13 +3,16 @@
 //! Session types
 
 use crate::types::slot_token::Slot;
-use crate::types::{SessionFlags, Ulong};
+use crate::types::Ulong;
 use crate::Pkcs11;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryInto;
 use std::fmt::Formatter;
 use std::ops::Deref;
+
+mod flags;
+pub use flags::*;
 
 /// Type that identifies a session
 ///

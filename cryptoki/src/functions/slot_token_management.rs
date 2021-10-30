@@ -7,7 +7,7 @@ use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::types::slot_token::{Slot, SlotInfo, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;
-use crate::Session;
+use crate::session::Session;
 use crate::{get_pkcs11, label_from_str};
 use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;

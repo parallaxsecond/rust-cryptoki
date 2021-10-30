@@ -59,12 +59,7 @@ pub mod misc {
 }
 
 pub mod mechanism;
-
-pub mod session {
-    //! Data types for sessions
-    pub use crate::types::session::*;
-    pub use crate::types::SessionFlags;
-}
+pub mod session;
 
 pub mod object {
     //! Data types for objects
@@ -78,7 +73,6 @@ pub mod slot {
     pub use crate::types::TokenFlags;
 }
 
-use crate::types::session::Session;
 use cryptoki_sys::CK_UTF8CHAR;
 use derivative::Derivative;
 use log::error;
