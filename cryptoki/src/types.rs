@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 General Data Types
 
-pub(crate) mod function;
-
 use crate::{Error, Result};
 use cryptoki_sys::*;
 use log::error;

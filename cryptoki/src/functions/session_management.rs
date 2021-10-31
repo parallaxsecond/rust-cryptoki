@@ -3,7 +3,7 @@
 //! Session management functions
 
 use crate::get_pkcs11;
-use crate::types::function::Rv;
+use crate::Rv;
 use crate::session::{Session, SessionInfo, SessionFlags, UserType};
 use crate::slot::Slot;
 use crate::context::Pkcs11;

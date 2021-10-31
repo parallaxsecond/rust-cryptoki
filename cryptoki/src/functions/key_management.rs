@@ -3,7 +3,7 @@
 //! Key management functions
 
 use crate::get_pkcs11;
-use crate::types::function::Rv;
+use crate::Rv;
 use crate::mechanism::Mechanism;
 use crate::object::{Attribute, ObjectHandle};
 use crate::session::Session;

@@ -39,19 +39,11 @@
 
 pub(crate) mod functions;
 pub(crate) mod objects;
-pub(crate) mod types;
 
-pub use crate::types::function::*;
+mod rv;
+pub use rv::*;
 
-
-pub mod misc {
-    //! Miscellaneous common data types
-    pub use crate::types::Date;
-    pub use crate::types::Ulong;
-    pub use crate::types::Version;
-    pub use crate::types::Bbool;
-}
-
+pub mod types;
 pub mod context;
 pub mod mechanism;
 pub mod session;

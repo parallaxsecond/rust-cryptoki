@@ -3,7 +3,7 @@
 //! Object management functions
 
 use crate::get_pkcs11;
-use crate::types::function::{Rv, RvError};
+use crate::{Rv, RvError};
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
 use crate::Result;
