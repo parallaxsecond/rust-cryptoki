@@ -3,9 +3,8 @@
 //! Functions used to generate random numbers
 
 use crate::get_pkcs11;
-use crate::Rv;
+use crate::error::{Result, Rv};
 use crate::session::Session;
-use crate::Result;
 use std::convert::TryInto;
 
 impl<'a> Session<'a> {

@@ -4,7 +4,7 @@ mod common;
 
 use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
-use cryptoki::{Error,RvError};
+use cryptoki::error::{Error,RvError};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType, SessionFlags};
@@ -470,7 +470,7 @@ fn get_session_info_test() -> Result<()> {
     let mut flags = SessionFlags::new();
 
     // Check that OpenSession errors when CKF_SERIAL_SESSION is not set
-    if let Err(cryptoki::Error::Pkcs11(rv_error)) = pkcs11.open_session_no_callback(slot, flags) {
+    if let Err(cryptoki::error::Error::Pkcs11(rv_error)) = pkcs11.open_session_no_callback(slot, flags) {
         assert_eq!(rv_error, RvError::SessionParallelNotSupported);
     } else {
         panic!("Should error when CKF_SERIAL_SESSION is not set");
@@ -496,7 +496,7 @@ fn get_session_info_test() -> Result<()> {
             SessionState::RO_USER_FUNCTIONS
         );
         session.logout()?;
-        if let Err(cryptoki::Error::Pkcs11(rv_error)) = session.login(UserType::So, Some(SO_PIN)) {
+        if let Err(cryptoki::error::Error::Pkcs11(rv_error)) = session.login(UserType::So, Some(SO_PIN)) {
             assert_eq!(rv_error, RvError::SessionReadOnlyExists)
         } else {
             panic!("Should error when attempting to log in as CKU_SO on a read-only session");

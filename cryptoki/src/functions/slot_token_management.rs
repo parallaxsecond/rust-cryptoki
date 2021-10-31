@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Slot and token management functions
 
-use crate::Rv;
+use crate::error::{Result, Rv};
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
 use crate::context::Pkcs11;
-use crate::Result;
 use crate::session::Session;
 use crate::{get_pkcs11, label_from_str};
 use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};

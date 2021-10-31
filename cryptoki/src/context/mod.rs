@@ -14,7 +14,7 @@ use derivative::Derivative;
 use log::error;
 use std::mem;
 use std::path::Path;
-use crate::{Error,Result,Rv};
+use crate::error::{Error,Result,Rv};
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
 #[macro_export]
@@ -23,7 +23,7 @@ macro_rules! get_pkcs11 {
         ($pkcs11
             .function_list
             .$func_name
-            .ok_or(crate::Error::NullFunctionPointer)?)
+            .ok_or(crate::error::Error::NullFunctionPointer)?)
     };
 }
 

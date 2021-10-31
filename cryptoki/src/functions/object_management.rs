@@ -3,10 +3,9 @@
 //! Object management functions
 
 use crate::get_pkcs11;
-use crate::{Rv, RvError};
+use crate::error::{Result, Rv, RvError};
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
-use crate::Result;
 use cryptoki_sys::*;
 use std::collections::HashMap;
 use std::convert::TryInto;

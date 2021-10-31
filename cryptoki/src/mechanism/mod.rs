@@ -8,7 +8,7 @@ mod flags;
 pub use flags::*;
 
 use crate::types::Ulong;
-use crate::Error;
+use crate::error::Error;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::{TryFrom, TryInto};

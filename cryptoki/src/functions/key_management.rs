@@ -3,11 +3,10 @@
 //! Key management functions
 
 use crate::get_pkcs11;
-use crate::Rv;
+use crate::error::{Result,Rv};
 use crate::mechanism::Mechanism;
 use crate::object::{Attribute, ObjectHandle};
 use crate::session::Session;
-use crate::Result;
 use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
 use std::convert::TryInto;
 

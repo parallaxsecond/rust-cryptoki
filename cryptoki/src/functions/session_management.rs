@@ -3,11 +3,10 @@
 //! Session management functions
 
 use crate::get_pkcs11;
-use crate::Rv;
+use crate::error::{Result, Rv};
 use crate::session::{Session, SessionInfo, SessionFlags, UserType};
 use crate::slot::Slot;
 use crate::context::Pkcs11;
-use crate::Result;
 use cryptoki_sys::CK_SESSION_INFO;
 use std::convert::TryInto;
 

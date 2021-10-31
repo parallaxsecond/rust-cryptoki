@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 flags for use with CInitializeArgs
 
-use crate::{Error, Result};
+use crate::error::{Error, Result};
 use cryptoki_sys::*;
 use std::convert::TryFrom;
 use std::fmt::Formatter;

@@ -4,7 +4,7 @@
 
 use crate::mechanism::MechanismType;
 use crate::types::{Bbool, Date, Ulong};
-use crate::{Error, Result};
+use crate::error::{Error, Result};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;

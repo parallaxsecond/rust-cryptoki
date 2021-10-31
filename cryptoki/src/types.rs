@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 General Data Types
 
-use crate::{Error, Result};
+use crate::error::{Error, Result};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;
