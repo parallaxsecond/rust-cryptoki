@@ -110,6 +110,5 @@ impl From<RvError> for Error {
     }
 }
 
-
 /// Main Result type
 pub type Result<T> = core::result::Result<T, Error>;

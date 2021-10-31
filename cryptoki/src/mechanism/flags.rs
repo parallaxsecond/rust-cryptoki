@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 General Data Types
 
+use crate::types::Flags;
 use cryptoki_sys::*;
 use std::fmt::Formatter;
-use crate::types::Flags;
 
 #[derive(Debug, Default, Clone, Copy)]
 /// Collection of flags defined for [`CK_MECHANISM_INFO`]

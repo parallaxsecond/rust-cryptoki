@@ -3,12 +3,12 @@
 //! Data types for mechanisms
 
 pub mod elliptic_curve;
-pub mod rsa;
 mod flags;
+pub mod rsa;
 pub use flags::*;
 
-use crate::types::Ulong;
 use crate::error::Error;
+use crate::types::Ulong;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::{TryFrom, TryInto};

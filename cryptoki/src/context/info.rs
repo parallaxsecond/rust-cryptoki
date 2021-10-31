@@ -3,9 +3,9 @@
 //! PKCS11 library information
 
 use crate::string_from_blank_padded;
+use crate::types::Version;
 use cryptoki_sys::*;
 use std::ops::Deref;
-use crate::types::Version;
 
 #[derive(Debug, Clone, Copy)]
 /// Type identifying the PKCS#11 library information

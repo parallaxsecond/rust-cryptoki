@@ -40,13 +40,13 @@
 pub(crate) mod functions;
 pub(crate) mod objects;
 
-pub mod error;
-pub mod types;
 pub mod context;
+pub mod error;
 pub mod mechanism;
-pub mod session;
 pub mod object;
+pub mod session;
 pub mod slot;
+pub mod types;
 
 use cryptoki_sys::CK_UTF8CHAR;
 

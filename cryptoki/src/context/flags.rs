@@ -3,10 +3,10 @@
 //! PKCS11 flags for use with CInitializeArgs
 
 use crate::error::{Error, Result};
+use crate::types::Flags;
 use cryptoki_sys::*;
 use std::convert::TryFrom;
 use std::fmt::Formatter;
-use crate::types::Flags;
 
 #[derive(Debug, Default, Clone, Copy)]
 /// Collection of flags defined for [`CK_C_INITIALIZE_ARGS`]

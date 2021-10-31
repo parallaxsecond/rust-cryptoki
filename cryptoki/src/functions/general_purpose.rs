@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! General-purpose functions
 
+use crate::context::{CInitializeArgs, Info, Pkcs11};
+use crate::error::{Result, Rv};
 use crate::get_pkcs11;
-use crate::error::{Result,Rv};
-use crate::context::{Pkcs11,Info,CInitializeArgs};
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use std::ptr;
 

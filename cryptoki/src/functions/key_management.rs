@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Key management functions
 
+use crate::error::{Result, Rv};
 use crate::get_pkcs11;
-use crate::error::{Result,Rv};
 use crate::mechanism::Mechanism;
 use crate::object::{Attribute, ObjectHandle};
 use crate::session::Session;

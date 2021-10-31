@@ -7,11 +7,11 @@
 //! Slot and token types
 
 mod flags;
-pub use flags::*;
-use crate::types::{Ulong, Version};
 use crate::error::{Error, Result};
 use crate::string_from_blank_padded;
+use crate::types::{Ulong, Version};
 use cryptoki_sys::{CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO};
+pub use flags::*;
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Formatter;
 use std::ops::Deref;

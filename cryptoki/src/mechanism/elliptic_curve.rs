@@ -1,7 +1,7 @@
 //! ECDH mechanism types
 
-use crate::types::Ulong;
 use crate::error::{Error, Result};
+use crate::types::Ulong;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;

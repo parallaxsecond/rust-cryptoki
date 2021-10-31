@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Session types
 
+use crate::context::Pkcs11;
 use crate::slot::Slot;
 use crate::types::Ulong;
-use crate::context::Pkcs11;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryInto;

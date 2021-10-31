@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Pkcs11 context and initialization types
 
-mod info;
 mod flags;
+mod info;
 mod locking;
 
-pub use info::*;
 pub use flags::*;
+pub use info::*;
 pub use locking::*;
 
+use crate::error::{Error, Result, Rv};
 use derivative::Derivative;
 use log::error;
 use std::mem;
 use std::path::Path;
-use crate::error::{Error,Result,Rv};
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
 #[macro_export]
