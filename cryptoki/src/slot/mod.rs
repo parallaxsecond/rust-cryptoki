@@ -6,7 +6,9 @@
 
 //! Slot and token types
 
-use crate::types::{SlotFlags, TokenFlags, Ulong, Version};
+mod flags;
+pub use flags::*;
+use crate::types::{Ulong, Version};
 use crate::{string_from_blank_padded, Error, Result};
 use cryptoki_sys::{CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::{TryFrom, TryInto};

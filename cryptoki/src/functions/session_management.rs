@@ -5,7 +5,7 @@
 use crate::get_pkcs11;
 use crate::types::function::Rv;
 use crate::session::{Session, SessionInfo, SessionFlags, UserType};
-use crate::types::slot_token::Slot;
+use crate::slot::Slot;
 use crate::Pkcs11;
 use crate::Result;
 use cryptoki_sys::CK_SESSION_INFO;

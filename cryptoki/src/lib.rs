@@ -61,13 +61,7 @@ pub mod misc {
 pub mod mechanism;
 pub mod session;
 pub mod object;
-
-pub mod slot {
-    //! Data types to interact with slots and tokens
-    pub use crate::types::slot_token::*;
-    pub use crate::types::SlotFlags;
-    pub use crate::types::TokenFlags;
-}
+pub mod slot;
 
 use cryptoki_sys::CK_UTF8CHAR;
 use derivative::Derivative;

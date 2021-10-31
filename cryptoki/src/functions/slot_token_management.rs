@@ -4,7 +4,7 @@
 
 use crate::types::function::Rv;
 use crate::mechanism::{MechanismInfo, MechanismType};
-use crate::types::slot_token::{Slot, SlotInfo, TokenInfo};
+use crate::slot::{Slot, SlotInfo, TokenInfo};
 use crate::Pkcs11;
 use crate::Result;
 use crate::session::Session;
