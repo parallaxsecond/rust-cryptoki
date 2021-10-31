@@ -5,7 +5,7 @@
 use crate::types::function::Rv;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
-use crate::Pkcs11;
+use crate::context::Pkcs11;
 use crate::Result;
 use crate::session::Session;
 use crate::{get_pkcs11, label_from_str};

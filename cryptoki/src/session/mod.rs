@@ -4,7 +4,7 @@
 
 use crate::slot::Slot;
 use crate::types::Ulong;
-use crate::Pkcs11;
+use crate::context::Pkcs11;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryInto;

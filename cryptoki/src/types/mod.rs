@@ -3,9 +3,8 @@
 //! PKCS11 General Data Types
 
 pub(crate) mod function;
-pub(crate) mod locking;
 
-use crate::{string_from_blank_padded, Error, Result};
+use crate::{Error, Result};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;
@@ -36,96 +35,6 @@ pub(crate) trait Flags: std::fmt::Display {
             }
         }
         Ok(())
-    }
-}
-
-#[derive(Debug, Default, Clone, Copy)]
-/// Collection of flags defined for [`CK_C_INITIALIZE_ARGS`]
-pub struct InitializeFlags {
-    flags: CK_FLAGS,
-}
-
-impl Flags for InitializeFlags {
-    type FlagType = CK_FLAGS;
-
-    fn flag_value(&self) -> Self::FlagType {
-        self.flags
-    }
-
-    fn flag(&self, flag: Self::FlagType) -> bool {
-        self.flag_value() & flag == flag
-    }
-
-    fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
-        if b {
-            self.flags |= flag;
-        } else {
-            self.flags &= !flag;
-        }
-    }
-
-    fn stringify_flag(flag: CK_FLAGS) -> &'static str {
-        match flag {
-            CKF_LIBRARY_CANT_CREATE_OS_THREADS => {
-                std::stringify!(CKF_LIBRARY_CANT_CREATE_OS_THREADS)
-            }
-            CKF_OS_LOCKING_OK => std::stringify!(CKF_OS_LOCKING_OK),
-            _ => "Unknown CK_C_INITIALIZE_ARGS flag",
-        }
-    }
-}
-
-impl InitializeFlags {
-    /// Creates a new instance of `InitializeFlags` with no flags set
-    pub fn new() -> Self {
-        InitializeFlags::default()
-    }
-
-    /// Gets value of [`CKF_LIBRARY_CANT_CREATE_OS_THREADS`]
-    pub fn library_cant_create_os_threads(&self) -> bool {
-        self.flag(CKF_LIBRARY_CANT_CREATE_OS_THREADS)
-    }
-
-    /// Sets value of [`CKF_LIBRARY_CANT_CREATE_OS_THREADS`]
-    pub fn set_library_cant_create_os_threads(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_LIBRARY_CANT_CREATE_OS_THREADS, b);
-        self
-    }
-
-    /// Gets value of [`CKF_OS_LOCKING_OK`]
-    pub fn os_locking_ok(&self) -> bool {
-        self.flag(CKF_OS_LOCKING_OK)
-    }
-
-    /// Sets value of [`CKF_OS_LOCKING_OK`]
-    pub fn set_os_locking_ok(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_OS_LOCKING_OK, b);
-        self
-    }
-}
-
-impl std::fmt::Display for InitializeFlags {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let flags = vec![CKF_LIBRARY_CANT_CREATE_OS_THREADS, CKF_OS_LOCKING_OK];
-        self.stringify_fmt(f, flags)
-    }
-}
-
-impl From<InitializeFlags> for CK_FLAGS {
-    fn from(flags: InitializeFlags) -> Self {
-        flags.flags
-    }
-}
-
-impl TryFrom<CK_FLAGS> for InitializeFlags {
-    type Error = Error;
-
-    fn try_from(flags: CK_FLAGS) -> Result<Self> {
-        if flags & !(CKF_OS_LOCKING_OK | CKF_LIBRARY_CANT_CREATE_OS_THREADS) != 0 {
-            Err(Error::InvalidValue)
-        } else {
-            Ok(Self { flags })
-        }
     }
 }
 
@@ -358,56 +267,5 @@ impl From<CK_VERSION> for Version {
             major: version.major,
             minor: version.minor,
         }
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-/// Type identifying the PKCS#11 library information
-pub struct Info {
-    val: CK_INFO,
-}
-
-impl Info {
-    pub(crate) fn new(val: CK_INFO) -> Self {
-        Self { val }
-    }
-
-    /// Returns the version of Cryptoki that the library is compatible with
-    pub fn cryptoki_version(&self) -> Version {
-        self.val.cryptokiVersion.into()
-    }
-
-    /// Returns the flags of the library (should be zero!)
-    pub fn flags(&self) -> CK_FLAGS {
-        self.val.flags
-    }
-
-    /// Returns the description of the library
-    pub fn library_description(&self) -> String {
-        string_from_blank_padded(&self.val.libraryDescription)
-    }
-
-    /// Returns the version of the library
-    pub fn library_version(&self) -> Version {
-        self.val.libraryVersion.into()
-    }
-
-    /// Returns the manufacturer of the library
-    pub fn manufacturer_id(&self) -> String {
-        string_from_blank_padded(&self.val.manufacturerID)
-    }
-}
-
-impl Deref for Info {
-    type Target = CK_INFO;
-
-    fn deref(&self) -> &Self::Target {
-        &self.val
-    }
-}
-
-impl From<Info> for CK_INFO {
-    fn from(info: Info) -> Self {
-        *info
     }
 }

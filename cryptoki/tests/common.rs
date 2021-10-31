@@ -1,10 +1,9 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-use cryptoki::init::CInitializeArgs;
+use cryptoki::context::{Pkcs11,CInitializeArgs};
 use cryptoki::session::UserType;
 use cryptoki::slot::Slot;
 use cryptoki::session::SessionFlags;
-use cryptoki::Pkcs11;
 use std::env;
 
 // The default user pin
