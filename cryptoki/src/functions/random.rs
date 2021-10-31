@@ -3,7 +3,6 @@
 //! Functions used to generate random numbers
 
 use crate::error::{Result, Rv};
-use crate::get_pkcs11;
 use crate::session::Session;
 use std::convert::TryInto;
 

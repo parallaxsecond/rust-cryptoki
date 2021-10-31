@@ -3,7 +3,6 @@
 //! Object management functions
 
 use crate::error::{Result, Rv, RvError};
-use crate::get_pkcs11;
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
 use cryptoki_sys::*;

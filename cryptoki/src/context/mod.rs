@@ -17,7 +17,6 @@ use std::mem;
 use std::path::Path;
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
-#[macro_export]
 macro_rules! get_pkcs11 {
     ($pkcs11:expr, $func_name:ident) => {
         ($pkcs11

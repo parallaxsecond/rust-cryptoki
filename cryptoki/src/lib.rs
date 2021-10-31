@@ -37,10 +37,15 @@
        unused_qualifications,
        unused_results)]
 
+// Warning: The context module defines the
+// get_pkcs11() macro, which must be defined before
+// any modules that use it are declared.
+#[macro_use]
+pub mod context;
+
 pub(crate) mod functions;
 pub(crate) mod objects;
 
-pub mod context;
 pub mod error;
 pub mod mechanism;
 pub mod object;

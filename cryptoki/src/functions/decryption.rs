@@ -3,7 +3,6 @@
 //! Decrypting data
 
 use crate::error::{Result, Rv};
-use crate::get_pkcs11;
 use crate::mechanism::Mechanism;
 use crate::object::ObjectHandle;
 use crate::session::Session;

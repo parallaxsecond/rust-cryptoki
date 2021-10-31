@@ -4,7 +4,6 @@
 
 use crate::context::{CInitializeArgs, Info, Pkcs11};
 use crate::error::{Result, Rv};
-use crate::get_pkcs11;
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use std::ptr;
 
