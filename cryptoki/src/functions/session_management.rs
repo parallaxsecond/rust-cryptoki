@@ -64,7 +64,7 @@ impl Pkcs11 {
             .management_sessions
             .lock()
             .map_err(|_e| crate::Error::MutexPoisonError)?;
-        if let std::collections::hash_map::Entry::Vacant(_) = map.entry(slot_id) {
+        if let std::collections::hash_map::Entry::Vacant(entry) = map.entry(slot_id) {
             let session_handle = self.open_session(slot_id, flags)?;
             let (pin, pin_len) = match pin {
                 Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
@@ -89,7 +89,7 @@ impl Pkcs11 {
                 })?;
             }
 
-            let _ = map.insert(slot_id, session_handle);
+            let _ = entry.insert(session_handle);
             Ok(())
         } else {
             Err(crate::Error::ManagementSessionExists)
