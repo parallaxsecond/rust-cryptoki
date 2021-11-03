@@ -82,9 +82,9 @@ impl Pkcs11 {
                     // Close the session if we can't login and return the resulting error
                     // Not using `get_pkcs11` here because the macro uses a '?' which is not
                     // allowed in a closure that does not return a Result.
-                    // Justification for unwrap -> If C_CloseSession doesn't exist, the
-                    // library is frankly unusable.
-                    let _ = self.function_list.C_CloseSession.unwrap()(session_handle);
+                    if let Some(func) = self.function_list.C_CloseSession {
+                        let _ = func(session_handle);
+                    }
                     e
                 })?;
             }

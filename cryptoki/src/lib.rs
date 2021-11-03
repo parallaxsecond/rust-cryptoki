@@ -212,6 +212,17 @@ impl From<std::convert::Infallible> for Error {
 
 impl Drop for Pkcs11 {
     fn drop(&mut self) {
+        if let Ok(mut map) = self.management_sessions.lock() {
+            for (_, session_handle) in map.iter() {
+                if let Some(func) = self.function_list.C_CloseSession {
+                    unsafe {
+                        let _ = func(*session_handle);
+                    }
+                }
+            }
+
+            map.clear();
+        }
         if let Err(e) = self.finalize_private() {
             error!("Failed to finalize: {}", e);
         }
