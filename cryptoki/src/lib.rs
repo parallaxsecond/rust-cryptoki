@@ -43,12 +43,15 @@ pub mod types;
 
 use crate::types::function::{Rv, RvError};
 use crate::types::session::Session;
-use cryptoki_sys::CK_UTF8CHAR;
+use crate::types::slot_token::Slot;
+use cryptoki_sys::{CK_SESSION_HANDLE, CK_UTF8CHAR};
 use derivative::Derivative;
 use log::error;
+use std::collections::HashMap;
 use std::fmt;
 use std::mem;
 use std::path::Path;
+use std::sync::Mutex;
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
 #[macro_export]
@@ -61,6 +64,8 @@ macro_rules! get_pkcs11 {
     };
 }
 
+type ManagementSessionMap = Mutex<HashMap<Slot, CK_SESSION_HANDLE>>;
+
 /// Main PKCS11 context. Should usually be unique per application.
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -70,6 +75,7 @@ pub struct Pkcs11 {
     #[derivative(Debug = "ignore")]
     _pkcs11_lib: cryptoki_sys::Pkcs11,
     function_list: cryptoki_sys::_CK_FUNCTION_LIST,
+    management_sessions: ManagementSessionMap,
 }
 
 impl Pkcs11 {
@@ -90,6 +96,7 @@ impl Pkcs11 {
             Ok(Pkcs11 {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: *list_ptr,
+                management_sessions: Mutex::new(HashMap::new()),
             })
         }
     }
@@ -123,8 +130,14 @@ pub enum Error {
     /// The value is not one of those expected.
     InvalidValue,
 
-    /// The PIN was not set before logging in.
-    PinNotSet,
+    /// Management session already exists
+    ManagementSessionExists,
+
+    /// Management session does not exist
+    ManagementSessionDoesNotExist,
+
+    /// Mutex poison error
+    MutexPoisonError,
 }
 
 impl fmt::Display for Error {
@@ -138,7 +151,13 @@ impl fmt::Display for Error {
             Error::NulError(e) => write!(f, "An interior nul byte was found ({})", e),
             Error::NullFunctionPointer => write!(f, "Calling a NULL function pointer"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
-            Error::PinNotSet => write!(f, "Pin has not been set before trying to log in"),
+            Error::ManagementSessionExists => {
+                write!(f, "A management session for this token already exists")
+            }
+            Error::ManagementSessionDoesNotExist => {
+                write!(f, "A management session for this token does not exist")
+            }
+            Error::MutexPoisonError => write!(f, "poisoned lock: aanother task failed inside"),
         }
     }
 }
@@ -153,8 +172,10 @@ impl std::error::Error for Error {
             Error::Pkcs11(_)
             | Error::NotSupported
             | Error::NullFunctionPointer
-            | Error::PinNotSet
-            | Error::InvalidValue => None,
+            | Error::InvalidValue
+            | Error::ManagementSessionExists
+            | Error::ManagementSessionDoesNotExist
+            | Error::MutexPoisonError => None,
         }
     }
 }

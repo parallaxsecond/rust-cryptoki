@@ -680,3 +680,43 @@ fn get_attribute_info_test() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn test_management_session() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    if let Err(Error::ManagementSessionDoesNotExist) = pkcs11.close_management_session(slot) {
+        // ok!
+    } else {
+        panic!("Invalid response to closing management session with none present");
+    }
+
+    let mut flags = SessionFlags::new();
+    let _ = flags.set_serial_session(true);
+    pkcs11.open_management_session(slot, flags, UserType::User, Some(USER_PIN))?;
+
+    if let Err(Error::ManagementSessionExists) =
+        pkcs11.open_management_session(slot, flags, UserType::User, Some(USER_PIN))
+    {
+        // ok!
+    } else {
+        panic!("Invalid response to opening an already open management session");
+    }
+
+    {
+        let _ = flags.set_rw_session(true);
+        let session = pkcs11.open_session_no_callback(slot, flags)?;
+        let session_state = session.get_session_info()?.session_state();
+        assert_eq!(session_state, SessionState::RW_USER_FUNCTIONS);
+
+        pkcs11.close_management_session(slot)?;
+        let session_state = session.get_session_info()?.session_state();
+        assert_eq!(session_state, SessionState::RW_USER_FUNCTIONS);
+    }
+
+    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session_state = session.get_session_info()?.session_state();
+    assert_eq!(session_state, SessionState::RW_PUBLIC_SESSION);
+
+    Ok(())
+}
