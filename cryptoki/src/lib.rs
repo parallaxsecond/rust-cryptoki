@@ -44,7 +44,6 @@
 pub mod context;
 
 pub(crate) mod functions;
-pub(crate) mod objects;
 
 pub mod error;
 pub mod mechanism;
