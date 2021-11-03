@@ -6,7 +6,7 @@ use crate::error::{Result, Rv};
 use crate::session::Session;
 use std::convert::TryInto;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Generates a random number and sticks it in a slice
     ///
     /// # Arguments

@@ -9,7 +9,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Single-part encryption operation
     pub fn encrypt(
         &self,

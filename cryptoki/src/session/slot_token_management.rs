@@ -6,7 +6,7 @@ use crate::error::{Result, Rv};
 use crate::session::Session;
 use std::convert::TryInto;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Initialize the normal user's pin for a token
     pub fn init_pin(&self, pin: &str) -> Result<()> {
         unsafe {

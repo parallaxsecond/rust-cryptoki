@@ -75,7 +75,9 @@ impl<'a> Session<'a> {
             _guard: std::ptr::null_mut::<u32>(),
         }
     }
+}
 
+impl Session<'_> {
     pub(crate) fn handle(&self) -> CK_SESSION_HANDLE {
         self.handle
     }

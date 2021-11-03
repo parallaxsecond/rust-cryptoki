@@ -9,7 +9,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Sign data in single-part
     pub fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
         let mut mechanism: CK_MECHANISM = mechanism.into();

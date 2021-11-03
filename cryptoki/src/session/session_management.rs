@@ -7,7 +7,7 @@ use crate::session::{Session, SessionInfo, UserType};
 use cryptoki_sys::CK_SESSION_INFO;
 use std::convert::TryInto;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Close a session
     /// This will be called on drop as well.
     pub fn close(&self) {}

@@ -12,7 +12,7 @@ use std::convert::TryInto;
 // Search 10 elements at a time
 const MAX_OBJECT_COUNT: usize = 10;
 
-impl<'a> Session<'a> {
+impl Session<'_> {
     /// Search for session objects matching a template
     pub fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
         let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
