@@ -6,7 +6,6 @@ use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
-use crate::session::Session;
 use crate::slot::{Slot, SlotInfo, TokenInfo};
 use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;
@@ -181,35 +180,6 @@ impl Pkcs11 {
             ))
             .into_result()?;
             Ok(MechanismInfo::new(mechanism_info))
-        }
-    }
-}
-
-impl<'a> Session<'a> {
-    /// Initialize the normal user's pin for a token
-    pub fn init_pin(&self, pin: &str) -> Result<()> {
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_InitPIN)(
-                self.handle(),
-                pin.as_ptr() as *mut u8,
-                pin.len().try_into()?,
-            ))
-            .into_result()
-        }
-    }
-
-    /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
-    /// logged in.
-    pub fn set_pin(&self, old_pin: &str, new_pin: &str) -> Result<()> {
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
-                self.handle(),
-                old_pin.as_ptr() as *mut u8,
-                old_pin.len().try_into()?,
-                new_pin.as_ptr() as *mut u8,
-                new_pin.len().try_into()?,
-            ))
-            .into_result()
         }
     }
 }

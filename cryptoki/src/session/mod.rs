@@ -11,8 +11,25 @@ use std::convert::TryInto;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
+mod decryption;
+mod encryption;
 mod flags;
+mod key_management;
+mod object_management;
+mod random;
+mod session_management;
+mod signing_macing;
+mod slot_token_management;
+
+pub use decryption::*;
+pub use encryption::*;
 pub use flags::*;
+pub use key_management::*;
+pub use object_management::*;
+pub use random::*;
+pub use session_management::*;
+pub use signing_macing::*;
+pub use slot_token_management::*;
 
 /// Type that identifies a session
 ///

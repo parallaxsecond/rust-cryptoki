@@ -2,33 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Session management functions
 
-use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
-use crate::session::{Session, SessionFlags, SessionInfo, UserType};
-use crate::slot::Slot;
+use crate::session::{Session, SessionInfo, UserType};
 use cryptoki_sys::CK_SESSION_INFO;
 use std::convert::TryInto;
-
-impl Pkcs11 {
-    /// Open a new session with no callback set
-    pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
-        let mut session_handle = 0;
-
-        unsafe {
-            Rv::from(get_pkcs11!(self, C_OpenSession)(
-                slot_id.try_into()?,
-                flags.into(),
-                // TODO: abstract those types or create new functions for callbacks
-                std::ptr::null_mut(),
-                None,
-                &mut session_handle,
-            ))
-            .into_result()?;
-        }
-
-        Ok(Session::new(session_handle, self))
-    }
-}
 
 impl<'a> Session<'a> {
     /// Close a session

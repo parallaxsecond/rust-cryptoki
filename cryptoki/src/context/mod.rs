@@ -2,20 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Pkcs11 context and initialization types
 
-mod flags;
-mod info;
-mod locking;
-
-pub use flags::*;
-pub use info::*;
-pub use locking::*;
-
-use crate::error::{Error, Result, Rv};
-use derivative::Derivative;
-use log::error;
-use std::mem;
-use std::path::Path;
-
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
 macro_rules! get_pkcs11 {
     ($pkcs11:expr, $func_name:ident) => {
@@ -25,6 +11,27 @@ macro_rules! get_pkcs11 {
             .ok_or(crate::error::Error::NullFunctionPointer)?)
     };
 }
+
+mod flags;
+mod general_purpose;
+mod info;
+mod locking;
+mod session_management;
+mod slot_token_management;
+
+pub use flags::*;
+pub use info::*;
+pub use locking::*;
+
+pub use general_purpose::*;
+pub use session_management::*;
+pub use slot_token_management::*;
+
+use crate::error::{Error, Result, Rv};
+use derivative::Derivative;
+use log::error;
+use std::mem;
+use std::path::Path;
 
 /// Main PKCS11 context. Should usually be unique per application.
 #[derive(Derivative)]

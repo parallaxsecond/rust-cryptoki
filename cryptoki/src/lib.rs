@@ -43,8 +43,6 @@
 #[macro_use]
 pub mod context;
 
-pub(crate) mod functions;
-
 pub mod error;
 pub mod mechanism;
 pub mod object;
