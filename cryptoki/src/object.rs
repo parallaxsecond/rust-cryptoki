@@ -1,10 +1,10 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-//! Object types
+//! Object types (including Attributes)
 
-use crate::types::mechanism::MechanismType;
+use crate::error::{Error, Result};
+use crate::mechanism::MechanismType;
 use crate::types::{Bbool, Date, Ulong};
-use crate::{Error, Result};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Locking related type
 
-use crate::types::InitializeFlags;
+use super::InitializeFlags;
 use std::ptr;
 
 /// Argument for the initialize function
