@@ -9,6 +9,7 @@ use crate::slot::Slot;
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn open_session_no_callback(
     ctx: &Pkcs11,
     slot_id: Slot,

@@ -10,6 +10,7 @@ use cryptoki_sys::*;
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub fn encrypt(
     session: &Session<'_>,
     mechanism: &Mechanism,

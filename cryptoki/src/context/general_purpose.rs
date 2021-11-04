@@ -8,6 +8,7 @@ use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use std::ptr;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()> {
     // if no args are specified, library expects NULL
     let mut init_args = CK_C_INITIALIZE_ARGS::from(init_args);
@@ -20,6 +21,7 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
     }
 }
 
+#[inline(always)]
 pub(super) fn finalize_private(ctx: &Pkcs11) -> Result<()> {
     // Safe because Session contain a reference to self so that this function can not be called
     // while there are live Session instances.
@@ -27,6 +29,7 @@ pub(super) fn finalize_private(ctx: &Pkcs11) -> Result<()> {
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_library_info(ctx: &Pkcs11) -> Result<Info> {
     let mut info = CK_INFO::default();
     unsafe {

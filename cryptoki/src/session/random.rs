@@ -7,6 +7,7 @@ use crate::session::Session;
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn generate_random_slice(session: &Session<'_>, random_data: &mut [u8]) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_GenerateRandom)(
@@ -20,6 +21,7 @@ pub(super) fn generate_random_slice(session: &Session<'_>, random_data: &mut [u8
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn generate_random_vec(session: &Session<'_>, random_len: u32) -> Result<Vec<u8>> {
     let mut result: Vec<u8> = vec![0; random_len as usize];
     unsafe {
@@ -34,6 +36,7 @@ pub(super) fn generate_random_vec(session: &Session<'_>, random_len: u32) -> Res
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn seed_random(session: &Session<'_>, seed: &[u8]) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_SeedRandom)(

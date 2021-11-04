@@ -10,6 +10,7 @@ use cryptoki_sys::*;
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn sign(
     session: &Session<'_>,
     mechanism: &Mechanism,
@@ -60,6 +61,7 @@ pub(super) fn sign(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn verify(
     session: &Session<'_>,
     mechanism: &Mechanism,

@@ -10,6 +10,7 @@ use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn generate_key(
     session: &Session<'_>,
     mechanism: &Mechanism,
@@ -33,6 +34,7 @@ pub(super) fn generate_key(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn generate_key_pair(
     session: &Session<'_>,
     mechanism: &Mechanism,
@@ -67,6 +69,7 @@ pub(super) fn generate_key_pair(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn derive_key(
     session: &Session<'_>,
     mechanism: &Mechanism,
@@ -92,6 +95,7 @@ pub(super) fn derive_key(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn wrap_key(
     session: &Session<'_>,
     mechanism: &Mechanism,
@@ -129,6 +133,7 @@ pub(super) fn wrap_key(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn unwrap_key(
     session: &Session<'_>,
     mechanism: &Mechanism,

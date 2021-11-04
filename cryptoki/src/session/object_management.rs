@@ -13,6 +13,7 @@ use std::convert::TryInto;
 const MAX_OBJECT_COUNT: usize = 10;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn find_objects(
     session: &Session<'_>,
     template: &[Attribute],
@@ -69,6 +70,7 @@ pub(super) fn find_objects(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn create_object(session: &Session<'_>, template: &[Attribute]) -> Result<ObjectHandle> {
     let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
     let mut object_handle = 0;
@@ -87,6 +89,7 @@ pub(super) fn create_object(session: &Session<'_>, template: &[Attribute]) -> Re
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn destroy_object(session: &Session<'_>, object: ObjectHandle) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_DestroyObject)(
@@ -98,6 +101,7 @@ pub(super) fn destroy_object(session: &Session<'_>, object: ObjectHandle) -> Res
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_attribute_info(
     session: &Session<'_>,
     object: ObjectHandle,
@@ -130,6 +134,7 @@ pub(super) fn get_attribute_info(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_attribute_info_map(
     session: &Session<'_>,
     object: ObjectHandle,
@@ -145,6 +150,7 @@ pub(super) fn get_attribute_info_map(
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_attributes(
     session: &Session<'_>,
     object: ObjectHandle,

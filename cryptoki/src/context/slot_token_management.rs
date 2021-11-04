@@ -11,6 +11,7 @@ use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_slots_with_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
     let mut slot_count = 0;
 
@@ -43,6 +44,7 @@ pub(super) fn get_slots_with_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
     let slots = ctx.get_slots_with_token()?;
 
@@ -62,6 +64,7 @@ pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_all_slots(ctx: &Pkcs11) -> Result<Vec<Slot>> {
     let mut slot_count = 0;
 
@@ -94,6 +97,7 @@ pub(super) fn get_all_slots(ctx: &Pkcs11) -> Result<Vec<Slot>> {
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn init_token(ctx: &Pkcs11, slot: Slot, pin: &str, label: &str) -> Result<()> {
     let label = label_from_str(label);
     unsafe {
@@ -108,6 +112,7 @@ pub(super) fn init_token(ctx: &Pkcs11, slot: Slot, pin: &str, label: &str) -> Re
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_slot_info(ctx: &Pkcs11, slot: Slot) -> Result<SlotInfo> {
     unsafe {
         let mut slot_info = CK_SLOT_INFO::default();
@@ -121,6 +126,7 @@ pub(super) fn get_slot_info(ctx: &Pkcs11, slot: Slot) -> Result<SlotInfo> {
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_token_info(ctx: &Pkcs11, slot: Slot) -> Result<TokenInfo> {
     unsafe {
         let mut token_info = CK_TOKEN_INFO::default();
@@ -134,6 +140,7 @@ pub(super) fn get_token_info(ctx: &Pkcs11, slot: Slot) -> Result<TokenInfo> {
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_mechanism_list(ctx: &Pkcs11, slot: Slot) -> Result<Vec<MechanismType>> {
     let mut mechanism_count = 0;
 
@@ -167,6 +174,7 @@ pub(super) fn get_mechanism_list(ctx: &Pkcs11, slot: Slot) -> Result<Vec<Mechani
 }
 
 // See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn get_mechanism_info(
     ctx: &Pkcs11,
     slot: Slot,
