@@ -12,7 +12,7 @@ use std::convert::TryInto;
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn generate_key(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     template: &[Attribute],
 ) -> Result<ObjectHandle> {
@@ -36,7 +36,7 @@ pub(super) fn generate_key(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn generate_key_pair(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     pub_key_template: &[Attribute],
     priv_key_template: &[Attribute],
@@ -71,7 +71,7 @@ pub(super) fn generate_key_pair(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn derive_key(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     base_key: ObjectHandle,
     template: &[Attribute],
@@ -97,7 +97,7 @@ pub(super) fn derive_key(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn wrap_key(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     wrapping_key: ObjectHandle,
     key: ObjectHandle,
@@ -135,7 +135,7 @@ pub(super) fn wrap_key(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn unwrap_key(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     unwrapping_key: ObjectHandle,
     wrapped_key: &[u8],

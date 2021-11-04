@@ -8,7 +8,7 @@ use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn init_pin(session: &Session<'_>, pin: &str) -> Result<()> {
+pub(super) fn init_pin(session: &Session, pin: &str) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_InitPIN)(
             session.handle(),
@@ -21,7 +21,7 @@ pub(super) fn init_pin(session: &Session<'_>, pin: &str) -> Result<()> {
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn set_pin(session: &Session<'_>, old_pin: &str, new_pin: &str) -> Result<()> {
+pub(super) fn set_pin(session: &Session, old_pin: &str, new_pin: &str) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_SetPIN)(
             session.handle(),

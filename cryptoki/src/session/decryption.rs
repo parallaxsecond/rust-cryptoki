@@ -12,7 +12,7 @@ use std::convert::TryInto;
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn decrypt(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     key: ObjectHandle,
     encrypted_data: &[u8],

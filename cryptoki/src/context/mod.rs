@@ -32,6 +32,7 @@ use derivative::Derivative;
 use log::error;
 use std::mem;
 use std::path::Path;
+use std::sync::Arc;
 
 /// Main PKCS11 context. Should usually be unique per application.
 #[derive(Derivative)]
@@ -46,7 +47,7 @@ pub struct Pkcs11 {
 
 impl Pkcs11 {
     /// Instantiate a new context from the path of a PKCS11 dynamic llibrary implementation.
-    pub fn new<P>(filename: P) -> Result<Self>
+    pub fn new<P>(filename: P) -> Result<Arc<Self>>
     where
         P: AsRef<Path>,
     {
@@ -59,10 +60,10 @@ impl Pkcs11 {
 
             let list_ptr = *list.as_ptr();
 
-            Ok(Pkcs11 {
+            Ok(Arc::new(Pkcs11 {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: *list_ptr,
-            })
+            }))
         }
     }
 
@@ -123,7 +124,11 @@ impl Pkcs11 {
     }
 
     /// Open a new session with no callback set
-    pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
+    pub fn open_session_no_callback(
+        self: &Arc<Self>,
+        slot_id: Slot,
+        flags: SessionFlags,
+    ) -> Result<Session> {
         session_management::open_session_no_callback(self, slot_id, flags)
     }
 }

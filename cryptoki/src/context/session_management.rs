@@ -7,11 +7,12 @@ use crate::error::{Result, Rv};
 use crate::session::{Session, SessionFlags};
 use crate::slot::Slot;
 use std::convert::TryInto;
+use std::sync::Arc;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn open_session_no_callback(
-    ctx: &Pkcs11,
+    ctx: &Arc<Pkcs11>,
     slot_id: Slot,
     flags: SessionFlags,
 ) -> Result<Session> {
@@ -29,5 +30,5 @@ pub(super) fn open_session_no_callback(
         .into_result()?;
     }
 
-    Ok(Session::new(session_handle, ctx))
+    Ok(Session::new(session_handle, ctx.clone()))
 }

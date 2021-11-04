@@ -9,7 +9,7 @@ use std::convert::TryInto;
 
 // See public docs on close() in parent mod.rs
 #[inline(always)]
-pub(super) fn close_private(session: &Session<'_>) -> Result<()> {
+pub(super) fn close_private(session: &Session) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_CloseSession)(
             session.handle(),
@@ -20,7 +20,7 @@ pub(super) fn close_private(session: &Session<'_>) -> Result<()> {
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn login(session: &Session<'_>, user_type: UserType, pin: Option<&str>) -> Result<()> {
+pub(super) fn login(session: &Session, user_type: UserType, pin: Option<&str>) -> Result<()> {
     let (pin, pin_len) = match pin {
         Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
         None => (std::ptr::null_mut(), 0),
@@ -38,13 +38,13 @@ pub(super) fn login(session: &Session<'_>, user_type: UserType, pin: Option<&str
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn logout(session: &Session<'_>) -> Result<()> {
+pub(super) fn logout(session: &Session) -> Result<()> {
     unsafe { Rv::from(get_pkcs11!(session.client(), C_Logout)(session.handle())).into_result() }
 }
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn get_session_info(session: &Session<'_>) -> Result<SessionInfo> {
+pub(super) fn get_session_info(session: &Session) -> Result<SessionInfo> {
     let mut session_info = CK_SESSION_INFO::default();
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_GetSessionInfo)(
