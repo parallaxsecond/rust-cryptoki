@@ -146,11 +146,11 @@ impl Session<'_> {
     /// types.  If you wish, you may create a hash table simply by:
     ///
     /// ```no_run
-    /// use cryptoki::Pkcs11;
-    /// use cryptoki::types::locking::CInitializeArgs;
-    /// use cryptoki::types::object::AttributeType;
-    /// use cryptoki::types::session::UserType;
-    /// use cryptoki::types::SessionFlags;
+    /// use cryptoki::context::Pkcs11;
+    /// use cryptoki::context::CInitializeArgs;
+    /// use cryptoki::object::AttributeType;
+    /// use cryptoki::session::UserType;
+    /// use cryptoki::session::SessionFlags;
     /// use std::collections::HashMap;
     /// use std::env;
     ///
