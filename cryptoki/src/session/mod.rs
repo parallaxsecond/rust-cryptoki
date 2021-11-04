@@ -145,7 +145,7 @@ impl Session<'_> {
     /// The list of returned attributes is 1-to-1 matched with the provided vector of attribute
     /// types.  If you wish, you may create a hash table simply by:
     ///
-    /// ```rust
+    /// ```no_run
     /// use cryptoki::Pkcs11;
     /// use cryptoki::types::locking::CInitializeArgs;
     /// use cryptoki::types::object::AttributeType;
