@@ -15,7 +15,6 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fmt::Formatter;
 use std::ops::Deref;
-use std::sync::Arc;
 
 mod decryption;
 mod encryption;
@@ -38,7 +37,7 @@ pub use flags::*;
 #[derive(Debug)]
 pub struct Session {
     handle: CK_SESSION_HANDLE,
-    client: Arc<Pkcs11>,
+    client: Pkcs11,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: *mut u32,
 }
@@ -66,7 +65,7 @@ impl std::fmt::UpperHex for Session {
 unsafe impl Send for Session {}
 
 impl Session {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Arc<Pkcs11>) -> Self {
+    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
         Session {
             handle,
             client,
@@ -340,7 +339,7 @@ impl Session {
     }
 
     pub(crate) fn client(&self) -> &Pkcs11 {
-        &*self.client
+        &self.client
     }
 }
 
