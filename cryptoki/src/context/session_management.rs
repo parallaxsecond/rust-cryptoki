@@ -8,23 +8,25 @@ use crate::session::{Session, SessionFlags};
 use crate::slot::Slot;
 use std::convert::TryInto;
 
-impl Pkcs11 {
-    /// Open a new session with no callback set
-    pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
-        let mut session_handle = 0;
+// See public docs on stub in parent mod.rs
+pub(super) fn open_session_no_callback(
+    ctx: &Pkcs11,
+    slot_id: Slot,
+    flags: SessionFlags,
+) -> Result<Session> {
+    let mut session_handle = 0;
 
-        unsafe {
-            Rv::from(get_pkcs11!(self, C_OpenSession)(
-                slot_id.try_into()?,
-                flags.into(),
-                // TODO: abstract those types or create new functions for callbacks
-                std::ptr::null_mut(),
-                None,
-                &mut session_handle,
-            ))
-            .into_result()?;
-        }
-
-        Ok(Session::new(session_handle, self))
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_OpenSession)(
+            slot_id.try_into()?,
+            flags.into(),
+            // TODO: abstract those types or create new functions for callbacks
+            std::ptr::null_mut(),
+            None,
+            &mut session_handle,
+        ))
+        .into_result()?;
     }
+
+    Ok(Session::new(session_handle, ctx))
 }

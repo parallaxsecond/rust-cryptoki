@@ -7,55 +7,47 @@ use crate::session::{Session, SessionInfo, UserType};
 use cryptoki_sys::CK_SESSION_INFO;
 use std::convert::TryInto;
 
-impl Session<'_> {
-    /// Close a session
-    /// This will be called on drop as well.
-    pub fn close(&self) {}
-
-    pub(crate) fn close_private(&self) -> Result<()> {
-        unsafe { Rv::from(get_pkcs11!(self.client(), C_CloseSession)(self.handle())).into_result() }
+// See public docs on close() in parent mod.rs
+pub(super) fn close_private(session: &Session<'_>) -> Result<()> {
+    unsafe {
+        Rv::from(get_pkcs11!(session.client(), C_CloseSession)(
+            session.handle(),
+        ))
+        .into_result()
     }
+}
 
-    /// Log a session in.
-    ///
-    /// # Arguments
-    ///
-    /// * `user_type` - The type of user to log in as
-    /// * `pin` - The PIN to use, or `None` if you wish to use the protected authentication path
-    ///
-    /// _NOTE: By passing `None` into `login`, you must ensure that the
-    /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
-    pub fn login(&self, user_type: UserType, pin: Option<&str>) -> Result<()> {
-        let (pin, pin_len) = match pin {
-            Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
-            None => (std::ptr::null_mut(), 0),
-        };
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_Login)(
-                self.handle(),
-                user_type.into(),
-                pin,
-                pin_len.try_into()?,
-            ))
-            .into_result()
-        }
+// See public docs on stub in parent mod.rs
+pub(super) fn login(session: &Session<'_>, user_type: UserType, pin: Option<&str>) -> Result<()> {
+    let (pin, pin_len) = match pin {
+        Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
+        None => (std::ptr::null_mut(), 0),
+    };
+    unsafe {
+        Rv::from(get_pkcs11!(session.client(), C_Login)(
+            session.handle(),
+            user_type.into(),
+            pin,
+            pin_len.try_into()?,
+        ))
+        .into_result()
     }
+}
 
-    /// Log a session out
-    pub fn logout(&self) -> Result<()> {
-        unsafe { Rv::from(get_pkcs11!(self.client(), C_Logout)(self.handle())).into_result() }
-    }
+// See public docs on stub in parent mod.rs
+pub(super) fn logout(session: &Session<'_>) -> Result<()> {
+    unsafe { Rv::from(get_pkcs11!(session.client(), C_Logout)(session.handle())).into_result() }
+}
 
-    /// Returns the information about a session
-    pub fn get_session_info(&self) -> Result<SessionInfo> {
-        let mut session_info = CK_SESSION_INFO::default();
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_GetSessionInfo)(
-                self.handle(),
-                &mut session_info,
-            ))
-            .into_result()?;
-            Ok(SessionInfo::new(session_info))
-        }
+// See public docs on stub in parent mod.rs
+pub(super) fn get_session_info(session: &Session<'_>) -> Result<SessionInfo> {
+    let mut session_info = CK_SESSION_INFO::default();
+    unsafe {
+        Rv::from(get_pkcs11!(session.client(), C_GetSessionInfo)(
+            session.handle(),
+            &mut session_info,
+        ))
+        .into_result()?;
+        Ok(SessionInfo::new(session_info))
     }
 }

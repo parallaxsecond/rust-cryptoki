@@ -23,11 +23,11 @@ pub use flags::*;
 pub use info::*;
 pub use locking::*;
 
-pub use general_purpose::*;
-pub use session_management::*;
-pub use slot_token_management::*;
-
 use crate::error::{Error, Result, Rv};
+use crate::mechanism::{MechanismInfo, MechanismType};
+use crate::session::{Session, SessionFlags};
+use crate::slot::{Slot, SlotInfo, TokenInfo};
+
 use derivative::Derivative;
 use log::error;
 use std::mem;
@@ -65,11 +65,72 @@ impl Pkcs11 {
             })
         }
     }
+
+    /// Initialize the PKCS11 library
+    pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
+        general_purpose::initialize(self, init_args)
+    }
+
+    /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
+    /// The library is also automatically finalized on drop.
+    pub fn finalize(self) {}
+
+    /// Returns the information about the library
+    pub fn get_library_info(&self) -> Result<Info> {
+        general_purpose::get_library_info(self)
+    }
+
+    /// Get all slots available with a token
+    pub fn get_slots_with_token(&self) -> Result<Vec<Slot>> {
+        slot_token_management::get_slots_with_token(self)
+    }
+
+    /// Get all slots available with a token
+    pub fn get_slots_with_initialized_token(&self) -> Result<Vec<Slot>> {
+        slot_token_management::get_slots_with_initialized_token(self)
+    }
+
+    /// Get all slots
+    pub fn get_all_slots(&self) -> Result<Vec<Slot>> {
+        slot_token_management::get_all_slots(self)
+    }
+
+    /// Initialize a token
+    ///
+    /// Currently will use an empty label for all tokens.
+    pub fn init_token(&self, slot: Slot, pin: &str, label: &str) -> Result<()> {
+        slot_token_management::init_token(self, slot, pin, label)
+    }
+
+    /// Returns the slot info
+    pub fn get_slot_info(&self, slot: Slot) -> Result<SlotInfo> {
+        slot_token_management::get_slot_info(self, slot)
+    }
+
+    /// Returns information about a specific token
+    pub fn get_token_info(&self, slot: Slot) -> Result<TokenInfo> {
+        slot_token_management::get_token_info(self, slot)
+    }
+
+    /// Get all mechanisms support by a slot
+    pub fn get_mechanism_list(&self, slot: Slot) -> Result<Vec<MechanismType>> {
+        slot_token_management::get_mechanism_list(self, slot)
+    }
+
+    /// Get detailed information about a mechanism for a slot
+    pub fn get_mechanism_info(&self, slot: Slot, type_: MechanismType) -> Result<MechanismInfo> {
+        slot_token_management::get_mechanism_info(self, slot, type_)
+    }
+
+    /// Open a new session with no callback set
+    pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
+        session_management::open_session_no_callback(self, slot_id, flags)
+    }
 }
 
 impl Drop for Pkcs11 {
     fn drop(&mut self) {
-        if let Err(e) = self.finalize_private() {
+        if let Err(e) = general_purpose::finalize_private(self) {
             error!("Failed to finalize: {}", e);
         }
     }
