@@ -88,7 +88,7 @@ impl Session<'_> {
 
     /// Close a session
     /// This will be called on drop as well.
-    pub fn close(&self) {}
+    pub fn close(self) {}
 
     /// Log a session in.
     ///
