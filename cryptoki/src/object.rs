@@ -762,17 +762,14 @@ impl From<&Attribute> for CK_ATTRIBUTE {
 /// Private function standing in for TryInto<bool> for &[u8]
 /// which can't be implemented through the actual trait because
 /// it and both types are external to this crate.
+/// NB from the specification: "In Cryptoki, the CK_BBOOL data type
+/// is a Boolean type that can be true or false. A zero value means
+/// false, and a nonzero value means true." so there is no invalid
+/// byte value.
 fn try_u8_into_bool(slice: &[u8]) -> Result<bool> {
     let as_array: [u8; std::mem::size_of::<CK_BBOOL>()] = slice.try_into()?;
     let as_byte = CK_BBOOL::from_ne_bytes(as_array);
-    match as_byte {
-        0u8 => Ok(false),
-        1u8 => Ok(true),
-        other => {
-            error!("Byte value {} invalid as bool.", other);
-            Err(Error::InvalidValue)
-        }
-    }
+    Ok(!matches!(as_byte, 0u8))
 }
 
 impl TryFrom<CK_ATTRIBUTE> for Attribute {
