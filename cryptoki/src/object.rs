@@ -4,7 +4,7 @@
 
 use crate::error::{Error, Result};
 use crate::mechanism::MechanismType;
-use crate::types::{Bbool, Date, Ulong};
+use crate::types::{Date, Ulong};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;
@@ -412,9 +412,9 @@ pub enum Attribute {
     /// List of mechanisms allowed to be used with the key
     AllowedMechanisms(Vec<MechanismType>),
     /// Indicates that the user has to supply the PIN for each use with the key
-    AlwaysAuthenticate(Bbool),
+    AlwaysAuthenticate(bool),
     /// Indicates if the key has always had the Sensitive attribute set to true
-    AlwaysSensitive(Bbool),
+    AlwaysSensitive(bool),
     /// Description of the application that manages the object
     Application(Vec<u8>),
     /// BER-encoding of a sequence of object identifier values
@@ -430,19 +430,19 @@ pub enum Attribute {
     /// The CRT coefficient `iqmp` of an RSA private key
     Coefficient(Vec<u8>),
     /// Determines if an object can be copied
-    Copyable(Bbool),
+    Copyable(bool),
     /// Determines if a key supports decryption
-    Decrypt(Bbool),
+    Decrypt(bool),
     /// Determines if it is possible to derive other keys from the key
-    Derive(Bbool),
+    Derive(bool),
     /// Determines if it is possible to destroy an object
-    Destroyable(Bbool),
+    Destroyable(bool),
     /// Parameters describing an elliptic curve
     EcParams(Vec<u8>),
     /// Elliptic Curve point
     EcPoint(Vec<u8>),
     /// Determines if a key supports encryption
-    Encrypt(Bbool),
+    Encrypt(bool),
     /// The end date of the object
     EndDate(Date),
     /// The private exponent `dmp1` of an RSA private key
@@ -450,7 +450,7 @@ pub enum Attribute {
     /// The private exponent `dmq1` of an RSA private key
     Exponent2(Vec<u8>),
     /// Determines if a key is extractable and can be wrapped
-    Extractable(Bbool),
+    Extractable(bool),
     /// Hash of issuer public key
     HashOfIssuerPublicKey(Vec<u8>),
     /// Hash of subject public key
@@ -466,15 +466,15 @@ pub enum Attribute {
     /// Description of the object
     Label(Vec<u8>),
     /// Indicates if the key was generated locally or copied from a locally created object
-    Local(Bbool),
+    Local(bool),
     /// Determines if the object can be modified
-    Modifiable(Bbool),
+    Modifiable(bool),
     /// Modulus value of a key
     Modulus(Vec<u8>),
     /// Length in bits of the modulus of a key
     ModulusBits(Ulong),
     /// Indicates if the key has never had the Extractable attribute set to true
-    NeverExtractable(Bbool),
+    NeverExtractable(bool),
     /// Object ID
     ObjectId(Vec<u8>),
     /// DER encoding of the attribute certificate's subject field
@@ -486,7 +486,7 @@ pub enum Attribute {
     /// The prime `q` of an RSA private key
     Prime2(Vec<u8>),
     /// Determines if the object is private
-    Private(Bbool),
+    Private(bool),
     /// The private exponent `d`
     PrivateExponent(Vec<u8>),
     /// Public exponent value of a key
@@ -494,23 +494,23 @@ pub enum Attribute {
     /// DER-encoding of the SubjectPublicKeyInfo
     PublicKeyInfo(Vec<u8>),
     /// Determines if the key is sensitive
-    Sensitive(Bbool),
+    Sensitive(bool),
     /// DER encoding of the certificate serial number
     SerialNumber(Vec<u8>),
     /// Determines if a key supports signing
-    Sign(Bbool),
+    Sign(bool),
     /// Determines if a key supports signing where the data can be recovered from the signature
-    SignRecover(Bbool),
+    SignRecover(bool),
     /// The start date of the object
     StartDate(Date),
     /// DER-encoding of certificate subject name
     Subject(Vec<u8>),
     /// Determines if the object is a token object
-    Token(Bbool),
+    Token(bool),
     /// Determines if an object is trusted
-    Trusted(Bbool),
+    Trusted(bool),
     /// Determines if a key supports unwrapping
-    Unwrap(Bbool),
+    Unwrap(bool),
     /// Gives the URL where the complete certificate can ber obtained
     Url(Vec<u8>),
     /// Value of the object
@@ -518,13 +518,13 @@ pub enum Attribute {
     /// Length in bytes of the value
     ValueLen(Ulong),
     /// Determines if a key supports verifying
-    Verify(Bbool),
+    Verify(bool),
     /// Determines if a key supports verifying where the data can be recovered from the signature
-    VerifyRecover(Bbool),
+    VerifyRecover(bool),
     /// Determines if a key supports wrapping
-    Wrap(Bbool),
+    Wrap(bool),
     /// Indicates that the key can only be wrapped with a wrapping key that has the Trusted attribute
-    WrapWithTrusted(Bbool),
+    WrapWithTrusted(bool),
 }
 
 impl Attribute {
@@ -617,7 +617,7 @@ impl Attribute {
             | Attribute::Verify(_)
             | Attribute::VerifyRecover(_)
             | Attribute::Wrap(_)
-            | Attribute::WrapWithTrusted(_) => 1,
+            | Attribute::WrapWithTrusted(_) => std::mem::size_of::<bool>(),
             Attribute::Base(_) => 1,
             Attribute::Application(bytes) | Attribute::Label(bytes) | Attribute::Url(bytes) => {
                 std::mem::size_of::<CK_UTF8CHAR>() * bytes.len()
@@ -669,6 +669,10 @@ impl Attribute {
     /// will not use Attribute parameters but return them
     /// directly to the caller.
     fn ptr(&self) -> *mut c_void {
+        // Note: bools in Rust are guaranteed to occupy a byte, so
+        // &mut bool as a raw pointer will provide the same space
+        // needed for CK_BBOOL types. See also:
+        // https://doc.rust-lang.org/reference/type-layout.html#primitive-data-layout
         match self {
             // CK_BBOOL
             Attribute::AlwaysAuthenticate(b)
@@ -755,6 +759,19 @@ impl From<&Attribute> for CK_ATTRIBUTE {
     }
 }
 
+/// Private function standing in for TryInto<bool> for &[u8]
+/// which can't be implemented through the actual trait because
+/// it and both types are external to this crate.
+/// NB from the specification: "In Cryptoki, the CK_BBOOL data type
+/// is a Boolean type that can be true or false. A zero value means
+/// false, and a nonzero value means true." so there is no invalid
+/// byte value.
+fn try_u8_into_bool(slice: &[u8]) -> Result<bool> {
+    let as_array: [u8; std::mem::size_of::<CK_BBOOL>()] = slice.try_into()?;
+    let as_byte = CK_BBOOL::from_ne_bytes(as_array);
+    Ok(!matches!(as_byte, 0u8))
+}
+
 impl TryFrom<CK_ATTRIBUTE> for Attribute {
     type Error = Error;
 
@@ -769,28 +786,36 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
         };
         match attr_type {
             // CK_BBOOL
-            AttributeType::AlwaysAuthenticate => Ok(Attribute::AlwaysAuthenticate(val.try_into()?)),
-            AttributeType::AlwaysSensitive => Ok(Attribute::AlwaysSensitive(val.try_into()?)),
-            AttributeType::Copyable => Ok(Attribute::Copyable(val.try_into()?)),
-            AttributeType::Decrypt => Ok(Attribute::Decrypt(val.try_into()?)),
-            AttributeType::Derive => Ok(Attribute::Derive(val.try_into()?)),
-            AttributeType::Destroyable => Ok(Attribute::Destroyable(val.try_into()?)),
-            AttributeType::Encrypt => Ok(Attribute::Encrypt(val.try_into()?)),
-            AttributeType::Extractable => Ok(Attribute::Extractable(val.try_into()?)),
-            AttributeType::Local => Ok(Attribute::Local(val.try_into()?)),
-            AttributeType::Modifiable => Ok(Attribute::Modifiable(val.try_into()?)),
-            AttributeType::NeverExtractable => Ok(Attribute::NeverExtractable(val.try_into()?)),
-            AttributeType::Private => Ok(Attribute::Private(val.try_into()?)),
-            AttributeType::Sensitive => Ok(Attribute::Sensitive(val.try_into()?)),
-            AttributeType::Sign => Ok(Attribute::Sign(val.try_into()?)),
-            AttributeType::SignRecover => Ok(Attribute::SignRecover(val.try_into()?)),
-            AttributeType::Token => Ok(Attribute::Token(val.try_into()?)),
-            AttributeType::Trusted => Ok(Attribute::Trusted(val.try_into()?)),
-            AttributeType::Unwrap => Ok(Attribute::Unwrap(val.try_into()?)),
-            AttributeType::Verify => Ok(Attribute::Verify(val.try_into()?)),
-            AttributeType::VerifyRecover => Ok(Attribute::VerifyRecover(val.try_into()?)),
-            AttributeType::Wrap => Ok(Attribute::Wrap(val.try_into()?)),
-            AttributeType::WrapWithTrusted => Ok(Attribute::WrapWithTrusted(val.try_into()?)),
+            AttributeType::AlwaysAuthenticate => {
+                Ok(Attribute::AlwaysAuthenticate(try_u8_into_bool(val)?))
+            }
+            AttributeType::AlwaysSensitive => {
+                Ok(Attribute::AlwaysSensitive(try_u8_into_bool(val)?))
+            }
+            AttributeType::Copyable => Ok(Attribute::Copyable(try_u8_into_bool(val)?)),
+            AttributeType::Decrypt => Ok(Attribute::Decrypt(try_u8_into_bool(val)?)),
+            AttributeType::Derive => Ok(Attribute::Derive(try_u8_into_bool(val)?)),
+            AttributeType::Destroyable => Ok(Attribute::Destroyable(try_u8_into_bool(val)?)),
+            AttributeType::Encrypt => Ok(Attribute::Encrypt(try_u8_into_bool(val)?)),
+            AttributeType::Extractable => Ok(Attribute::Extractable(try_u8_into_bool(val)?)),
+            AttributeType::Local => Ok(Attribute::Local(try_u8_into_bool(val)?)),
+            AttributeType::Modifiable => Ok(Attribute::Modifiable(try_u8_into_bool(val)?)),
+            AttributeType::NeverExtractable => {
+                Ok(Attribute::NeverExtractable(try_u8_into_bool(val)?))
+            }
+            AttributeType::Private => Ok(Attribute::Private(try_u8_into_bool(val)?)),
+            AttributeType::Sensitive => Ok(Attribute::Sensitive(try_u8_into_bool(val)?)),
+            AttributeType::Sign => Ok(Attribute::Sign(try_u8_into_bool(val)?)),
+            AttributeType::SignRecover => Ok(Attribute::SignRecover(try_u8_into_bool(val)?)),
+            AttributeType::Token => Ok(Attribute::Token(try_u8_into_bool(val)?)),
+            AttributeType::Trusted => Ok(Attribute::Trusted(try_u8_into_bool(val)?)),
+            AttributeType::Unwrap => Ok(Attribute::Unwrap(try_u8_into_bool(val)?)),
+            AttributeType::Verify => Ok(Attribute::Verify(try_u8_into_bool(val)?)),
+            AttributeType::VerifyRecover => Ok(Attribute::VerifyRecover(try_u8_into_bool(val)?)),
+            AttributeType::Wrap => Ok(Attribute::Wrap(try_u8_into_bool(val)?)),
+            AttributeType::WrapWithTrusted => {
+                Ok(Attribute::WrapWithTrusted(try_u8_into_bool(val)?))
+            }
             // CK_ULONG
             AttributeType::ModulusBits => Ok(Attribute::ModulusBits(
                 CK_ULONG::from_ne_bytes(val.try_into()?).try_into()?,

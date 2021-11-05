@@ -38,12 +38,12 @@ fn generate_bindings() {
         // The PKCS11 library works in a slightly different way to most shared libraries. We have
         // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
         // functions. This is the only function we need to create a binding for.
-        .whitelist_function("C_GetFunctionList")
-        // This is needed because no types will be generated if `whitelist_function` is used.
+        .allowlist_function("C_GetFunctionList")
+        // This is needed because no types will be generated if `allowlist_function` is used.
         // Unsure if this is a bug.
-        .whitelist_type("*")
+        .allowlist_type("*")
         // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
-        .blacklist_type("max_align_t")
+        .blocklist_type("max_align_t")
         // Derive the `Debug` trait for the generated structs where possible.
         .derive_debug(true)
         // Derive the `Default` trait for the generated structs where possible.
