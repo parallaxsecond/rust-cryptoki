@@ -5,7 +5,6 @@
 use crate::context::{CInitializeArgs, Info, Pkcs11};
 use crate::error::{Result, Rv};
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
-use std::ptr;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
@@ -19,13 +18,6 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
         ))
         .into_result()
     }
-}
-
-#[inline(always)]
-pub(super) fn finalize_private(ctx: &Pkcs11) -> Result<()> {
-    // Safe because Session contain a reference to self so that this function can not be called
-    // while there are live Session instances.
-    unsafe { Rv::from(get_pkcs11!(ctx, C_Finalize)(ptr::null_mut())).into_result() }
 }
 
 // See public docs on stub in parent mod.rs

@@ -33,6 +33,7 @@ use derivative::Derivative;
 use log::error;
 use std::mem;
 use std::path::Path;
+use std::ptr;
 use std::sync::Arc;
 
 #[derive(Derivative)]
@@ -44,6 +45,30 @@ pub(crate) struct Pkcs11Impl {
     #[derivative(Debug = "ignore")]
     _pkcs11_lib: cryptoki_sys::Pkcs11,
     pub(crate) function_list: cryptoki_sys::_CK_FUNCTION_LIST,
+}
+
+impl Pkcs11Impl {
+    // Private finalize call
+    #[inline(always)]
+    fn finalize(&self) -> Result<()> {
+        unsafe {
+            Rv::from(self
+                .function_list
+                .C_Finalize
+                .ok_or(Error::NullFunctionPointer)?(
+                ptr::null_mut()
+            ))
+            .into_result()
+        }
+    }
+}
+
+impl Drop for Pkcs11Impl {
+    fn drop(&mut self) {
+        if let Err(e) = self.finalize() {
+            error!("Failed to finalize: {}", e);
+        }
+    }
 }
 
 /// Main PKCS11 context. Should usually be unique per application.
@@ -135,13 +160,5 @@ impl Pkcs11 {
     /// Open a new session with no callback set
     pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
         session_management::open_session_no_callback(self, slot_id, flags)
-    }
-}
-
-impl Drop for Pkcs11 {
-    fn drop(&mut self) {
-        if let Err(e) = general_purpose::finalize_private(self) {
-            error!("Failed to finalize: {}", e);
-        }
     }
 }
