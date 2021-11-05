@@ -4,7 +4,6 @@
 
 use crate::error::{Error, Result};
 use cryptoki_sys::*;
-use log::error;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fmt::Formatter;
@@ -33,64 +32,6 @@ pub(crate) trait Flags: std::fmt::Display {
             }
         }
         Ok(())
-    }
-}
-
-#[repr(u8)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-/// Byte-sized boolean
-pub enum Bbool {
-    /// False value
-    False = 0,
-    /// True value
-    True = 1,
-}
-
-impl TryFrom<&[u8]> for Bbool {
-    type Error = Error;
-
-    fn try_from(slice: &[u8]) -> Result<Self> {
-        CK_BBOOL::from_ne_bytes(slice.try_into()?).try_into()
-    }
-}
-
-impl From<Bbool> for CK_BBOOL {
-    fn from(bbool: Bbool) -> Self {
-        bbool as CK_BBOOL
-    }
-}
-
-impl From<bool> for Bbool {
-    fn from(val: bool) -> Self {
-        if val {
-            Bbool::True
-        } else {
-            Bbool::False
-        }
-    }
-}
-
-impl From<Bbool> for bool {
-    fn from(val: Bbool) -> Self {
-        match val {
-            Bbool::False => false,
-            Bbool::True => true,
-        }
-    }
-}
-
-impl TryFrom<CK_BBOOL> for Bbool {
-    type Error = Error;
-
-    fn try_from(bbool: CK_BBOOL) -> Result<Self> {
-        match bbool {
-            CK_FALSE => Ok(Bbool::False),
-            CK_TRUE => Ok(Bbool::True),
-            other => {
-                error!("Bbool value {} is invalid.", other);
-                Err(Error::InvalidValue)
-            }
-        }
     }
 }
 

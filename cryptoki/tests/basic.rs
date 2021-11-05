@@ -47,14 +47,14 @@ fn sign_verify() -> Result<()> {
 
     // pub key template
     let pub_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(false.into()),
+        Attribute::Token(true),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true.into())];
+    let priv_key_template = vec![Attribute::Token(true)];
 
     // generate a key pair
     let (public, private) =
@@ -99,18 +99,15 @@ fn encrypt_decrypt() -> Result<()> {
 
     // pub key template
     let pub_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(false.into()),
+        Attribute::Token(true),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
-        Attribute::Encrypt(true.into()),
+        Attribute::Encrypt(true),
     ];
 
     // priv key template
-    let priv_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Decrypt(true.into()),
-    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Decrypt(true)];
 
     // generate a key pair
     let (public, private) =
@@ -157,22 +154,22 @@ fn derive_key() -> Result<()> {
 
     // pub key template
     let pub_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(false.into()),
-        Attribute::Derive(true.into()),
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Derive(true),
         Attribute::KeyType(KeyType::EC),
-        Attribute::Verify(true.into()),
+        Attribute::Verify(true),
         Attribute::EcParams(secp256r1_oid),
     ];
 
     // priv key template
     let priv_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(true.into()),
-        Attribute::Sensitive(true.into()),
-        Attribute::Extractable(false.into()),
-        Attribute::Derive(true.into()),
-        Attribute::Sign(true.into()),
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Extractable(false),
+        Attribute::Derive(true),
+        Attribute::Sign(true),
     ];
 
     // generate a key pair
@@ -206,9 +203,9 @@ fn derive_key() -> Result<()> {
         &[
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::GENERIC_SECRET),
-            Attribute::Sensitive(false.into()),
-            Attribute::Extractable(true.into()),
-            Attribute::Token(false.into()),
+            Attribute::Sensitive(false),
+            Attribute::Extractable(true),
+            Attribute::Token(false),
         ],
     )?;
 
@@ -249,13 +246,13 @@ fn import_export() -> Result<()> {
     let modulus = vec![0xFF; 1024];
 
     let template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(false.into()),
+        Attribute::Token(true),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::Modulus(modulus.clone()),
         Attribute::Class(ObjectClass::PUBLIC_KEY),
         Attribute::KeyType(KeyType::RSA),
-        Attribute::Verify(true.into()),
+        Attribute::Verify(true),
     ];
 
     {
@@ -316,10 +313,10 @@ fn wrap_and_unwrap_key() {
     session.login(UserType::User, Some(USER_PIN)).unwrap();
 
     let key_to_be_wrapped_template = vec![
-        Attribute::Token(true.into()),
+        Attribute::Token(true),
         // the key needs to be extractable to be suitable for being wrapped
-        Attribute::Extractable(true.into()),
-        Attribute::Encrypt(true.into()),
+        Attribute::Extractable(true),
+        Attribute::Encrypt(true),
     ];
 
     // generate a secret key that will be wrapped
@@ -339,16 +336,16 @@ fn wrap_and_unwrap_key() {
 
     // pub key template
     let pub_key_template = vec![
-        Attribute::Token(true.into()),
-        Attribute::Private(true.into()),
+        Attribute::Token(true),
+        Attribute::Private(true),
         Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
         Attribute::ModulusBits(1024.into()),
         // key needs to have "wrap" attribute to wrap other keys
-        Attribute::Wrap(true.into()),
+        Attribute::Wrap(true),
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true.into())];
+    let priv_key_template = vec![Attribute::Token(true)];
 
     let (wrapping_key, unwrapping_key) = session
         .generate_key_pair(
@@ -369,9 +366,9 @@ fn wrap_and_unwrap_key() {
             unwrapping_key,
             &wrapped_key,
             &[
-                Attribute::Token(true.into()),
-                Attribute::Private(true.into()),
-                Attribute::Encrypt(true.into()),
+                Attribute::Token(true),
+                Attribute::Private(true),
+                Attribute::Encrypt(true),
                 Attribute::Class(ObjectClass::SECRET_KEY),
                 Attribute::KeyType(KeyType::DES3),
             ],
@@ -603,17 +600,17 @@ fn get_attribute_info_test() -> Result<()> {
 
     // pub key template
     let pub_key_template = vec![
-        Attribute::Token(false.into()),
-        Attribute::Private(false.into()),
+        Attribute::Token(false),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
     ];
 
     // priv key template
     let priv_key_template = vec![
-        Attribute::Token(false.into()),
-        Attribute::Sensitive(true.into()),
-        Attribute::Extractable(false.into()),
+        Attribute::Token(false),
+        Attribute::Sensitive(true),
+        Attribute::Extractable(false),
     ];
 
     // generate a key pair
