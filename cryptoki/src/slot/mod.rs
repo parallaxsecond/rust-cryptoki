@@ -108,9 +108,19 @@ impl SlotInfo {
         &self.manufacturer_id
     }
 
-    /// Returns the flags of the slot
-    pub fn flags(&self) -> SlotFlags {
-        self.flags
+    /// Gets value of [`CKF_TOKEN_PRESENT`]
+    pub fn token_present(&self) -> bool {
+        self.flags.token_present()
+    }
+
+    /// Gets value of [`CKF_REMOVABLE_DEVICE`]
+    pub fn removable_device(&self) -> bool {
+        self.flags.removable_device()
+    }
+
+    /// Gets value of [`CKF_HW_SLOT`]
+    pub fn hardware_slot(&self) -> bool {
+        self.flags.hardware_slot()
     }
 
     /// Returns the hardware version
