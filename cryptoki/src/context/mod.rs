@@ -19,6 +19,7 @@ mod locking;
 mod session_management;
 mod slot_token_management;
 
+use cryptoki_sys::{CK_TRUE, CK_FALSE};
 pub use flags::*;
 pub use info::*;
 pub use locking::*;
@@ -82,7 +83,7 @@ impl Pkcs11 {
 
     /// Get all slots available with a token
     pub fn get_slots_with_token(&self) -> Result<Vec<Slot>> {
-        slot_token_management::get_slots_with_token(self)
+        slot_token_management::get_slots(self, CK_TRUE)
     }
 
     /// Get all slots available with a token
@@ -92,7 +93,7 @@ impl Pkcs11 {
 
     /// Get all slots
     pub fn get_all_slots(&self) -> Result<Vec<Slot>> {
-        slot_token_management::get_all_slots(self)
+        slot_token_management::get_slots(self, CK_FALSE)
     }
 
     /// Initialize a token
