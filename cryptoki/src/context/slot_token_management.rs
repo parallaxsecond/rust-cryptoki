@@ -10,37 +10,37 @@ use crate::slot::{Slot, SlotInfo, TokenInfo};
 use cryptoki_sys::{CK_BBOOL, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;
 
+use crate::error::RvError::BufferTooSmall;
+
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn get_slots(ctx: &Pkcs11, with_token: CK_BBOOL) -> Result<Vec<Slot>> {
     let mut slot_count = 0;
+    let rval = unsafe {
+        get_pkcs11!(ctx, C_GetSlotList)(with_token, std::ptr::null_mut(), &mut slot_count)
+    };
+    Rv::from(rval).into_result()?;
 
-    unsafe {
-        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            with_token,
-            std::ptr::null_mut(),
-            &mut slot_count,
-        ))
-        .into_result()?;
+    let mut slots;
+    loop {
+        slots = vec![0; slot_count as usize];
+        let rval = unsafe {
+            get_pkcs11!(ctx, C_GetSlotList)(with_token, slots.as_mut_ptr(), &mut slot_count)
+        };
+        // Account for a race condition between the call to get the
+        // slot_count and the last call in which the number of slots grew.
+        // In this case, slot_count will have been updated to the larger amount
+        // and we want to loop again with a resized buffer.
+        if !matches!(Rv::from(rval), Rv::Error(BufferTooSmall)) {
+            // Account for other possible error types
+            Rv::from(rval).into_result()?;
+            // Otherwise, we have a valid list to process
+            break;
+        }
     }
-
-    let mut slots = vec![0; slot_count.try_into()?];
-
-    unsafe {
-        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            with_token,
-            slots.as_mut_ptr(),
-            &mut slot_count,
-        ))
-        .into_result()?;
-    }
-
-    let mut slots: Vec<Slot> = slots.into_iter().map(Slot::new).collect();
-
-    // This should always truncate slots.
-    slots.resize(slot_count.try_into()?, Slot::new(0));
-
-    Ok(slots)
+    // Account for the same race condition, but with a shrinking slot_count
+    slots.truncate(slot_count as usize);
+    Ok(slots.into_iter().map(Slot::new).collect())
 }
 
 // See public docs on stub in parent mod.rs
