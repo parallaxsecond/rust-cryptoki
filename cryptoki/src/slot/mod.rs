@@ -9,8 +9,10 @@
 mod flags;
 use crate::error::{Error, Result};
 use crate::string_from_blank_padded;
-use crate::types::{Ulong, Version};
-use cryptoki_sys::{CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO};
+use crate::types::{Flags, Ulong, Version};
+use cryptoki_sys::{
+    CKF_HW_SLOT, CKF_REMOVABLE_DEVICE, CKF_TOKEN_PRESENT, CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO,
+};
 pub use flags::*;
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Formatter;
@@ -110,17 +112,17 @@ impl SlotInfo {
 
     /// Gets value of [`CKF_TOKEN_PRESENT`]
     pub fn token_present(&self) -> bool {
-        self.flags.token_present()
+        self.flags.flag(CKF_TOKEN_PRESENT)
     }
 
     /// Gets value of [`CKF_REMOVABLE_DEVICE`]
     pub fn removable_device(&self) -> bool {
-        self.flags.removable_device()
+        self.flags.flag(CKF_REMOVABLE_DEVICE)
     }
 
     /// Gets value of [`CKF_HW_SLOT`]
     pub fn hardware_slot(&self) -> bool {
-        self.flags.hardware_slot()
+        self.flags.flag(CKF_HW_SLOT)
     }
 
     /// Returns the hardware version

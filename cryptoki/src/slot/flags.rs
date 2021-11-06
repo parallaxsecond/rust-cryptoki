@@ -8,7 +8,7 @@ use std::fmt::Formatter;
 
 #[derive(Debug, Default, Clone, Copy)]
 /// Collection of flags defined for [`CK_SLOT_INFO`]
-pub struct SlotFlags {
+pub(crate) struct SlotFlags {
     flags: CK_FLAGS,
 }
 
@@ -41,56 +41,10 @@ impl Flags for SlotFlags {
     }
 }
 
-impl SlotFlags {
-    /// Creates a new instance of `SlotFlags` with no flags set
-    pub fn new() -> Self {
-        SlotFlags::default()
-    }
-
-    /// Gets value of [`CKF_TOKEN_PRESENT`]
-    pub fn token_present(&self) -> bool {
-        self.flag(CKF_TOKEN_PRESENT)
-    }
-
-    /// Sets value of [`CKF_TOKEN_PRESENT`]
-    pub fn set_token_present(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_TOKEN_PRESENT, b);
-        self
-    }
-
-    /// Gets value of [`CKF_REMOVABLE_DEVICE`]
-    pub fn removable_device(&self) -> bool {
-        self.flag(CKF_REMOVABLE_DEVICE)
-    }
-
-    /// Sets value of [`CKF_REMOVABLE_DEVICE`]
-    pub fn set_removable_device(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_REMOVABLE_DEVICE, b);
-        self
-    }
-
-    /// Gets value of [`CKF_HW_SLOT`]
-    pub fn hardware_slot(&self) -> bool {
-        self.flag(CKF_HW_SLOT)
-    }
-
-    /// Sets value of [`CKF_HW_SLOT`]
-    pub fn set_hardware_slot(&mut self, b: bool) -> &mut Self {
-        self.set_flag(CKF_HW_SLOT, b);
-        self
-    }
-}
-
 impl std::fmt::Display for SlotFlags {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let flags = vec![CKF_TOKEN_PRESENT, CKF_REMOVABLE_DEVICE, CKF_HW_SLOT];
         self.stringify_fmt(f, flags)
-    }
-}
-
-impl From<SlotFlags> for CK_FLAGS {
-    fn from(flags: SlotFlags) -> Self {
-        flags.flags
     }
 }
 
