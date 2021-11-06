@@ -121,7 +121,7 @@ pub(super) fn get_slot_info(ctx: &Pkcs11, slot: Slot) -> Result<SlotInfo> {
             &mut slot_info,
         ))
         .into_result()?;
-        Ok(SlotInfo::new(slot_info))
+        Ok(SlotInfo::from(slot_info))
     }
 }
 
