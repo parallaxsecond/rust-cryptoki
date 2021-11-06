@@ -98,15 +98,6 @@ pub struct SlotInfo {
 }
 
 impl SlotInfo {
-    pub(crate) fn new(val: CK_SLOT_INFO) -> Self {
-        Self {
-            slot_description: string_from_blank_padded(&val.slotDescription),
-            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
-            flags: val.flags.into(),
-            hardware_version: val.hardwareVersion.into(),
-            firmware_version: val.firmwareVersion.into(),
-        }
-    }
     /// Returns the slot description
     pub fn slot_description(&self) -> &str {
         &self.slot_description
@@ -130,6 +121,18 @@ impl SlotInfo {
     /// Returns the firmware version
     pub fn firmware_version(&self) -> Version {
         self.firmware_version
+    }
+}
+
+impl From<CK_SLOT_INFO> for SlotInfo {
+    fn from(val: CK_SLOT_INFO) -> Self {
+        Self {
+            slot_description: string_from_blank_padded(&val.slotDescription),
+            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
+            flags: val.flags.into(),
+            hardware_version: val.hardwareVersion.into(),
+            firmware_version: val.firmwareVersion.into(),
+        }
     }
 }
 
