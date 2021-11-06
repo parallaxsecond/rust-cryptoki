@@ -7,17 +7,17 @@ use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
-use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
+use cryptoki_sys::{CK_BBOOL, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn get_slots_with_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
+pub(super) fn get_slots(ctx: &Pkcs11, with_token: CK_BBOOL) -> Result<Vec<Slot>> {
     let mut slot_count = 0;
 
     unsafe {
         Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            cryptoki_sys::CK_TRUE,
+            with_token,
             std::ptr::null_mut(),
             &mut slot_count,
         ))
@@ -28,7 +28,7 @@ pub(super) fn get_slots_with_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
 
     unsafe {
         Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            cryptoki_sys::CK_TRUE,
+            with_token,
             slots.as_mut_ptr(),
             &mut slot_count,
         ))
@@ -61,39 +61,6 @@ pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>
             Err(e) => Some(Err(e)),
         })
         .collect()
-}
-
-// See public docs on stub in parent mod.rs
-#[inline(always)]
-pub(super) fn get_all_slots(ctx: &Pkcs11) -> Result<Vec<Slot>> {
-    let mut slot_count = 0;
-
-    unsafe {
-        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            cryptoki_sys::CK_FALSE,
-            std::ptr::null_mut(),
-            &mut slot_count,
-        ))
-        .into_result()?;
-    }
-
-    let mut slots = vec![0; slot_count.try_into()?];
-
-    unsafe {
-        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
-            cryptoki_sys::CK_FALSE,
-            slots.as_mut_ptr(),
-            &mut slot_count,
-        ))
-        .into_result()?;
-    }
-
-    let mut slots: Vec<Slot> = slots.into_iter().map(Slot::new).collect();
-
-    // This should always truncate slots.
-    slots.resize(slot_count.try_into()?, Slot::new(0));
-
-    Ok(slots)
 }
 
 // See public docs on stub in parent mod.rs
