@@ -124,20 +124,6 @@ impl SlotInfo {
     }
 }
 
-impl Deref for SlotInfo {
-    type Target = CK_SLOT_INFO;
-
-    fn deref(&self) -> &Self::Target {
-        &self.val
-    }
-}
-
-impl From<SlotInfo> for CK_SLOT_INFO {
-    fn from(token_info: SlotInfo) -> Self {
-        *token_info
-    }
-}
-
 /// Contains information about a token
 #[derive(Debug, Clone, Copy, Default)]
 pub struct TokenInfo {
