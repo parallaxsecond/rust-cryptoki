@@ -88,39 +88,48 @@ impl std::fmt::Display for Slot {
 }
 
 /// Contains information about the slot
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone)]
 pub struct SlotInfo {
-    val: CK_SLOT_INFO,
+    slot_description: String,
+    manufacturer_id: String,
+    flags: SlotFlags,
+    hardware_version: Version,
+    firmware_version: Version,
 }
 
 impl SlotInfo {
     pub(crate) fn new(val: CK_SLOT_INFO) -> Self {
-        Self { val }
+        Self {
+            slot_description: string_from_blank_padded(&val.slotDescription),
+            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
+            flags: val.flags.into(),
+            hardware_version: val.hardwareVersion.into(),
+            firmware_version: val.firmwareVersion.into(),
+        }
+    }
+    /// Returns the slot description
+    pub fn slot_description(&self) -> &str {
+        &self.slot_description
     }
 
-    /// Returns the firmware version
-    pub fn firmware_version(&self) -> Version {
-        self.val.firmwareVersion.into()
+    /// Returns the manufacturer ID
+    pub fn manufacturer_id(&self) -> &str {
+        &self.manufacturer_id
     }
 
     /// Returns the flags of the slot
     pub fn flags(&self) -> SlotFlags {
-        self.val.flags.into()
+        self.flags
     }
 
     /// Returns the hardware version
     pub fn hardware_version(&self) -> Version {
-        self.val.hardwareVersion.into()
+        self.hardware_version
     }
 
-    /// Returns the manufacturer ID
-    pub fn manufacturer_id(&self) -> String {
-        string_from_blank_padded(&self.val.manufacturerID)
-    }
-
-    /// Returns the slot description
-    pub fn slot_description(&self) -> String {
-        string_from_blank_padded(&self.val.slotDescription)
+    /// Returns the firmware version
+    pub fn firmware_version(&self) -> Version {
+        self.firmware_version
     }
 }
 
