@@ -8,6 +8,10 @@
 #![allow(clippy::string_lit_as_bytes)]
 // Public items exportedby this crate should match the C style
 #![allow(clippy::upper_case_acronyms)]
+// Suppress warnings from bindgen-generated code
+// Remove on resolution of
+// https://github.com/rust-lang/rust-bindgen/issues/1651
+#![allow(deref_nullptr)]
 
 // For supported targets: use the generated and committed bindings.
 #[cfg(all(
