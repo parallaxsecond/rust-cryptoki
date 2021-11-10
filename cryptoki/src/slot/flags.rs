@@ -2,55 +2,41 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 General Data Types
 
+use super::SlotInfo;
 use crate::types::Flags;
 use cryptoki_sys::*;
 use std::fmt::Formatter;
 
-#[derive(Debug, Default, Clone, Copy)]
+use crate::flag::*;
+
 /// Collection of flags defined for [`CK_SLOT_INFO`]
-pub(crate) struct SlotFlags {
-    flags: CK_FLAGS,
-}
+pub(crate) const TOKEN_PRESENT: FlagBit<SlotInfo> = FlagBit::new(CKF_TOKEN_PRESENT);
+pub(crate) const REMOVABLE_DEVICE: FlagBit<SlotInfo> = FlagBit::new(CKF_REMOVABLE_DEVICE);
+pub(crate) const HW_SLOT: FlagBit<SlotInfo> = FlagBit::new(CKF_HW_SLOT);
 
-impl Flags for SlotFlags {
-    type FlagType = CK_FLAGS;
-
-    fn flag_value(&self) -> Self::FlagType {
-        self.flags
-    }
-
-    fn flag(&self, flag: Self::FlagType) -> bool {
-        self.flag_value() & flag == flag
-    }
-
-    fn set_flag(&mut self, flag: Self::FlagType, b: bool) {
-        if b {
-            self.flags |= flag;
-        } else {
-            self.flags &= !flag;
-        }
-    }
-
-    fn stringify_flag(flag: Self::FlagType) -> &'static str {
-        match flag {
-            CKF_TOKEN_PRESENT => std::stringify!(CKF_TOKEN_PRESENT),
-            CKF_REMOVABLE_DEVICE => std::stringify!(CKF_REMOVABLE_DEVICE),
-            CKF_HW_SLOT => std::stringify!(CKF_HW_SLOT),
-            _ => "Unknown CK_SLOT_INFO flag",
-        }
-    }
-}
-
-impl std::fmt::Display for SlotFlags {
+impl core::fmt::Debug for CkFlags<SlotInfo> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let flags = vec![CKF_TOKEN_PRESENT, CKF_REMOVABLE_DEVICE, CKF_HW_SLOT];
-        self.stringify_fmt(f, flags)
+        f.debug_struct("Flags")
+            .field("token_present", &(self.contains(TOKEN_PRESENT)))
+            .field("removable_device", &(self.contains(REMOVABLE_DEVICE)))
+            .field("hw_slot", &(self.contains(HW_SLOT)))
+            .finish()
     }
 }
 
-impl From<CK_FLAGS> for SlotFlags {
-    fn from(flags: CK_FLAGS) -> Self {
-        Self { flags }
+impl core::fmt::Display for CkFlags<SlotInfo> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut set = f.debug_set();
+        if self.contains(TOKEN_PRESENT) {
+            let _ = set.entry(&"Token Present");
+        }
+        if self.contains(REMOVABLE_DEVICE) {
+            let _ = set.entry(&"Removable Device");
+        }
+        if self.contains(HW_SLOT) {
+            let _ = set.entry(&"Hardware Slot");
+        }
+        set.finish()
     }
 }
 
