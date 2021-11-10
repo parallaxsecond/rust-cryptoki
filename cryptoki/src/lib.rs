@@ -7,6 +7,16 @@
 //! that is implemented is safe.
 //!
 //! The modules under `new` follow the structure of the PKCS11 document version 2.40 available [here](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/pkcs11-base-v2.40.html).
+//!
+//! # Conformance Notes
+//!
+//! Throughout this crate, many functions and other items include additional
+//! "**Conformance**" notes. These notes may provide guarantees about behavior or
+//! additional, contextual information. In all cases, such items pertain
+//! to information from the PKCS#11 standard and are contingent on the provider
+//! being accessed through this crate conforming to that standard. That is, this
+//! crate is permitted to *assume* these guarantees, and is does not necessarily
+//! check for or enforce them itself.
 
 // This list comes from
 // https://github.com/rust-unofficial/patterns/blob/master/anti_patterns/deny-warnings.md

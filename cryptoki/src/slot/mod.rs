@@ -99,37 +99,52 @@ pub struct SlotInfo {
 }
 
 impl SlotInfo {
-    /// Returns the slot description
+    /// String description of the slot
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// This string is maximally 64 bytes (*not* chars) as UTF-8
     pub fn slot_description(&self) -> &str {
         &self.slot_description
     }
 
-    /// Returns the manufacturer ID
+    /// ID of the slot manufacturer
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// This string is maximally 32 bytes (*not* chars) as UTF-8
     pub fn manufacturer_id(&self) -> &str {
         &self.manufacturer_id
     }
 
-    /// Gets value of [`CKF_TOKEN_PRESENT`]
+    /// True if a token is in the slot (e.g., a device is in the reader).
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// If this slot does not represent a removable device, a token is *always*
+    /// considered to be present. That is, `slot.removable device() == false`
+    /// implies `slot.token_present() == true`.
     pub fn token_present(&self) -> bool {
         self.flags.contains(TOKEN_PRESENT)
     }
 
-    /// Gets value of [`CKF_REMOVABLE_DEVICE`]
+    /// True if the reader supports removable devices.
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// For a given slot, this flag *never* changes
     pub fn removable_device(&self) -> bool {
         self.flags.contains(REMOVABLE_DEVICE)
     }
 
-    /// Gets value of [`CKF_HW_SLOT`]
+    /// True if the slot is a hardware slot, as opposed to a software slot
+    /// implementing a "soft token"
     pub fn hardware_slot(&self) -> bool {
         self.flags.contains(HW_SLOT)
     }
 
-    /// Returns the hardware version
+    /// Version number of the slot's hardware
     pub fn hardware_version(&self) -> Version {
         self.hardware_version
     }
 
-    /// Returns the firmware version
+    /// Version number of the slot's firmware
     pub fn firmware_version(&self) -> Version {
         self.firmware_version
     }
