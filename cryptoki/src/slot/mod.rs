@@ -8,12 +8,11 @@
 
 mod flags;
 use crate::error::{Error, Result};
+use crate::flag::CkFlags;
 use crate::string_from_blank_padded;
-use crate::types::{Flags, Ulong, Version};
-use cryptoki_sys::{
-    CKF_HW_SLOT, CKF_REMOVABLE_DEVICE, CKF_TOKEN_PRESENT, CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO,
-};
-pub use flags::*;
+use crate::types::{Ulong, Version};
+use cryptoki_sys::{CK_SLOT_ID, CK_SLOT_INFO, CK_TOKEN_INFO};
+use flags::*;
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Formatter;
 use std::ops::Deref;
@@ -94,7 +93,7 @@ impl std::fmt::Display for Slot {
 pub struct SlotInfo {
     slot_description: String,
     manufacturer_id: String,
-    flags: SlotFlags,
+    flags: CkFlags<Self>,
     hardware_version: Version,
     firmware_version: Version,
 }
@@ -112,17 +111,17 @@ impl SlotInfo {
 
     /// Gets value of [`CKF_TOKEN_PRESENT`]
     pub fn token_present(&self) -> bool {
-        self.flags.flag(CKF_TOKEN_PRESENT)
+        self.flags.contains(TOKEN_PRESENT)
     }
 
     /// Gets value of [`CKF_REMOVABLE_DEVICE`]
     pub fn removable_device(&self) -> bool {
-        self.flags.flag(CKF_REMOVABLE_DEVICE)
+        self.flags.contains(REMOVABLE_DEVICE)
     }
 
     /// Gets value of [`CKF_HW_SLOT`]
     pub fn hardware_slot(&self) -> bool {
-        self.flags.flag(CKF_HW_SLOT)
+        self.flags.contains(HW_SLOT)
     }
 
     /// Returns the hardware version

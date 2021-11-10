@@ -44,6 +44,7 @@
 pub mod context;
 
 pub mod error;
+pub(crate) mod flag;
 pub mod mechanism;
 pub mod object;
 pub mod session;
