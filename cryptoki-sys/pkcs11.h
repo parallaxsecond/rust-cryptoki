@@ -293,6 +293,7 @@ struct ck_token_info
 #define CKF_SO_PIN_FINAL_TRY			(1UL << 21)
 #define CKF_SO_PIN_LOCKED			(1UL << 22)
 #define CKF_SO_PIN_TO_BE_CHANGED		(1UL << 23)
+#define CKF_ERROR_STATE		(1UL << 24)
 
 #define CK_UNAVAILABLE_INFORMATION	((unsigned long)-1L)
 #define CK_EFFECTIVELY_INFINITE		(0UL)
