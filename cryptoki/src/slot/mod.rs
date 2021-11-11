@@ -149,6 +149,7 @@ impl SlotInfo {
     }
 }
 
+#[doc(hidden)]
 impl From<CK_SLOT_INFO> for SlotInfo {
     fn from(val: CK_SLOT_INFO) -> Self {
         Self {
@@ -183,6 +184,8 @@ pub struct TokenInfo {
     firmware_version: Version,
     utc_time: String,
 }
+
+#[doc(hidden)]
 impl From<CK_TOKEN_INFO> for TokenInfo {
     fn from(val: CK_TOKEN_INFO) -> Self {
         Self {
