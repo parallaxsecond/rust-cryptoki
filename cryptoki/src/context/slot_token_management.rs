@@ -52,7 +52,7 @@ pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>
         .into_iter()
         .filter_map(|slot| match ctx.get_token_info(slot) {
             Ok(token_info) => {
-                if token_info.flags().token_initialized() {
+                if token_info.token_initialized() {
                     Some(Ok(slot))
                 } else {
                     None
@@ -102,7 +102,7 @@ pub(super) fn get_token_info(ctx: &Pkcs11, slot: Slot) -> Result<TokenInfo> {
             &mut token_info,
         ))
         .into_result()?;
-        Ok(TokenInfo::new(token_info))
+        Ok(TokenInfo::from(token_info))
     }
 }
 
