@@ -14,6 +14,7 @@ use log::error;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fmt::Formatter;
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 mod decryption;
@@ -39,7 +40,7 @@ pub struct Session {
     handle: CK_SESSION_HANDLE,
     client: Pkcs11,
     // This is not used but to prevent Session to automatically implement Send and Sync
-    _guard: *mut u32,
+    _guard: PhantomData<*mut u32>,
 }
 
 impl std::fmt::Display for Session {
@@ -69,7 +70,7 @@ impl Session {
         Session {
             handle,
             client,
-            _guard: std::ptr::null_mut::<u32>(),
+            _guard: PhantomData,
         }
     }
 }
