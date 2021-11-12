@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 Token info and associated flags
 
-use cryptoki_sys::*;
-use std::fmt::{self, Debug, Formatter};
-
 use crate::flag::{CkFlags, FlagBit};
 use crate::string_from_blank_padded;
 use crate::types::{maybe_unlimited, MaybeUnavailable, Version};
+use cryptoki_sys::*;
+use std::fmt::{self, Debug, Formatter};
 
 const RNG: FlagBit<TokenInfo> = FlagBit::new(CKF_RNG);
 const WRITE_PROTECTED: FlagBit<TokenInfo> = FlagBit::new(CKF_WRITE_PROTECTED);
