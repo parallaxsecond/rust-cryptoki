@@ -2,11 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Mechanism info and associated flags
 
-use cryptoki_sys::*;
-use std::fmt::Formatter;
-
 use crate::flag::{CkFlags, FlagBit};
-use std::fmt::{self, Debug};
+use cryptoki_sys::*;
+use std::fmt::{self, Debug, Formatter};
 
 const HW: FlagBit<MechanismInfo> = FlagBit::new(CKF_HW);
 const ENCRYPT: FlagBit<MechanismInfo> = FlagBit::new(CKF_ENCRYPT);
