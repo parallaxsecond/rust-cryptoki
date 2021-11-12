@@ -325,3 +325,106 @@ impl From<CK_MECHANISM_INFO> for MechanismInfo {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::MechanismInfo;
+    use crate::flag::CkFlags;
+    use cryptoki_sys::CK_FLAGS;
+
+    #[test]
+    fn debug_flags_all() {
+        let expected = r"Flags {
+    hw: true,
+    encrypt: true,
+    decrypt: true,
+    digest: true,
+    sign: true,
+    sign_recover: true,
+    verify: true,
+    verify_recover: true,
+    generate: true,
+    generate_key_pair: true,
+    wrap: true,
+    unwrap: true,
+    derive: true,
+    extension: true,
+    ec_f_p: true,
+    ec_f_2m: true,
+    ec_ecparameters: true,
+    ec_namedcurve: true,
+    ec_uncompress: true,
+    ec_compress: true,
+}";
+        let all: CkFlags<MechanismInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let observed = format!("{:#?}", all);
+        println!("{}", observed);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_flags_none() {
+        let expected = r"Flags {
+    hw: false,
+    encrypt: false,
+    decrypt: false,
+    digest: false,
+    sign: false,
+    sign_recover: false,
+    verify: false,
+    verify_recover: false,
+    generate: false,
+    generate_key_pair: false,
+    wrap: false,
+    unwrap: false,
+    derive: false,
+    extension: false,
+    ec_f_p: false,
+    ec_f_2m: false,
+    ec_ecparameters: false,
+    ec_namedcurve: false,
+    ec_uncompress: false,
+    ec_compress: false,
+}";
+        let none: CkFlags<MechanismInfo> = CkFlags::from(0);
+        let observed = format!("{:#?}", none);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_info() {
+        let info = MechanismInfo {
+            min_key_size: 16,
+            max_key_size: 4096,
+            flags: CkFlags::from(0),
+        };
+        let expected = r#"MechanismInfo {
+    min_key_size: 16,
+    max_key_size: 4096,
+    flags: Flags {
+        hw: false,
+        encrypt: false,
+        decrypt: false,
+        digest: false,
+        sign: false,
+        sign_recover: false,
+        verify: false,
+        verify_recover: false,
+        generate: false,
+        generate_key_pair: false,
+        wrap: false,
+        unwrap: false,
+        derive: false,
+        extension: false,
+        ec_f_p: false,
+        ec_f_2m: false,
+        ec_ecparameters: false,
+        ec_namedcurve: false,
+        ec_uncompress: false,
+        ec_compress: false,
+    },
+}"#;
+        let observed = format!("{:#?}", info);
+        assert_eq!(observed, expected);
+    }
+}
