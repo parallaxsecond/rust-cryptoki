@@ -56,6 +56,7 @@ impl Debug for CkFlags<MechanismInfo> {
     }
 }
 
+// Uses active voice to indicate descriptors are actions
 impl Display for CkFlags<MechanismInfo> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let mut set = f.debug_set();
@@ -108,7 +109,7 @@ impl Display for CkFlags<MechanismInfo> {
             let _ = set.entry(&"Supports ECs Over F_p");
         }
         if self.contains(EC_F_2M) {
-            let _ = set.entry(&"Supports ECs Over F_2^m");
+            let _ = set.entry(&"Supports ECs Over F_2**m");
         }
         if self.contains(EC_ECPARAMETERS) {
             let _ = set.entry(&"Accepts EC as Parameters");
@@ -126,30 +127,20 @@ impl Display for CkFlags<MechanismInfo> {
     }
 }
 
-/// Contains information about a mechanism
-#[derive(Debug, Clone, Copy, Default)]
+/// Information about a particular mechanism
+#[derive(Debug, Clone, Copy)]
 pub struct MechanismInfo {
     min_key_size: usize,
     max_key_size: usize,
     flags: CkFlags<Self>,
 }
 
-#[doc(hidden)]
-impl From<CK_MECHANISM_INFO> for MechanismInfo {
-    fn from(val: CK_MECHANISM_INFO) -> Self {
-        Self {
-            min_key_size: val.ulMinKeySize as usize,
-            max_key_size: val.ulMaxKeySize as usize,
-            flags: CkFlags::from(val.flags),
-        }
-    }
-}
-
 impl MechanismInfo {
     /// The minimum size of the key for the mechanism
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// Whether this is measured in bits or in bytes is mechanism-dependent
+    /// Whether this is measured in bits or in bytes is mechanism-dependent.
+    /// For some mechanisms, this field may be meaningless and take any value.
     pub fn min_key_size(&self) -> usize {
         self.min_key_size
     }
@@ -158,11 +149,13 @@ impl MechanismInfo {
     ///
     /// **[Conformance](crate#conformance-notes):**
     /// Whether this is measured in bits or in bytes is mechanism-dependent
+    /// For some mechanisms, this field may be meaningless and take any value.
     pub fn max_key_size(&self) -> usize {
         self.max_key_size
     }
 
-    /// True if the mechanism is performed by the device; false if the mechanism is performed in software
+    /// True if the mechanism is performed by the device; false if the
+    /// mechanism is performed in software
     pub fn hardware(&self) -> bool {
         self.flags.contains(HW)
     }
@@ -195,7 +188,8 @@ impl MechanismInfo {
         self.flags.contains(SIGN)
     }
 
-    /// True if the mechanism can be used to digitally data which can be recovered from the signature
+    /// True if the mechanism can be used to digitally data which can be
+    /// recovered from the signature
     ///
     // TODO See [`Session::sign_recover`](crate::session::Session::sign_recover)
     pub fn sign_recover(&self) -> bool {
@@ -209,7 +203,8 @@ impl MechanismInfo {
         self.flags.contains(VERIFY)
     }
 
-    /// True if the mechanism can be used to [`verify`](crate::session::Session::verify) a digital signature and recover the signed data
+    /// True if the mechanism can be used to verify a digital signature and
+    /// recover the signed data
     ///
     // TODO See [`Session::verify_recover`](crate::session::Session::verify_recover)
     pub fn verify_recover(&self) -> bool {
@@ -259,51 +254,74 @@ impl MechanismInfo {
         self.flags.contains(EXTENSION)
     }
 
-    /// True if the mechanism can be used to  with elliptic curve domain parameters over ***F<sub>p</sub>***
+    /// True if the mechanism can be used to  with elliptic curve domain
+    /// parameters over ***F<sub>p</sub>***
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_f_p`](Self::ec_f_p) and [`ec_f_2m`](Self::ec_f_2m) must be `true`
+    /// *At least* one of [`ec_f_p`](Self::ec_f_p) and
+    /// [`ec_f_2m`](Self::ec_f_2m) must be `true`
     pub fn ec_f_p(&self) -> bool {
         self.flags.contains(EC_F_P)
     }
 
-    /// True if the mechanism can be used with elliptic curve domain parameters over ***F<sub>2<sup>m</sup></sub>***
+    /// True if the mechanism can be used with elliptic curve domain parameters
+    /// over ***F<sub>2<sup>m</sup></sub>***
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_f_p`](Self::ec_f_p) and [`ec_f_2m`](Self::ec_f_2m) must be `true`
+    /// *At least* one of [`ec_f_p`](Self::ec_f_p) and
+    /// [`ec_f_2m`](Self::ec_f_2m) must be `true`
     pub fn ec_f_2m(&self) -> bool {
         self.flags.contains(EC_F_2M)
     }
 
-    /// True if the mechanism supports specifying elliptic curve domain parameters explicitly
+    /// True if the mechanism supports specifying elliptic curve domain
+    /// parameters explicitly
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
+    /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
+    /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
     pub fn ec_from_parameters(&self) -> bool {
         self.flags.contains(EC_ECPARAMETERS)
     }
 
-    /// True if the mechanism supports specifying elliptic curve domain parameters with a named curve
+    /// True if the mechanism supports specifying elliptic curve domain
+    /// parameters with a named curve
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
+    /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
+    /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
     pub fn ec_from_named_curve(&self) -> bool {
         self.flags.contains(EC_NAMEDCURVE)
     }
 
-    /// True if the mechanism can be used with elliptic curve points in uncompressed form
+    /// True if the mechanism can be used with elliptic curve points in
+    /// uncompressed form
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and [`ec_compressed`](Self::ec_compressed) must be `true`
+    /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and
+    /// [`ec_compressed`](Self::ec_compressed) must be `true`
     pub fn ec_uncompressed(&self) -> bool {
         self.flags.contains(EC_UNCOMPRESS)
     }
 
-    /// True if the mechanism can be used with elliptic curve points in compressed form
+    /// True if the mechanism can be used with elliptic curve points in
+    /// compressed form
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and [`ec_compressed`](Self::ec_compressed) must be `true`
+    /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and
+    /// [`ec_compressed`](Self::ec_compressed) must be `true`
     pub fn ec_compressed(&self) -> bool {
         self.flags.contains(EC_COMPRESS)
+    }
+}
+
+#[doc(hidden)]
+impl From<CK_MECHANISM_INFO> for MechanismInfo {
+    fn from(val: CK_MECHANISM_INFO) -> Self {
+        Self {
+            min_key_size: val.ulMinKeySize as usize,
+            max_key_size: val.ulMaxKeySize as usize,
+            flags: CkFlags::from(val.flags),
+        }
     }
 }
