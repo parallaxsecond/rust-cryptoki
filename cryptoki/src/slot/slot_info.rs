@@ -38,7 +38,7 @@ impl Display for CkFlags<SlotInfo> {
     }
 }
 
-/// Contains information about the slot
+/// Information about a slot
 #[derive(Debug, Clone)]
 pub struct SlotInfo {
     slot_description: String,

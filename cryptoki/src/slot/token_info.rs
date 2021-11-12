@@ -96,19 +96,19 @@ impl Display for CkFlags<TokenInfo> {
             let _ = set.entry(&"Restore Key Not Needed");
         }
         if self.contains(CLOCK_ON_TOKEN) {
-            let _ = set.entry(&"Clock on Token");
+            let _ = set.entry(&"Hardware Clock");
         }
         if self.contains(PROTECTED_AUTHENTICATION_PATH) {
             let _ = set.entry(&"Protected Authentication Path");
         }
         if self.contains(DUAL_CRYPTO_OPERATIONS) {
-            let _ = set.entry(&"Dual Crypto Operations");
+            let _ = set.entry(&"Supports Dual Crypto Operations");
         }
         if self.contains(TOKEN_INITIALIZED) {
             let _ = set.entry(&"Token Initialized");
         }
         if self.contains(SECONDARY_AUTHENTICATION) {
-            let _ = set.entry(&"Secondary Authentication");
+            let _ = set.entry(&"Supports Secondary Authentication");
         }
         if self.contains(USER_PIN_COUNT_LOW) {
             let _ = set.entry(&"User PIN Count Low");
@@ -141,7 +141,7 @@ impl Display for CkFlags<TokenInfo> {
     }
 }
 
-/// Contains information about a token
+/// Information about a token
 #[derive(Debug, Clone)]
 pub struct TokenInfo {
     label: String,           // 32
@@ -162,34 +162,6 @@ pub struct TokenInfo {
     hardware_version: Version,
     firmware_version: Version,
     utc_time: String,
-}
-
-#[doc(hidden)]
-impl From<CK_TOKEN_INFO> for TokenInfo {
-    fn from(val: CK_TOKEN_INFO) -> Self {
-        Self {
-            label: string_from_blank_padded(&val.label),
-            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
-            model: string_from_blank_padded(&val.model),
-            serial_number: string_from_blank_padded(&val.serialNumber),
-            flags: CkFlags::from(val.flags),
-            max_session_count: maybe_unlimited(val.ulMaxSessionCount),
-            session_count: u64::maybe_unavailable(val.ulSessionCount),
-            max_rw_session_count: maybe_unlimited(val.ulMaxRwSessionCount),
-            rw_session_count: u64::maybe_unavailable(val.ulRwSessionCount),
-            max_pin_len: val.ulMaxPinLen as usize,
-            min_pin_len: val.ulMinPinLen as usize,
-            total_public_memory: usize::maybe_unavailable(val.ulTotalPublicMemory),
-            free_public_memory: usize::maybe_unavailable(val.ulFreePublicMemory),
-            total_private_memory: usize::maybe_unavailable(val.ulTotalPrivateMemory),
-            free_private_memory: usize::maybe_unavailable(val.ulFreePrivateMemory),
-            hardware_version: val.hardwareVersion.into(),
-            firmware_version: val.firmwareVersion.into(),
-            // UTC time is not blank padded as it has the format YYYYMMDDhhmmssxx where
-            // x is the '0' character
-            utc_time: String::from_utf8_lossy(&val.utcTime).trim_end().to_string(),
-        }
-    }
 }
 
 impl TokenInfo {
@@ -495,5 +467,33 @@ impl TokenInfo {
     pub fn utc_time(&self) -> Option<&str> {
         // TODO
         Some(&self.utc_time)
+    }
+}
+
+#[doc(hidden)]
+impl From<CK_TOKEN_INFO> for TokenInfo {
+    fn from(val: CK_TOKEN_INFO) -> Self {
+        Self {
+            label: string_from_blank_padded(&val.label),
+            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
+            model: string_from_blank_padded(&val.model),
+            serial_number: string_from_blank_padded(&val.serialNumber),
+            flags: CkFlags::from(val.flags),
+            max_session_count: maybe_unlimited(val.ulMaxSessionCount),
+            session_count: u64::maybe_unavailable(val.ulSessionCount),
+            max_rw_session_count: maybe_unlimited(val.ulMaxRwSessionCount),
+            rw_session_count: u64::maybe_unavailable(val.ulRwSessionCount),
+            max_pin_len: val.ulMaxPinLen as usize,
+            min_pin_len: val.ulMinPinLen as usize,
+            total_public_memory: usize::maybe_unavailable(val.ulTotalPublicMemory),
+            free_public_memory: usize::maybe_unavailable(val.ulFreePublicMemory),
+            total_private_memory: usize::maybe_unavailable(val.ulTotalPrivateMemory),
+            free_private_memory: usize::maybe_unavailable(val.ulFreePrivateMemory),
+            hardware_version: val.hardwareVersion.into(),
+            firmware_version: val.firmwareVersion.into(),
+            // UTC time is not blank padded as it has the format YYYYMMDDhhmmssxx where
+            // x is the '0' character
+            utc_time: String::from_utf8_lossy(&val.utcTime).trim_end().to_string(),
+        }
     }
 }
