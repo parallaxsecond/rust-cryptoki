@@ -155,6 +155,6 @@ pub(super) fn get_mechanism_info(
             &mut mechanism_info,
         ))
         .into_result()?;
-        Ok(MechanismInfo::new(mechanism_info))
+        Ok(MechanismInfo::from(mechanism_info))
     }
 }
