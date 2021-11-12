@@ -112,3 +112,64 @@ impl From<CK_SLOT_INFO> for SlotInfo {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::SlotInfo;
+    use crate::{flag::CkFlags, types::Version};
+    use cryptoki_sys::CK_FLAGS;
+
+    #[test]
+    fn debug_flags_all() {
+        let expected = r"Flags {
+    token_present: true,
+    removable_device: true,
+    hw_slot: true,
+}";
+        let all: CkFlags<SlotInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let observed = format!("{:#?}", all);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_none_set() {
+        let expected = r"Flags {
+    token_present: false,
+    removable_device: false,
+    hw_slot: false,
+}";
+        let none: CkFlags<SlotInfo> = CkFlags::from(0);
+        let observed = format!("{:#?}", none);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_info() {
+        let info = SlotInfo {
+            slot_description: String::from("Slot Description"),
+            manufacturer_id: String::from("Manufacturer ID"),
+            flags: CkFlags::from(0),
+            hardware_version: Version::new(0, 255),
+            firmware_version: Version::new(255, 0),
+        };
+        let expected = r#"SlotInfo {
+    slot_description: "Slot Description",
+    manufacturer_id: "Manufacturer ID",
+    flags: Flags {
+        token_present: false,
+        removable_device: false,
+        hw_slot: false,
+    },
+    hardware_version: Version {
+        major: 0,
+        minor: 255,
+    },
+    firmware_version: Version {
+        major: 255,
+        minor: 0,
+    },
+}"#;
+        let observed = format!("{:#?}", info);
+        assert_eq!(observed, expected);
+    }
+}

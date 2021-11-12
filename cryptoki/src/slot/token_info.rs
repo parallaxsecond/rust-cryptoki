@@ -497,3 +497,150 @@ impl From<CK_TOKEN_INFO> for TokenInfo {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::TokenInfo;
+    use crate::{flag::CkFlags, types::Version};
+    use cryptoki_sys::CK_FLAGS;
+
+    #[test]
+    fn debug_flags_all() {
+        let expected = r"Flags {
+    rng: true,
+    write_protected: true,
+    login_required: true,
+    user_pin_initialized: true,
+    restore_key_not_needed: true,
+    clock_on token: true,
+    protected_authentication_path: true,
+    dual_crypto_operations: true,
+    token_initialized: true,
+    secondary_authentication: true,
+    user_pin_count_low: true,
+    user_pin_final_try: true,
+    user_pin_locked: true,
+    user_pin_to_be_changed: true,
+    so_pin_count_low: true,
+    so_pin_final_try: true,
+    so_pin_locked: true,
+    so_pin_to_be_changed: true,
+    error_state: true,
+}";
+        let all: CkFlags<TokenInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let observed = format!("{:#?}", all);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_flags_none() {
+        let expected = r"Flags {
+    rng: false,
+    write_protected: false,
+    login_required: false,
+    user_pin_initialized: false,
+    restore_key_not_needed: false,
+    clock_on token: false,
+    protected_authentication_path: false,
+    dual_crypto_operations: false,
+    token_initialized: false,
+    secondary_authentication: false,
+    user_pin_count_low: false,
+    user_pin_final_try: false,
+    user_pin_locked: false,
+    user_pin_to_be_changed: false,
+    so_pin_count_low: false,
+    so_pin_final_try: false,
+    so_pin_locked: false,
+    so_pin_to_be_changed: false,
+    error_state: false,
+}";
+        let none: CkFlags<TokenInfo> = CkFlags::from(0);
+        let observed = format!("{:#?}", none);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_info() {
+        let info = TokenInfo {
+            label: String::from("Token Label"),
+            manufacturer_id: String::from("Manufacturer ID"),
+            model: String::from("Token Model"),
+            serial_number: String::from("Serial Number"),
+            flags: CkFlags::from(0),
+            max_session_count: Some(Some(100)), // max == 100
+            session_count: None,                // unavailable
+            max_rw_session_count: Some(None),   // max == infinite
+            rw_session_count: Some(1),
+            max_pin_len: 16,
+            min_pin_len: 4,
+            total_public_memory: Some(32 << 30), // 32GiB
+            free_public_memory: Some(1234567890),
+            total_private_memory: None, // unavailable
+            free_private_memory: None,  // unavailable
+            hardware_version: Version::new(0, 255),
+            firmware_version: Version::new(255, 0),
+            utc_time: String::from("YYYYMMDDHHMMSS--"),
+        };
+        let expected = r#"TokenInfo {
+    label: "Token Label",
+    manufacturer_id: "Manufacturer ID",
+    model: "Token Model",
+    serial_number: "Serial Number",
+    flags: Flags {
+        rng: false,
+        write_protected: false,
+        login_required: false,
+        user_pin_initialized: false,
+        restore_key_not_needed: false,
+        clock_on token: false,
+        protected_authentication_path: false,
+        dual_crypto_operations: false,
+        token_initialized: false,
+        secondary_authentication: false,
+        user_pin_count_low: false,
+        user_pin_final_try: false,
+        user_pin_locked: false,
+        user_pin_to_be_changed: false,
+        so_pin_count_low: false,
+        so_pin_final_try: false,
+        so_pin_locked: false,
+        so_pin_to_be_changed: false,
+        error_state: false,
+    },
+    max_session_count: Some(
+        Some(
+            100,
+        ),
+    ),
+    session_count: None,
+    max_rw_session_count: Some(
+        None,
+    ),
+    rw_session_count: Some(
+        1,
+    ),
+    max_pin_len: 16,
+    min_pin_len: 4,
+    total_public_memory: Some(
+        34359738368,
+    ),
+    free_public_memory: Some(
+        1234567890,
+    ),
+    total_private_memory: None,
+    free_private_memory: None,
+    hardware_version: Version {
+        major: 0,
+        minor: 255,
+    },
+    firmware_version: Version {
+        major: 255,
+        minor: 0,
+    },
+    utc_time: "YYYYMMDDHHMMSS--",
+}"#;
+        let observed = format!("{:#?}", info);
+        assert_eq!(observed, expected);
+    }
+}
