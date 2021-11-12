@@ -3,7 +3,7 @@
 //! PKCS11 Token info and associated flags
 
 use cryptoki_sys::*;
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Debug, Formatter};
 
 use crate::flag::{CkFlags, FlagBit};
 use crate::string_from_blank_padded;
@@ -74,70 +74,6 @@ impl Debug for CkFlags<TokenInfo> {
             )
             .field("error_state", &(self.contains(ERROR_STATE)))
             .finish()
-    }
-}
-
-impl Display for CkFlags<TokenInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut set = f.debug_set();
-        if self.contains(RNG) {
-            let _ = set.entry(&"Random Number Generator");
-        }
-        if self.contains(WRITE_PROTECTED) {
-            let _ = set.entry(&"Write-Protected");
-        }
-        if self.contains(LOGIN_REQUIRED) {
-            let _ = set.entry(&"Login Required");
-        }
-        if self.contains(USER_PIN_INITIALIZED) {
-            let _ = set.entry(&"User Pin Initialized");
-        }
-        if self.contains(RESTORE_KEY_NOT_NEEDED) {
-            let _ = set.entry(&"Restore Key Not Needed");
-        }
-        if self.contains(CLOCK_ON_TOKEN) {
-            let _ = set.entry(&"Hardware Clock");
-        }
-        if self.contains(PROTECTED_AUTHENTICATION_PATH) {
-            let _ = set.entry(&"Protected Authentication Path");
-        }
-        if self.contains(DUAL_CRYPTO_OPERATIONS) {
-            let _ = set.entry(&"Supports Dual Crypto Operations");
-        }
-        if self.contains(TOKEN_INITIALIZED) {
-            let _ = set.entry(&"Token Initialized");
-        }
-        if self.contains(SECONDARY_AUTHENTICATION) {
-            let _ = set.entry(&"Supports Secondary Authentication");
-        }
-        if self.contains(USER_PIN_COUNT_LOW) {
-            let _ = set.entry(&"User PIN Count Low");
-        }
-        if self.contains(USER_PIN_FINAL_TRY) {
-            let _ = set.entry(&"User PIN Final Try");
-        }
-        if self.contains(USER_PIN_LOCKED) {
-            let _ = set.entry(&"User PIN Locked");
-        }
-        if self.contains(USER_PIN_TO_BE_CHANGED) {
-            let _ = set.entry(&"User PIN to be Changed");
-        }
-        if self.contains(SO_PIN_COUNT_LOW) {
-            let _ = set.entry(&"Security Officer PIN Count Low");
-        }
-        if self.contains(SO_PIN_FINAL_TRY) {
-            let _ = set.entry(&"Security Officer PIN Final Try");
-        }
-        if self.contains(SO_PIN_LOCKED) {
-            let _ = set.entry(&"Security Officer PIN Locked");
-        }
-        if self.contains(SO_PIN_TO_BE_CHANGED) {
-            let _ = set.entry(&"Security Officer PIN to be Changed");
-        }
-        if self.contains(ERROR_STATE) {
-            let _ = set.entry(&"Error State");
-        }
-        set.finish()
     }
 }
 

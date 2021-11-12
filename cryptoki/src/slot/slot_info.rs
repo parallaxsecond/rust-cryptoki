@@ -5,7 +5,7 @@
 use crate::flag::{CkFlags, FlagBit};
 use crate::{string_from_blank_padded, types::Version};
 use cryptoki_sys::*;
-use std::fmt::{self, Debug, Display, Formatter};
+use std::fmt::{self, Debug, Formatter};
 
 /// Collection of flags defined for [`CK_SLOT_INFO`]
 const TOKEN_PRESENT: FlagBit<SlotInfo> = FlagBit::new(CKF_TOKEN_PRESENT);
@@ -19,22 +19,6 @@ impl Debug for CkFlags<SlotInfo> {
             .field("removable_device", &(self.contains(REMOVABLE_DEVICE)))
             .field("hw_slot", &(self.contains(HW_SLOT)))
             .finish()
-    }
-}
-
-impl Display for CkFlags<SlotInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut set = f.debug_set();
-        if self.contains(TOKEN_PRESENT) {
-            let _ = set.entry(&"Token Present");
-        }
-        if self.contains(REMOVABLE_DEVICE) {
-            let _ = set.entry(&"Removable Device");
-        }
-        if self.contains(HW_SLOT) {
-            let _ = set.entry(&"Hardware Slot");
-        }
-        set.finish()
     }
 }
 

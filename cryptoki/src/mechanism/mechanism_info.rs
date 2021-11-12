@@ -6,7 +6,7 @@ use cryptoki_sys::*;
 use std::fmt::Formatter;
 
 use crate::flag::{CkFlags, FlagBit};
-use std::fmt::{self, Debug, Display};
+use std::fmt::{self, Debug};
 
 const HW: FlagBit<MechanismInfo> = FlagBit::new(CKF_HW);
 const ENCRYPT: FlagBit<MechanismInfo> = FlagBit::new(CKF_ENCRYPT);
@@ -53,77 +53,6 @@ impl Debug for CkFlags<MechanismInfo> {
             .field("ec_uncompress", &(self.contains(EC_UNCOMPRESS)))
             .field("ec_compress", &(self.contains(EC_COMPRESS)))
             .finish()
-    }
-}
-
-// Uses active voice to indicate descriptors are actions
-impl Display for CkFlags<MechanismInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let mut set = f.debug_set();
-        if self.contains(HW) {
-            let _ = set.entry(&"Hardware");
-        } else {
-            let _ = set.entry(&"Software");
-        }
-
-        if self.contains(ENCRYPT) {
-            let _ = set.entry(&"Encrypts");
-        }
-        if self.contains(DECRYPT) {
-            let _ = set.entry(&"Decrypts");
-        }
-        if self.contains(DIGEST) {
-            let _ = set.entry(&"Digests");
-        }
-        if self.contains(SIGN) {
-            let _ = set.entry(&"Signs");
-        }
-        if self.contains(SIGN_RECOVER) {
-            let _ = set.entry(&"Signs into Data");
-        }
-        if self.contains(VERIFY) {
-            let _ = set.entry(&"Verifies");
-        }
-        if self.contains(VERIFY_RECOVER) {
-            let _ = set.entry(&"Verifies from Data");
-        }
-        if self.contains(GENERATE) {
-            let _ = set.entry(&"Generates Keys");
-        }
-        if self.contains(GENERATE_KEY_PAIR) {
-            let _ = set.entry(&"Generates Key Pairs");
-        }
-        if self.contains(WRAP) {
-            let _ = set.entry(&"Wraps Keys");
-        }
-        if self.contains(UNWRAP) {
-            let _ = set.entry(&"Unwraps Keys");
-        }
-        if self.contains(DERIVE) {
-            let _ = set.entry(&"Derives Keyes");
-        }
-        if self.contains(EXTENSION) {
-            let _ = set.entry(&"Flag Extensions");
-        }
-        if self.contains(EC_F_P) {
-            let _ = set.entry(&"Supports ECs Over F_p");
-        }
-        if self.contains(EC_F_2M) {
-            let _ = set.entry(&"Supports ECs Over F_2**m");
-        }
-        if self.contains(EC_ECPARAMETERS) {
-            let _ = set.entry(&"Accepts EC as Parameters");
-        }
-        if self.contains(EC_NAMEDCURVE) {
-            let _ = set.entry(&"Accepts EC by Name");
-        }
-        if self.contains(EC_UNCOMPRESS) {
-            let _ = set.entry(&"Accepts Uncompressed EC Points");
-        }
-        if self.contains(EC_COMPRESS) {
-            let _ = set.entry(&"Accepts Compressed EC Points");
-        }
-        set.finish()
     }
 }
 
