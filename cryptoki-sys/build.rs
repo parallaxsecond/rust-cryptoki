@@ -33,7 +33,7 @@ fn main() {
 #[cfg(feature = "generate-bindings")]
 fn generate_bindings() {
     let bindings = bindgen::Builder::default()
-        .header("pkcs11.h")
+        .header("rust-pkcs11.h")
         .dynamic_library_name("Pkcs11")
         // The PKCS11 library works in a slightly different way to most shared libraries. We have
         // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
