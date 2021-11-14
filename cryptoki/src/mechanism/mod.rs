@@ -67,14 +67,6 @@ impl MechanismType {
     pub const ECC_KEY_PAIR_GEN: MechanismType = MechanismType {
         val: CKM_EC_KEY_PAIR_GEN,
     };
-    /// EC edwards key pair generation mechanism
-    pub const ECC_EDWARDS_KEY_PAIR_GEN: MechanismType = MechanismType {
-        val: CKM_EC_EDWARDS_KEY_PAIR_GEN,
-    };
-    /// EC montgomery key pair generation mechanism
-    pub const ECC_MONTGOMERY_KEY_PAIR_GEN: MechanismType = MechanismType {
-        val: CKM_EC_MONTGOMERY_KEY_PAIR_GEN,
-    };
 
     /// ECDH key derivation mechanism
     pub const ECDH1_DERIVE: MechanismType = MechanismType {
@@ -477,10 +469,6 @@ impl MechanismType {
             CKM_AES_KEY_WRAP_PAD => String::from(stringify!(CKM_AES_KEY_WRAP_PAD)),
             CKM_RSA_PKCS_TPM_1_1 => String::from(stringify!(CKM_RSA_PKCS_TPM_1_1)),
             CKM_RSA_PKCS_OAEP_TPM_1_1 => String::from(stringify!(CKM_RSA_PKCS_OAEP_TPM_1_1)),
-            CKM_EC_EDWARDS_KEY_PAIR_GEN => String::from(stringify!(CKM_EC_EDWARDS_KEY_PAIR_GEN)),
-            CKM_EC_MONTGOMERY_KEY_PAIR_GEN => {
-                String::from(stringify!(CKM_EC_MONTGOMERY_KEY_PAIR_GEN))
-            }
             _ => format!("unknown {:08x}", mech),
         }
     }
@@ -523,8 +511,6 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_DES3_KEY_GEN => Ok(MechanismType::DES3_KEY_GEN),
             CKM_DES3_ECB => Ok(MechanismType::DES3_ECB),
             CKM_EC_KEY_PAIR_GEN => Ok(MechanismType::ECC_KEY_PAIR_GEN),
-            CKM_EC_EDWARDS_KEY_PAIR_GEN => Ok(MechanismType::ECC_EDWARDS_KEY_PAIR_GEN),
-            CKM_EC_MONTGOMERY_KEY_PAIR_GEN => Ok(MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN),
             CKM_ECDH1_DERIVE => Ok(MechanismType::ECDH1_DERIVE),
             CKM_ECDSA => Ok(MechanismType::ECDSA),
             CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
@@ -567,10 +553,6 @@ pub enum Mechanism {
     // ECC
     /// EC key pair generation
     EccKeyPairGen,
-    /// EC edwards key pair generation
-    EccEdwardsKeyPairGen,
-    /// EC montgomery key pair generation
-    EccMontgomeryKeyPairGen,
     /// ECDH
     Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams),
     /// ECDSA mechanism
@@ -620,8 +602,6 @@ impl Mechanism {
             Mechanism::Des3Ecb => MechanismType::DES3_ECB,
 
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
-            Mechanism::EccEdwardsKeyPairGen => MechanismType::ECC_EDWARDS_KEY_PAIR_GEN,
-            Mechanism::EccMontgomeryKeyPairGen => MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN,
             Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
 
@@ -682,8 +662,6 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::Des3KeyGen
             | Mechanism::Des3Ecb
             | Mechanism::EccKeyPairGen
-            | Mechanism::EccEdwardsKeyPairGen
-            | Mechanism::EccMontgomeryKeyPairGen
             | Mechanism::Ecdsa
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs

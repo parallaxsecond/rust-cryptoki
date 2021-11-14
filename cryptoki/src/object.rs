@@ -1174,15 +1174,6 @@ impl KeyType {
     /// GOST28147 key
     pub const GOST28147: KeyType = KeyType { val: CKK_GOST28147 };
 
-    /// EC edwards key
-    pub const EC_EDWARDS: KeyType = KeyType {
-        val: CKK_EC_EDWARDS,
-    };
-    /// EC montgomery key
-    pub const EC_MONTGOMERY: KeyType = KeyType {
-        val: CKK_EC_MONTGOMERY,
-    };
-
     fn stringify(key_type: CK_KEY_TYPE) -> String {
         match key_type {
             CKK_RSA => String::from(stringify!(CKK_RSA)),
@@ -1226,7 +1217,6 @@ impl KeyType {
             CKK_GOSTR3410 => String::from(stringify!(CKK_GOSTR3410)),
             CKK_GOSTR3411 => String::from(stringify!(CKK_GOSTR3411)),
             CKK_GOST28147 => String::from(stringify!(CKK_GOST28147)),
-            CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
             _ => format!("unknown ({:08x})", key_type),
         }
     }
@@ -1298,8 +1288,6 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_GOSTR3410 => Ok(KeyType::GOSTR3410),
             CKK_GOSTR3411 => Ok(KeyType::GOSTR3411),
             CKK_GOST28147 => Ok(KeyType::GOST28147),
-            CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
-            CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             _ => {
                 error!("Key type {} is not supported.", key_type);
                 Err(Error::NotSupported)
