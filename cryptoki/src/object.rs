@@ -196,7 +196,7 @@ impl AttributeType {
             CKA_SUBPRIME => String::from(stringify!(CKA_SUBPRIME)),
             CKA_BASE => String::from(stringify!(CKA_BASE)),
             CKA_PRIME_BITS => String::from(stringify!(CKA_PRIME_BITS)),
-            CKA_SUB_PRIME_BITS => String::from(stringify!(CKA_SUB_PRIME_BITS)),
+            CKA_SUBPRIME_BITS => String::from(stringify!(CKA_SUBPRIME_BITS)),
             CKA_VALUE_BITS => String::from(stringify!(CKA_VALUE_BITS)),
             CKA_VALUE_LEN => String::from(stringify!(CKA_VALUE_LEN)),
             CKA_EXTRACTABLE => String::from(stringify!(CKA_EXTRACTABLE)),

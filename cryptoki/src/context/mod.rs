@@ -43,7 +43,7 @@ pub(crate) struct Pkcs11Impl {
     // valid.
     #[derivative(Debug = "ignore")]
     _pkcs11_lib: cryptoki_sys::Pkcs11,
-    pub(crate) function_list: cryptoki_sys::_CK_FUNCTION_LIST,
+    pub(crate) function_list: cryptoki_sys::CK_FUNCTION_LIST,
 }
 
 impl Pkcs11Impl {
