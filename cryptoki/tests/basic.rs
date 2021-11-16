@@ -452,9 +452,9 @@ fn get_info_test() -> Result<()> {
 fn get_slot_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
     let slot_info = pkcs11.get_slot_info(slot)?;
-    assert!(slot_info.token_present());
-    assert!(!slot_info.hardware_slot());
-    assert!(!slot_info.removable_device());
+    assert!(slot_info.flags().token_present());
+    assert!(!slot_info.flags().hardware_slot());
+    assert!(!slot_info.flags().removable_device());
     assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
     Ok(())
 }

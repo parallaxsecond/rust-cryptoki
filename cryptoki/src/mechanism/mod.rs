@@ -3,10 +3,12 @@
 //! Data types for mechanisms
 
 pub mod elliptic_curve;
-mod mechanism_info;
+mod flags;
 pub mod rsa;
+pub use flags::*;
 
 use crate::error::Error;
+use crate::types::Ulong;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::{TryFrom, TryInto};
@@ -14,8 +16,6 @@ use std::ffi::c_void;
 use std::fmt::Formatter;
 use std::ops::Deref;
 use std::ptr::null_mut;
-
-pub use mechanism_info::MechanismInfo;
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 // transparent so that a vector of MechanismType should have the same layout than a vector of
@@ -702,5 +702,46 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 Err(Error::NotSupported)
             }
         }
+    }
+}
+
+/// Contains information about a mechanism
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MechanismInfo {
+    val: CK_MECHANISM_INFO,
+}
+
+impl MechanismInfo {
+    pub(crate) fn new(val: CK_MECHANISM_INFO) -> Self {
+        Self { val }
+    }
+
+    /// Returns the minimum key size for this mechanism.
+    pub fn min_key_size(&self) -> Ulong {
+        self.val.ulMinKeySize.into()
+    }
+
+    /// Returns the maximum key size for this mechanism.
+    pub fn max_key_size(&self) -> Ulong {
+        self.val.ulMaxKeySize.into()
+    }
+
+    /// Returns the flags for this mechanism.
+    pub fn flags(&self) -> MechanismFlags {
+        self.val.flags.into()
+    }
+}
+
+impl Deref for MechanismInfo {
+    type Target = CK_MECHANISM_INFO;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<MechanismInfo> for CK_MECHANISM_INFO {
+    fn from(mechanism_info: MechanismInfo) -> Self {
+        *mechanism_info
     }
 }

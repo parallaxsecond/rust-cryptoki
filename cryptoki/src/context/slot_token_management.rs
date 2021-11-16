@@ -7,40 +7,40 @@ use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
-use cryptoki_sys::{CK_BBOOL, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
+use cryptoki_sys::{CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
 use std::convert::TryInto;
-
-use crate::error::RvError::BufferTooSmall;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn get_slots(ctx: &Pkcs11, with_token: CK_BBOOL) -> Result<Vec<Slot>> {
+pub(super) fn get_slots_with_token(ctx: &Pkcs11) -> Result<Vec<Slot>> {
     let mut slot_count = 0;
-    let rval = unsafe {
-        get_pkcs11!(ctx, C_GetSlotList)(with_token, std::ptr::null_mut(), &mut slot_count)
-    };
-    Rv::from(rval).into_result()?;
 
-    let mut slots;
-    loop {
-        slots = vec![0; slot_count as usize];
-        let rval = unsafe {
-            get_pkcs11!(ctx, C_GetSlotList)(with_token, slots.as_mut_ptr(), &mut slot_count)
-        };
-        // Account for a race condition between the call to get the
-        // slot_count and the last call in which the number of slots grew.
-        // In this case, slot_count will have been updated to the larger amount
-        // and we want to loop again with a resized buffer.
-        if !matches!(Rv::from(rval), Rv::Error(BufferTooSmall)) {
-            // Account for other possible error types
-            Rv::from(rval).into_result()?;
-            // Otherwise, we have a valid list to process
-            break;
-        }
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
+            cryptoki_sys::CK_TRUE,
+            std::ptr::null_mut(),
+            &mut slot_count,
+        ))
+        .into_result()?;
     }
-    // Account for the same race condition, but with a shrinking slot_count
-    slots.truncate(slot_count as usize);
-    Ok(slots.into_iter().map(Slot::new).collect())
+
+    let mut slots = vec![0; slot_count.try_into()?];
+
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
+            cryptoki_sys::CK_TRUE,
+            slots.as_mut_ptr(),
+            &mut slot_count,
+        ))
+        .into_result()?;
+    }
+
+    let mut slots: Vec<Slot> = slots.into_iter().map(Slot::new).collect();
+
+    // This should always truncate slots.
+    slots.resize(slot_count.try_into()?, Slot::new(0));
+
+    Ok(slots)
 }
 
 // See public docs on stub in parent mod.rs
@@ -52,7 +52,7 @@ pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>
         .into_iter()
         .filter_map(|slot| match ctx.get_token_info(slot) {
             Ok(token_info) => {
-                if token_info.token_initialized() {
+                if token_info.flags().token_initialized() {
                     Some(Ok(slot))
                 } else {
                     None
@@ -61,6 +61,39 @@ pub(super) fn get_slots_with_initialized_token(ctx: &Pkcs11) -> Result<Vec<Slot>
             Err(e) => Some(Err(e)),
         })
         .collect()
+}
+
+// See public docs on stub in parent mod.rs
+#[inline(always)]
+pub(super) fn get_all_slots(ctx: &Pkcs11) -> Result<Vec<Slot>> {
+    let mut slot_count = 0;
+
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
+            cryptoki_sys::CK_FALSE,
+            std::ptr::null_mut(),
+            &mut slot_count,
+        ))
+        .into_result()?;
+    }
+
+    let mut slots = vec![0; slot_count.try_into()?];
+
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_GetSlotList)(
+            cryptoki_sys::CK_FALSE,
+            slots.as_mut_ptr(),
+            &mut slot_count,
+        ))
+        .into_result()?;
+    }
+
+    let mut slots: Vec<Slot> = slots.into_iter().map(Slot::new).collect();
+
+    // This should always truncate slots.
+    slots.resize(slot_count.try_into()?, Slot::new(0));
+
+    Ok(slots)
 }
 
 // See public docs on stub in parent mod.rs
@@ -88,7 +121,7 @@ pub(super) fn get_slot_info(ctx: &Pkcs11, slot: Slot) -> Result<SlotInfo> {
             &mut slot_info,
         ))
         .into_result()?;
-        Ok(SlotInfo::from(slot_info))
+        Ok(SlotInfo::new(slot_info))
     }
 }
 
@@ -102,7 +135,7 @@ pub(super) fn get_token_info(ctx: &Pkcs11, slot: Slot) -> Result<TokenInfo> {
             &mut token_info,
         ))
         .into_result()?;
-        Ok(TokenInfo::from(token_info))
+        Ok(TokenInfo::new(token_info))
     }
 }
 
@@ -155,6 +188,6 @@ pub(super) fn get_mechanism_info(
             &mut mechanism_info,
         ))
         .into_result()?;
-        Ok(MechanismInfo::from(mechanism_info))
+        Ok(MechanismInfo::new(mechanism_info))
     }
 }
