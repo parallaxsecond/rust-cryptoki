@@ -166,6 +166,44 @@ impl std::fmt::Display for Ulong {
     }
 }
 
+pub(crate) trait MaybeUnavailable: Sized {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<Self>;
+}
+
+impl MaybeUnavailable for usize {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<usize> {
+        if value == CK_UNAVAILABLE_INFORMATION {
+            None
+        } else {
+            Some(value as usize)
+        }
+    }
+}
+
+impl MaybeUnavailable for u64 {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<u64> {
+        if value == CK_UNAVAILABLE_INFORMATION {
+            None
+        } else {
+            // Must have cast for when ulong is 32 bits
+            // Must have lint suppression when ulong is 64 bits
+            #[allow(trivial_numeric_casts)]
+            Some(value as u64)
+        }
+    }
+}
+
+pub(crate) fn maybe_unlimited(value: CK_ULONG) -> Option<Option<u64>> {
+    match value {
+        CK_UNAVAILABLE_INFORMATION => None,
+        CK_EFFECTIVELY_INFINITE => Some(None),
+        // Must have cast for when ulong is 32 bits
+        // Must have lint suppression when ulong is 64 bits
+        #[allow(trivial_numeric_casts)]
+        _ => Some(Some(value as u64)),
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 /// Represents a version
 pub struct Version {
@@ -180,6 +218,11 @@ impl std::fmt::Display for Version {
 }
 
 impl Version {
+    /// Construct a new version
+    pub fn new(major: u8, minor: u8) -> Self {
+        Self { major, minor }
+    }
+
     /// Returns the major version
     pub fn major(&self) -> CK_BYTE {
         self.major

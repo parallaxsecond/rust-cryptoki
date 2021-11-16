@@ -293,6 +293,7 @@ struct ck_token_info
 #define CKF_SO_PIN_FINAL_TRY			(1UL << 21)
 #define CKF_SO_PIN_LOCKED			(1UL << 22)
 #define CKF_SO_PIN_TO_BE_CHANGED		(1UL << 23)
+#define CKF_ERROR_STATE		(1UL << 24)
 
 #define CK_UNAVAILABLE_INFORMATION	((unsigned long)-1L)
 #define CK_EFFECTIVELY_INFINITE		(0UL)
@@ -1044,6 +1045,8 @@ struct ck_aes_cbc_encrypt_data_params {
 #define CKF_EXTENSION		((unsigned long) (1UL << 31))
 
 #define CKF_EC_F_P		(1UL << 20)
+#define CKF_EC_F_2M		(1UL << 21)
+#define CKF_EC_ECPARAMETERS	(1UL << 22)
 #define CKF_EC_NAMEDCURVE	(1UL << 23)
 #define CKF_EC_UNCOMPRESS	(1UL << 24)
 #define CKF_EC_COMPRESS		(1UL << 25)
