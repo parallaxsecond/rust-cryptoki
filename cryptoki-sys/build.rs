@@ -31,25 +31,99 @@ fn main() {
 
 #[cfg(feature = "generate-bindings")]
 mod generate_bindings {
+    use bindgen::callbacks::{IntKind, MacroParsingBehavior, ParseCallbacks};
+    use bindgen::Builder;
+
+    #[derive(Debug)]
+    struct CustomCallbacks;
+    impl ParseCallbacks for CustomCallbacks {
+        // Specify preprocessor macros (of any type) that shouldn't appear in
+        // the bindings
+        fn will_parse_macro(&self, name: &str) -> MacroParsingBehavior {
+            match name {
+                // This type is defined for the sake of conforming to the
+                // expected header content, but is never actually used.
+                "NULL_PTR"
+
+                // These are include guards that are set to 1 instaed of just
+                // being checked ad defined.
+
+                | "_PKCS11_H_"
+                | "_PKCS11T_H_"
+
+                // Conditionally defined versions of booleans outside
+                // the "CK_" namespace
+                | "FALSE"
+                | "TRUE"
+
+                // Convenience values for C clients that aren't
+                // actually part of the spandard.
+                | "CRYPTOKI_VERSION_MAJOR"
+                | "CRYPTOKI_VERSION_MINOR"
+                | "CRYPTOKI_VERSION_AMENDMENT"
+
+                // Miscellaneous deprecated types
+                | "CKK_ECDSA"
+                | "CKA_ECDSA_PARAMS"
+                | "CKA_SECONDARY_AUTH"
+                | "CKA_AUTH_PIN_FLAGS"
+                | "CKM_ECDSA_KEY_PAIR_GEN"
+
+                // This type is a synonym for
+                // CKA_SUBPRIME_BITS which is the
+                // spelling that appears in the standard.
+                | "CKA_SUB_PRIME_BITS"
+
+                // Deprecated names, all of which have
+                // identical "CAST128" spellings
+                | "CKK_CAST5"
+                | "CKM_CAST5_CBC"
+                | "CKM_CAST5_MAC"
+                | "CKM_CAST5_MAC_GENERAL"
+                | "CKM_CAST5_CBC_PAD"
+                | "CKM_PBE_MD5_CAST5_CBC"
+                | "CKM_PBE_SHA1_CAST5_CBC"
+
+                // Duplicate names like those above
+                // but not explicitly marked as deprecated
+                | "CKM_CAST5_KEY_GEN"
+                | "CKM_CAST5_ECB" => MacroParsingBehavior::Ignore,
+                _ => MacroParsingBehavior::Default,
+            }
+        }
+        // Specify the C type of any integral preprocessor definitions
+        fn int_macro(&self, name: &str, _value: i64) -> Option<IntKind> {
+            match name {
+                "CK_TRUE" | "CK_FALSE" => Some(IntKind::U8),
+                _ => Some(IntKind::ULong),
+            }
+        }
+    }
+
     // Only on a specific feature
     pub(super) fn generate_bindings() {
-        let bindings = bindgen::Builder::default()
+        let bindings = Builder::default()
             .header("rust-pkcs11.h")
             .dynamic_library_name("Pkcs11")
             // The PKCS11 library works in a slightly different way to most shared libraries. We have
             // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
             // functions. This is the only function we need to create a binding for.
             .allowlist_function("C_GetFunctionList")
-            // This is needed because no types will be generated if `allowlist_function` is used.
-            // Unsure if this is a bug.
+            // Include types (e.g., structs) and constants (#define'd)
             .allowlist_type("*")
+            .allowlist_var("*")
             // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
             .blocklist_type("max_align_t")
+            // Two deprecated structs and their respective pointer types
+            .blocklist_type("CK_AES_CCM_PARAMS")
+            .blocklist_type("CK_AES_GCM_PARAMS")
+            .blocklist_type("CK_AES_CCM_PARAMS_PTR")
+            .blocklist_type("CK_AES_GCM_PARAMS_PTR")
             // Derive the `Debug` trait for the generated structs where possible.
             .derive_debug(true)
             // Derive the `Default` trait for the generated structs where possible.
             .derive_default(true)
-            .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+            .parse_callbacks(Box::new(CustomCallbacks))
             .generate()
             .expect("Unable to generate bindings");
 
