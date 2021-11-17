@@ -3,7 +3,7 @@
 fn main() {
     #[cfg(feature = "generate-bindings")]
     {
-        generate_bindings();
+        generate_bindings::generate_bindings();
     }
 
     #[cfg(not(feature = "generate-bindings"))]
@@ -29,9 +29,10 @@ fn main() {
     }
 }
 
-// Only on a specific feature
 #[cfg(feature = "generate-bindings")]
-fn generate_bindings() {
+mod generate_bindings {
+
+pub(super) fn generate_bindings() {
     let bindings = bindgen::Builder::default()
         .header("rust-pkcs11.h")
         .dynamic_library_name("Pkcs11")
@@ -57,4 +58,6 @@ fn generate_bindings() {
     bindings
         .write_to_file(out_path.join("pkcs11_bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
 }
