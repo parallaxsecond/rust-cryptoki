@@ -31,33 +31,32 @@ fn main() {
 
 #[cfg(feature = "generate-bindings")]
 mod generate_bindings {
+    // Only on a specific feature
+    pub(super) fn generate_bindings() {
+        let bindings = bindgen::Builder::default()
+            .header("rust-pkcs11.h")
+            .dynamic_library_name("Pkcs11")
+            // The PKCS11 library works in a slightly different way to most shared libraries. We have
+            // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
+            // functions. This is the only function we need to create a binding for.
+            .allowlist_function("C_GetFunctionList")
+            // This is needed because no types will be generated if `allowlist_function` is used.
+            // Unsure if this is a bug.
+            .allowlist_type("*")
+            // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
+            .blocklist_type("max_align_t")
+            // Derive the `Debug` trait for the generated structs where possible.
+            .derive_debug(true)
+            // Derive the `Default` trait for the generated structs where possible.
+            .derive_default(true)
+            .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+            .generate()
+            .expect("Unable to generate bindings");
 
-pub(super) fn generate_bindings() {
-    let bindings = bindgen::Builder::default()
-        .header("rust-pkcs11.h")
-        .dynamic_library_name("Pkcs11")
-        // The PKCS11 library works in a slightly different way to most shared libraries. We have
-        // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
-        // functions. This is the only function we need to create a binding for.
-        .allowlist_function("C_GetFunctionList")
-        // This is needed because no types will be generated if `allowlist_function` is used.
-        // Unsure if this is a bug.
-        .allowlist_type("*")
-        // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
-        .blocklist_type("max_align_t")
-        // Derive the `Debug` trait for the generated structs where possible.
-        .derive_debug(true)
-        // Derive the `Default` trait for the generated structs where possible.
-        .derive_default(true)
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
-        .generate()
-        .expect("Unable to generate bindings");
-
-    // Write the bindings to the $OUT_DIR/pkcs11_bindings.rs file.
-    let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("pkcs11_bindings.rs"))
-        .expect("Couldn't write bindings!");
-}
-
+        // Write the bindings to the $OUT_DIR/pkcs11_bindings.rs file.
+        let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
+        bindings
+            .write_to_file(out_path.join("pkcs11_bindings.rs"))
+            .expect("Couldn't write bindings!");
+    }
 }
