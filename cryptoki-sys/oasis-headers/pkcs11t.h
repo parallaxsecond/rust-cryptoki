@@ -56,7 +56,7 @@ typedef CK_ULONG          CK_FLAGS;
 
 
 /* some special values for certain CK_ULONG variables */
-#define CK_UNAVAILABLE_INFORMATION      (~0UL)
+const CK_ULONG CK_UNAVAILABLE_INFORMATION = ~0UL;
 #define CK_EFFECTIVELY_INFINITE         0UL
 
 
