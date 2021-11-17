@@ -209,8 +209,6 @@ impl AttributeType {
             CKA_DESTROYABLE => String::from(stringify!(CKA_DESTROYABLE)),
             CKA_EC_PARAMS => String::from(stringify!(CKA_EC_PARAMS)),
             CKA_EC_POINT => String::from(stringify!(CKA_EC_POINT)),
-            CKA_SECONDARY_AUTH => String::from(stringify!(CKA_SECONDARY_AUTH)),
-            CKA_AUTH_PIN_FLAGS => String::from(stringify!(CKA_AUTH_PIN_FLAGS)),
             CKA_ALWAYS_AUTHENTICATE => String::from(stringify!(CKA_ALWAYS_AUTHENTICATE)),
             CKA_WRAP_WITH_TRUSTED => String::from(stringify!(CKA_WRAP_WITH_TRUSTED)),
             CKA_OTP_FORMAT => String::from(stringify!(CKA_OTP_FORMAT)),
