@@ -189,7 +189,7 @@ impl TokenInfo {
 
     /// True if a single session with the token can perform dual cryptographic
     /// operations
-    // TODO: Requires Session callbacks:to access
+    // TODO: Requires Session callbacks to access
     // * digest_encrypt_update
     // * decrypt_digest_update
     // * sign_encrypt_update
@@ -400,7 +400,6 @@ impl TokenInfo {
     /// Returns None if the token is not equipped with a clock (i.e.,
     /// `self.clock_on_token() == false`)
     pub fn utc_time(&self) -> Option<&str> {
-        // TODO
         Some(&self.utc_time)
     }
 }
