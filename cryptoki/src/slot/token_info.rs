@@ -4,7 +4,8 @@
 
 use crate::flag::{CkFlags, FlagBit};
 use crate::string_from_blank_padded;
-use crate::types::{maybe_unlimited, MaybeUnavailable, Version};
+use crate::types::{convert_utc_time, maybe_unlimited};
+use crate::types::{MaybeUnavailable, UtcTime, Version};
 use cryptoki_sys::*;
 use std::fmt::{self, Debug, Formatter};
 
@@ -96,7 +97,7 @@ pub struct TokenInfo {
     free_private_memory: Option<usize>,
     hardware_version: Version,
     firmware_version: Version,
-    utc_time: String,
+    utc_time: Option<UtcTime>,
 }
 
 impl TokenInfo {
@@ -395,24 +396,35 @@ impl TokenInfo {
         self.firmware_version
     }
 
-    /// The current datetime with resolution in seconds
+    /// The current UTC datetime reported by the token
     ///
-    /// Returns None if the token is not equipped with a clock (i.e.,
+    /// Returns `None` if the token is not equipped with a clock (i.e.,
     /// `self.clock_on_token() == false`)
-    pub fn utc_time(&self) -> Option<&str> {
-        Some(&self.utc_time)
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// The string representation of the datetime from the token is only
+    /// required to be parsable as a string of ASCII digits. No additional
+    /// structure (e.g., months numbered from 0 or from 1) is defined.
+    pub fn utc_time(&self) -> Option<UtcTime> {
+        self.utc_time
     }
 }
 
 #[doc(hidden)]
 impl From<CK_TOKEN_INFO> for TokenInfo {
     fn from(val: CK_TOKEN_INFO) -> Self {
+        let flags = CkFlags::from(val.flags);
+        let utc_time = if flags.contains(CLOCK_ON_TOKEN) {
+            convert_utc_time(val.utcTime)
+        } else {
+            None
+        };
         Self {
             label: string_from_blank_padded(&val.label),
             manufacturer_id: string_from_blank_padded(&val.manufacturerID),
             model: string_from_blank_padded(&val.model),
             serial_number: string_from_blank_padded(&val.serialNumber),
-            flags: CkFlags::from(val.flags),
+            flags,
             max_session_count: maybe_unlimited(val.ulMaxSessionCount),
             session_count: u64::maybe_unavailable(val.ulSessionCount),
             max_rw_session_count: maybe_unlimited(val.ulMaxRwSessionCount),
@@ -425,9 +437,7 @@ impl From<CK_TOKEN_INFO> for TokenInfo {
             free_private_memory: usize::maybe_unavailable(val.ulFreePrivateMemory),
             hardware_version: val.hardwareVersion.into(),
             firmware_version: val.firmwareVersion.into(),
-            // UTC time is not blank padded as it has the format YYYYMMDDhhmmssxx where
-            // x is the '0' character
-            utc_time: String::from_utf8_lossy(&val.utcTime).trim_end().to_string(),
+            utc_time,
         }
     }
 }
@@ -435,7 +445,7 @@ impl From<CK_TOKEN_INFO> for TokenInfo {
 #[cfg(test)]
 mod test {
     use super::TokenInfo;
-    use crate::{flag::CkFlags, types::Version};
+    use crate::{flag::CkFlags, types::UtcTime, types::Version};
     use cryptoki_sys::CK_FLAGS;
 
     #[test]
@@ -514,7 +524,14 @@ mod test {
             free_private_memory: None,  // unavailable
             hardware_version: Version::new(0, 255),
             firmware_version: Version::new(255, 0),
-            utc_time: String::from("YYYYMMDDHHMMSS--"),
+            utc_time: Some(UtcTime {
+                year: 1970,
+                month: 1,
+                day: 1,
+                hour: 0,
+                minute: 0,
+                second: 0,
+            }),
         };
         let expected = r#"TokenInfo {
     label: "Token Label",
@@ -572,7 +589,16 @@ mod test {
         major: 255,
         minor: 0,
     },
-    utc_time: "YYYYMMDDHHMMSS--",
+    utc_time: Some(
+        UtcTime {
+            year: 1970,
+            month: 1,
+            day: 1,
+            hour: 0,
+            minute: 0,
+            second: 0,
+        },
+    ),
 }"#;
         let observed = format!("{:#?}", info);
         assert_eq!(observed, expected);
