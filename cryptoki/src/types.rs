@@ -6,6 +6,7 @@ use crate::error::{Error, Result};
 use cryptoki_sys::*;
 use std::convert::TryFrom;
 use std::convert::TryInto;
+use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
@@ -249,5 +250,119 @@ impl From<CK_VERSION> for Version {
             major: version.major,
             minor: version.minor,
         }
+    }
+}
+
+/// A UTC datetime returned by a token's clock if present.
+#[derive(Copy, Clone, Debug)]
+pub struct UtcTime {
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=9999
+    pub year: u16,
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=99
+    pub month: u8,
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=99
+    pub day: u8,
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=99
+    pub hour: u8,
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=99
+    pub minute: u8,
+    /// **[Conformance](crate#conformance-notes):**
+    /// Guaranteed to be in range 0..=99
+    pub second: u8,
+}
+
+/// Uses ISO 8601 format for convenience, but does not guarantee
+/// or enforce any part of that standard.
+impl fmt::Display for UtcTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
+            self.year, self.month, self.day, self.hour, self.minute, self.second
+        )
+    }
+}
+
+// UTC time has the format YYYYMMDDhhmmss00 as ASCII digits
+pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Option<UtcTime> {
+    // skip check of reserved padding chars
+    for c in orig[0..14].iter() {
+        if !c.is_ascii_digit() {
+            return None;
+        }
+    }
+    // Note: No validaiton of these values beyond being ASCII digits
+    // because PKCS#11 doesn't impose any such restrictions.
+    // Unwraps are safe here because of the digit check above.
+    Some(UtcTime {
+        year: std::str::from_utf8(&orig[0..4]).unwrap().parse().unwrap(),
+        month: std::str::from_utf8(&orig[4..6]).unwrap().parse().unwrap(),
+        day: std::str::from_utf8(&orig[6..8]).unwrap().parse().unwrap(),
+        hour: std::str::from_utf8(&orig[8..10]).unwrap().parse().unwrap(),
+        minute: std::str::from_utf8(&orig[10..12]).unwrap().parse().unwrap(),
+        second: std::str::from_utf8(&orig[12..14]).unwrap().parse().unwrap(),
+    })
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+    const UTC_TIME: UtcTime = UtcTime {
+        year: 1970,
+        month: 1,
+        day: 1,
+        hour: 0,
+        minute: 0,
+        second: 0,
+    };
+
+    #[test]
+    fn utc_time_convert_good() {
+        let valid: [u8; 16] = [
+            0x31, 0x39, 0x37, 0x30, 0x30, 0x31, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30,
+            0x30, 0x30,
+        ];
+        let valid = convert_utc_time(valid).unwrap();
+        assert_eq!(valid.year, UTC_TIME.year);
+        assert_eq!(valid.month, UTC_TIME.month);
+        assert_eq!(valid.day, UTC_TIME.day);
+        assert_eq!(valid.hour, UTC_TIME.hour);
+        assert_eq!(valid.minute, UTC_TIME.minute);
+        assert_eq!(valid.second, UTC_TIME.second);
+    }
+
+    #[test]
+    fn utc_time_convert_bad() {
+        let invalid: [u8; 16] = [
+            0x41, 0x39, 0x37, 0x30, 0x30, 0x31, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30,
+            0x30, 0x30,
+        ];
+        let invalid = convert_utc_time(invalid);
+        assert!(invalid.is_none());
+    }
+
+    #[test]
+    fn utc_time_debug_fmt() {
+        let expected = r#"UtcTime {
+    year: 1970,
+    month: 1,
+    day: 1,
+    hour: 0,
+    minute: 0,
+    second: 0,
+}"#;
+        let observed = format!("{:#?}", UTC_TIME);
+        assert_eq!(observed, expected);
+    }
+    #[test]
+    fn utc_time_display_fmt() {
+        let display = format!("{}", UTC_TIME);
+        assert_eq!(&display, "1970-01-01T00:00:00Z");
     }
 }
