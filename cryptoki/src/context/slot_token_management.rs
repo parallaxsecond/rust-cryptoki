@@ -8,7 +8,7 @@ use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
 use cryptoki_sys::{CK_BBOOL, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO};
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 
 use crate::error::RvError::BufferTooSmall;
 
@@ -102,7 +102,7 @@ pub(super) fn get_token_info(ctx: &Pkcs11, slot: Slot) -> Result<TokenInfo> {
             &mut token_info,
         ))
         .into_result()?;
-        Ok(TokenInfo::from(token_info))
+        TokenInfo::try_from(token_info)
     }
 }
 

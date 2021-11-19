@@ -289,24 +289,17 @@ impl fmt::Display for UtcTime {
 }
 
 // UTC time has the format YYYYMMDDhhmmss00 as ASCII digits
-pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Option<UtcTime> {
-    // skip check of reserved padding chars
-    for c in orig[0..14].iter() {
-        if !c.is_ascii_digit() {
-            return None;
-        }
-    }
+pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<Option<UtcTime>> {
     // Note: No validaiton of these values beyond being ASCII digits
     // because PKCS#11 doesn't impose any such restrictions.
-    // Unwraps are safe here because of the digit check above.
-    Some(UtcTime {
-        year: std::str::from_utf8(&orig[0..4]).unwrap().parse().unwrap(),
-        month: std::str::from_utf8(&orig[4..6]).unwrap().parse().unwrap(),
-        day: std::str::from_utf8(&orig[6..8]).unwrap().parse().unwrap(),
-        hour: std::str::from_utf8(&orig[8..10]).unwrap().parse().unwrap(),
-        minute: std::str::from_utf8(&orig[10..12]).unwrap().parse().unwrap(),
-        second: std::str::from_utf8(&orig[12..14]).unwrap().parse().unwrap(),
-    })
+    Ok(Some(UtcTime {
+        year: std::str::from_utf8(&orig[0..4])?.parse()?,
+        month: std::str::from_utf8(&orig[4..6])?.parse()?,
+        day: std::str::from_utf8(&orig[6..8])?.parse()?,
+        hour: std::str::from_utf8(&orig[8..10])?.parse()?,
+        minute: std::str::from_utf8(&orig[10..12])?.parse()?,
+        second: std::str::from_utf8(&orig[12..14])?.parse()?,
+    }))
 }
 
 #[cfg(test)]
@@ -328,7 +321,7 @@ mod test {
             0x31, 0x39, 0x37, 0x30, 0x30, 0x31, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30,
             0x30, 0x30,
         ];
-        let valid = convert_utc_time(valid).unwrap();
+        let valid = convert_utc_time(valid).unwrap().unwrap();
         assert_eq!(valid.year, UTC_TIME.year);
         assert_eq!(valid.month, UTC_TIME.month);
         assert_eq!(valid.day, UTC_TIME.day);
@@ -344,7 +337,7 @@ mod test {
             0x30, 0x30,
         ];
         let invalid = convert_utc_time(invalid);
-        assert!(invalid.is_none());
+        assert!(invalid.is_err());
     }
 
     #[test]
