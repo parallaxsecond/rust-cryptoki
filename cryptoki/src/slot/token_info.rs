@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 Token info and associated flags
 
+use crate::error::{Error, Result};
 use crate::flag::{CkFlags, FlagBit};
 use crate::string_from_blank_padded;
 use crate::types::{convert_utc_time, maybe_unlimited};
 use crate::types::{MaybeUnavailable, UtcTime, Version};
 use cryptoki_sys::*;
+use std::convert::TryFrom;
 use std::fmt::{self, Debug, Formatter};
 
 const RNG: FlagBit<TokenInfo> = FlagBit::new(CKF_RNG);
@@ -411,15 +413,16 @@ impl TokenInfo {
 }
 
 #[doc(hidden)]
-impl From<CK_TOKEN_INFO> for TokenInfo {
-    fn from(val: CK_TOKEN_INFO) -> Self {
+impl TryFrom<CK_TOKEN_INFO> for TokenInfo {
+    type Error = Error;
+    fn try_from(val: CK_TOKEN_INFO) -> Result<Self> {
         let flags = CkFlags::from(val.flags);
         let utc_time = if flags.contains(CLOCK_ON_TOKEN) {
-            convert_utc_time(val.utcTime)
+            convert_utc_time(val.utcTime)?
         } else {
             None
         };
-        Self {
+        Ok(Self {
             label: string_from_blank_padded(&val.label),
             manufacturer_id: string_from_blank_padded(&val.manufacturerID),
             model: string_from_blank_padded(&val.model),
@@ -438,7 +441,7 @@ impl From<CK_TOKEN_INFO> for TokenInfo {
             hardware_version: val.hardwareVersion.into(),
             firmware_version: val.firmwareVersion.into(),
             utc_time,
-        }
+        })
     }
 }
 

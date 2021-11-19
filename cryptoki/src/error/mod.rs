@@ -29,6 +29,12 @@ pub enum Error {
     /// Error when converting a slice to an array
     TryFromSlice(std::array::TryFromSliceError),
 
+    /// Error when converting a numerical str to an integral value
+    ParseInt(core::num::ParseIntError),
+
+    /// Error converting into a type assuming valid UTF-8
+    Utf8(std::str::Utf8Error),
+
     /// Error with nul characters in Strings
     NulError(std::ffi::NulError),
 
@@ -50,6 +56,8 @@ impl fmt::Display for Error {
             Error::NotSupported => write!(f, "Feature not supported"),
             Error::TryFromInt(e) => write!(f, "Conversion between integers failed ({})", e),
             Error::TryFromSlice(e) => write!(f, "Error converting slice to array ({})", e),
+            Error::ParseInt(e) => write!(f, "Error parsing string as integer ({})", e),
+            Error::Utf8(e) => write!(f, "Invalid UTF-8 ({})", e),
             Error::NulError(e) => write!(f, "An interior nul byte was found ({})", e),
             Error::NullFunctionPointer => write!(f, "Calling a NULL function pointer"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
@@ -64,6 +72,8 @@ impl std::error::Error for Error {
             Error::LibraryLoading(e) => Some(e),
             Error::TryFromInt(e) => Some(e),
             Error::TryFromSlice(e) => Some(e),
+            Error::ParseInt(e) => Some(e),
+            Error::Utf8(e) => Some(e),
             Error::NulError(e) => Some(e),
             Error::Pkcs11(_)
             | Error::NotSupported
@@ -89,6 +99,18 @@ impl From<std::num::TryFromIntError> for Error {
 impl From<std::array::TryFromSliceError> for Error {
     fn from(err: std::array::TryFromSliceError) -> Error {
         Error::TryFromSlice(err)
+    }
+}
+
+impl From<core::num::ParseIntError> for Error {
+    fn from(err: core::num::ParseIntError) -> Error {
+        Error::ParseInt(err)
+    }
+}
+
+impl From<std::str::Utf8Error> for Error {
+    fn from(err: std::str::Utf8Error) -> Error {
+        Error::Utf8(err)
     }
 }
 
