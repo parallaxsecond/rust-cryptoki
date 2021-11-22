@@ -12,7 +12,7 @@ use std::convert::TryInto;
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn sign(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     key: ObjectHandle,
     data: &[u8],
@@ -63,7 +63,7 @@ pub(super) fn sign(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn verify(
-    session: &Session<'_>,
+    session: &Session,
     mechanism: &Mechanism,
     key: ObjectHandle,
     data: &[u8],

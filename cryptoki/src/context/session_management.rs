@@ -29,5 +29,5 @@ pub(super) fn open_session_no_callback(
         .into_result()?;
     }
 
-    Ok(Session::new(session_handle, ctx))
+    Ok(Session::new(session_handle, ctx.clone()))
 }

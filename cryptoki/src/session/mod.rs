@@ -14,6 +14,7 @@ use log::error;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::fmt::Formatter;
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 mod decryption;
@@ -35,26 +36,26 @@ pub use flags::*;
 /// threads. A Session needs to be created in its own thread or to be passed by ownership to
 /// another thread.
 #[derive(Debug)]
-pub struct Session<'a> {
+pub struct Session {
     handle: CK_SESSION_HANDLE,
-    client: &'a Pkcs11,
+    client: Pkcs11,
     // This is not used but to prevent Session to automatically implement Send and Sync
-    _guard: *mut u32,
+    _guard: PhantomData<*mut u32>,
 }
 
-impl std::fmt::Display for Session<'_> {
+impl std::fmt::Display for Session {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.handle)
     }
 }
 
-impl std::fmt::LowerHex for Session<'_> {
+impl std::fmt::LowerHex for Session {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:08x}", self.handle)
     }
 }
 
-impl std::fmt::UpperHex for Session<'_> {
+impl std::fmt::UpperHex for Session {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:08X}", self.handle)
     }
@@ -62,19 +63,19 @@ impl std::fmt::UpperHex for Session<'_> {
 
 // Session does not implement Sync to prevent the same Session instance to be used from multiple
 // threads.
-unsafe impl<'a> Send for Session<'a> {}
+unsafe impl Send for Session {}
 
-impl<'a> Session<'a> {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: &'a Pkcs11) -> Self {
+impl Session {
+    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
         Session {
             handle,
             client,
-            _guard: std::ptr::null_mut::<u32>(),
+            _guard: PhantomData,
         }
     }
 }
 
-impl Session<'_> {
+impl Session {
     /// Initialize the normal user's pin for a token
     pub fn init_pin(&self, pin: &str) -> Result<()> {
         slot_token_management::init_pin(self, pin)
@@ -339,11 +340,11 @@ impl Session<'_> {
     }
 
     pub(crate) fn client(&self) -> &Pkcs11 {
-        self.client
+        &self.client
     }
 }
 
-impl Drop for Session<'_> {
+impl Drop for Session {
     fn drop(&mut self) {
         if let Err(e) = session_management::close_private(self) {
             error!("Failed to close session: {}", e);

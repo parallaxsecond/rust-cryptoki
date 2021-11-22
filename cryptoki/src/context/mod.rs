@@ -6,6 +6,7 @@
 macro_rules! get_pkcs11 {
     ($pkcs11:expr, $func_name:ident) => {
         ($pkcs11
+            .impl_
             .function_list
             .$func_name
             .ok_or(crate::error::Error::NullFunctionPointer)?)
@@ -32,16 +33,48 @@ use derivative::Derivative;
 use log::error;
 use std::mem;
 use std::path::Path;
+use std::ptr;
+use std::sync::Arc;
 
-/// Main PKCS11 context. Should usually be unique per application.
 #[derive(Derivative)]
 #[derivative(Debug)]
-pub struct Pkcs11 {
+// Implementation of Pkcs11 class that can be enclosed in a single Arc
+pub(crate) struct Pkcs11Impl {
     // Even if this field is never read, it is needed for the pointers in function_list to remain
     // valid.
     #[derivative(Debug = "ignore")]
     _pkcs11_lib: cryptoki_sys::Pkcs11,
     pub(crate) function_list: cryptoki_sys::_CK_FUNCTION_LIST,
+}
+
+impl Pkcs11Impl {
+    // Private finalize call
+    #[inline(always)]
+    fn finalize(&self) -> Result<()> {
+        unsafe {
+            Rv::from(self
+                .function_list
+                .C_Finalize
+                .ok_or(Error::NullFunctionPointer)?(
+                ptr::null_mut()
+            ))
+            .into_result()
+        }
+    }
+}
+
+impl Drop for Pkcs11Impl {
+    fn drop(&mut self) {
+        if let Err(e) = self.finalize() {
+            error!("Failed to finalize: {}", e);
+        }
+    }
+}
+
+/// Main PKCS11 context. Should usually be unique per application.
+#[derive(Clone, Debug)]
+pub struct Pkcs11 {
+    pub(crate) impl_: Arc<Pkcs11Impl>,
 }
 
 impl Pkcs11 {
@@ -60,8 +93,10 @@ impl Pkcs11 {
             let list_ptr = *list.as_ptr();
 
             Ok(Pkcs11 {
-                _pkcs11_lib: pkcs11_lib,
-                function_list: *list_ptr,
+                impl_: Arc::new(Pkcs11Impl {
+                    _pkcs11_lib: pkcs11_lib,
+                    function_list: *list_ptr,
+                }),
             })
         }
     }
@@ -125,13 +160,5 @@ impl Pkcs11 {
     /// Open a new session with no callback set
     pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
         session_management::open_session_no_callback(self, slot_id, flags)
-    }
-}
-
-impl Drop for Pkcs11 {
-    fn drop(&mut self) {
-        if let Err(e) = general_purpose::finalize_private(self) {
-            error!("Failed to finalize: {}", e);
-        }
     }
 }

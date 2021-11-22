@@ -14,10 +14,7 @@ const MAX_OBJECT_COUNT: usize = 10;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn find_objects(
-    session: &Session<'_>,
-    template: &[Attribute],
-) -> Result<Vec<ObjectHandle>> {
+pub(super) fn find_objects(session: &Session, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
     let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
 
     unsafe {
@@ -71,7 +68,7 @@ pub(super) fn find_objects(
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn create_object(session: &Session<'_>, template: &[Attribute]) -> Result<ObjectHandle> {
+pub(super) fn create_object(session: &Session, template: &[Attribute]) -> Result<ObjectHandle> {
     let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
     let mut object_handle = 0;
 
@@ -90,7 +87,7 @@ pub(super) fn create_object(session: &Session<'_>, template: &[Attribute]) -> Re
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn destroy_object(session: &Session<'_>, object: ObjectHandle) -> Result<()> {
+pub(super) fn destroy_object(session: &Session, object: ObjectHandle) -> Result<()> {
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_DestroyObject)(
             session.handle(),
@@ -103,7 +100,7 @@ pub(super) fn destroy_object(session: &Session<'_>, object: ObjectHandle) -> Res
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn get_attribute_info(
-    session: &Session<'_>,
+    session: &Session,
     object: ObjectHandle,
     attributes: &[AttributeType],
 ) -> Result<Vec<AttributeInfo>> {
@@ -136,7 +133,7 @@ pub(super) fn get_attribute_info(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn get_attribute_info_map(
-    session: &Session<'_>,
+    session: &Session,
     object: ObjectHandle,
     attributes: Vec<AttributeType>,
 ) -> Result<HashMap<AttributeType, AttributeInfo>> {
@@ -152,7 +149,7 @@ pub(super) fn get_attribute_info_map(
 // See public docs on stub in parent mod.rs
 #[inline(always)]
 pub(super) fn get_attributes(
-    session: &Session<'_>,
+    session: &Session,
     object: ObjectHandle,
     attributes: &[AttributeType],
 ) -> Result<Vec<Attribute>> {

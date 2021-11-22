@@ -10,7 +10,6 @@ use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectC
 use cryptoki::session::{SessionFlags, SessionState, UserType};
 use serial_test::serial;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::thread;
 
 #[derive(Debug)]
@@ -396,7 +395,6 @@ fn login_feast() {
     let mut flags = SessionFlags::new();
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
-    let pkcs11 = Arc::from(pkcs11);
     let mut threads = Vec::new();
 
     for _ in 0..SESSIONS {
