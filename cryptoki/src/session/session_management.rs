@@ -52,6 +52,6 @@ pub(super) fn get_session_info(session: &Session) -> Result<SessionInfo> {
             &mut session_info,
         ))
         .into_result()?;
-        Ok(SessionInfo::new(session_info))
+        Ok(SessionInfo::from(session_info))
     }
 }
