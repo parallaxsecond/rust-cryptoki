@@ -6,13 +6,10 @@ use crate::context::Pkcs11;
 use crate::error::Result;
 use crate::mechanism::Mechanism;
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
-use crate::slot::Slot;
-use crate::types::Ulong;
 
 use cryptoki_sys::*;
 use log::error;
 use std::collections::HashMap;
-use std::convert::TryInto;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -23,9 +20,12 @@ mod flags;
 mod key_management;
 mod object_management;
 mod random;
+mod session_info;
 mod session_management;
 mod signing_macing;
 mod slot_token_management;
+
+pub use session_info::SessionInfo;
 
 pub use flags::*;
 
@@ -441,39 +441,5 @@ impl From<CK_STATE> for SessionState {
 impl std::fmt::Display for SessionState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", SessionState::stringify(self.val))
-    }
-}
-
-/// Type identifying the session information
-#[derive(Copy, Clone, Debug)]
-pub struct SessionInfo {
-    val: CK_SESSION_INFO,
-}
-
-impl SessionInfo {
-    pub(crate) fn new(val: CK_SESSION_INFO) -> Self {
-        Self { val }
-    }
-
-    /// Returns an error code defined by the cryptographic device
-    pub fn device_error(&self) -> Ulong {
-        self.val.ulDeviceError.into()
-    }
-
-    /// Returns the flags for this session
-    pub fn flags(&self) -> SessionFlags {
-        self.val.flags.into()
-    }
-
-    /// Returns the state of the session
-    pub fn session_state(&self) -> SessionState {
-        self.val.state.into()
-    }
-
-    /// Returns the slot the session is on
-    pub fn slot_id(&self) -> Slot {
-        // The unwrap should not fail as `slotID` is a `CK_SLOT_ID ` which is the same type as
-        // `slot_id` within the `Slot` structure
-        self.val.slotID.try_into().unwrap()
     }
 }

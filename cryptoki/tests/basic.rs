@@ -477,7 +477,7 @@ fn get_session_info_test() -> Result<()> {
     {
         let session = pkcs11.open_session_no_callback(slot, flags)?;
         let session_info = session.get_session_info()?;
-        assert_eq!(session_info.flags(), flags);
+        assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
         assert_eq!(
             session_info.session_state(),
@@ -486,7 +486,7 @@ fn get_session_info_test() -> Result<()> {
 
         session.login(UserType::User, Some(USER_PIN))?;
         let session_info = session.get_session_info()?;
-        assert_eq!(session_info.flags(), flags);
+        assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
         assert_eq!(
             session_info.session_state(),
@@ -506,7 +506,7 @@ fn get_session_info_test() -> Result<()> {
 
     let session = pkcs11.open_session_no_callback(slot, flags)?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.flags(), flags);
+    assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
     assert_eq!(
         session_info.session_state(),
@@ -515,7 +515,7 @@ fn get_session_info_test() -> Result<()> {
 
     session.login(UserType::User, Some(USER_PIN))?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.flags(), flags);
+    assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
     assert_eq!(
         session_info.session_state(),
@@ -524,7 +524,7 @@ fn get_session_info_test() -> Result<()> {
     session.logout()?;
     session.login(UserType::So, Some(SO_PIN))?;
     let session_info = session.get_session_info()?;
-    assert_eq!(session_info.flags(), flags);
+    assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
     assert_eq!(session_info.session_state(), SessionState::RW_SO_FUNCTIONS);
 
