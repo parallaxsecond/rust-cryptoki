@@ -151,7 +151,6 @@ impl Session {
     /// use cryptoki::context::CInitializeArgs;
     /// use cryptoki::object::AttributeType;
     /// use cryptoki::session::UserType;
-    /// use cryptoki::session::SessionFlags;
     /// use std::collections::HashMap;
     /// use std::env;
     ///
@@ -163,10 +162,8 @@ impl Session {
     ///
     /// pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
-    /// let mut flags = SessionFlags::new();
-    /// let _ = flags.set_rw_session(true).set_serial_session(true);
     ///
-    /// let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+    /// let session = pkcs11.open_session_no_callback(slot, true).unwrap();
     /// session.login(UserType::User, Some("fedcba"));
     ///
     /// let empty_attrib= vec![];

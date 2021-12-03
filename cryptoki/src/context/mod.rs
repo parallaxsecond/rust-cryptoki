@@ -27,7 +27,7 @@ pub use locking::*;
 
 use crate::error::{Error, Result, Rv};
 use crate::mechanism::{MechanismInfo, MechanismType};
-use crate::session::{Session, SessionFlags};
+use crate::session::Session;
 use crate::slot::{Slot, SlotInfo, TokenInfo};
 
 use derivative::Derivative;
@@ -159,7 +159,7 @@ impl Pkcs11 {
     }
 
     /// Open a new session with no callback set
-    pub fn open_session_no_callback(&self, slot_id: Slot, flags: SessionFlags) -> Result<Session> {
-        session_management::open_session_no_callback(self, slot_id, flags)
+    pub fn open_session_no_callback(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
+        session_management::open_session_no_callback(self, slot_id, read_write)
     }
 }

@@ -33,7 +33,7 @@ fn sign_verify() -> Result<()> {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -85,7 +85,7 @@ fn encrypt_decrypt() -> Result<()> {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -141,7 +141,7 @@ fn derive_key() -> Result<()> {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -236,7 +236,7 @@ fn import_export() -> Result<()> {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -306,7 +306,7 @@ fn wrap_and_unwrap_key() {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+    let session = pkcs11.open_session_no_callback(slot, true).unwrap();
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN)).unwrap();
@@ -400,7 +400,7 @@ fn login_feast() {
     for _ in 0..SESSIONS {
         let pkcs11 = pkcs11.clone();
         threads.push(thread::spawn(move || {
-            let session = pkcs11.open_session_no_callback(slot, flags).unwrap();
+            let session = pkcs11.open_session_no_callback(slot, true).unwrap();
             match session.login(UserType::User, Some(USER_PIN)) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
@@ -463,19 +463,9 @@ fn get_session_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     let mut flags = SessionFlags::new();
-
-    // Check that OpenSession errors when CKF_SERIAL_SESSION is not set
-    if let Err(cryptoki::error::Error::Pkcs11(rv_error)) =
-        pkcs11.open_session_no_callback(slot, flags)
-    {
-        assert_eq!(rv_error, RvError::SessionParallelNotSupported);
-    } else {
-        panic!("Should error when CKF_SERIAL_SESSION is not set");
-    }
-
     let _ = flags.set_serial_session(true);
     {
-        let session = pkcs11.open_session_no_callback(slot, flags)?;
+        let session = pkcs11.open_session_no_callback(slot, false)?;
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
@@ -504,7 +494,7 @@ fn get_session_info_test() -> Result<()> {
 
     let _ = flags.set_rw_session(true);
 
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
@@ -539,7 +529,7 @@ fn generate_random_test() -> Result<()> {
     let mut flags = SessionFlags::new();
 
     let _ = flags.set_serial_session(true);
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, false)?;
 
     let poor_seed: [u8; 32] = [0; 32];
     session.seed_random(&poor_seed)?;
@@ -566,7 +556,7 @@ fn set_pin_test() -> Result<()> {
     let mut flags = SessionFlags::new();
 
     let _ = flags.set_serial_session(true).set_rw_session(true);
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     session.login(UserType::User, Some(USER_PIN))?;
     session.set_pin(USER_PIN, new_user_pin)?;
@@ -585,7 +575,7 @@ fn get_attribute_info_test() -> Result<()> {
     let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, flags)?;
+    let session = pkcs11.open_session_no_callback(slot, true)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
