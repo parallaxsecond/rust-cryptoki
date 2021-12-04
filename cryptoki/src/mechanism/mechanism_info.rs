@@ -2,55 +2,32 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Mechanism info and associated flags
 
-use crate::flag::{CkFlags, FlagBit};
+use bitflags::bitflags;
 use cryptoki_sys::*;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::Debug;
 
-const HW: FlagBit<MechanismInfo> = FlagBit::new(CKF_HW);
-const ENCRYPT: FlagBit<MechanismInfo> = FlagBit::new(CKF_ENCRYPT);
-const DECRYPT: FlagBit<MechanismInfo> = FlagBit::new(CKF_DECRYPT);
-const DIGEST: FlagBit<MechanismInfo> = FlagBit::new(CKF_DIGEST);
-const SIGN: FlagBit<MechanismInfo> = FlagBit::new(CKF_SIGN);
-const SIGN_RECOVER: FlagBit<MechanismInfo> = FlagBit::new(CKF_SIGN_RECOVER);
-const VERIFY: FlagBit<MechanismInfo> = FlagBit::new(CKF_VERIFY);
-const VERIFY_RECOVER: FlagBit<MechanismInfo> = FlagBit::new(CKF_VERIFY_RECOVER);
-const GENERATE: FlagBit<MechanismInfo> = FlagBit::new(CKF_GENERATE);
-const GENERATE_KEY_PAIR: FlagBit<MechanismInfo> = FlagBit::new(CKF_GENERATE_KEY_PAIR);
-const WRAP: FlagBit<MechanismInfo> = FlagBit::new(CKF_WRAP);
-const UNWRAP: FlagBit<MechanismInfo> = FlagBit::new(CKF_UNWRAP);
-const DERIVE: FlagBit<MechanismInfo> = FlagBit::new(CKF_DERIVE);
-const EXTENSION: FlagBit<MechanismInfo> = FlagBit::new(CKF_EXTENSION);
-const EC_F_P: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_F_P);
-const EC_F_2M: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_F_2M);
-const EC_ECPARAMETERS: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_ECPARAMETERS);
-const EC_NAMEDCURVE: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_NAMEDCURVE);
-const EC_UNCOMPRESS: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_UNCOMPRESS);
-const EC_COMPRESS: FlagBit<MechanismInfo> = FlagBit::new(CKF_EC_COMPRESS);
-
-impl Debug for CkFlags<MechanismInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Flags")
-            .field("hw", &(self.contains(HW)))
-            .field("encrypt", &(self.contains(ENCRYPT)))
-            .field("decrypt", &(self.contains(DECRYPT)))
-            .field("digest", &(self.contains(DIGEST)))
-            .field("sign", &(self.contains(SIGN)))
-            .field("sign_recover", &(self.contains(SIGN_RECOVER)))
-            .field("verify", &(self.contains(VERIFY)))
-            .field("verify_recover", &(self.contains(VERIFY_RECOVER)))
-            .field("generate", &(self.contains(GENERATE)))
-            .field("generate_key_pair", &(self.contains(GENERATE_KEY_PAIR)))
-            .field("wrap", &(self.contains(WRAP)))
-            .field("unwrap", &(self.contains(UNWRAP)))
-            .field("derive", &(self.contains(DERIVE)))
-            .field("extension", &(self.contains(EXTENSION)))
-            .field("ec_f_p", &(self.contains(EC_F_P)))
-            .field("ec_f_2m", &(self.contains(EC_F_2M)))
-            .field("ec_ecparameters", &(self.contains(EC_ECPARAMETERS)))
-            .field("ec_namedcurve", &(self.contains(EC_NAMEDCURVE)))
-            .field("ec_uncompress", &(self.contains(EC_UNCOMPRESS)))
-            .field("ec_compress", &(self.contains(EC_COMPRESS)))
-            .finish()
+bitflags! {
+    struct MechanismInfoFlags: CK_FLAGS {
+        const HW = CKF_HW;
+        const ENCRYPT = CKF_ENCRYPT;
+        const DECRYPT = CKF_DECRYPT;
+        const DIGEST = CKF_DIGEST;
+        const SIGN = CKF_SIGN;
+        const SIGN_RECOVER = CKF_SIGN_RECOVER;
+        const VERIFY = CKF_VERIFY;
+        const VERIFY_RECOVER = CKF_VERIFY_RECOVER;
+        const GENERATE = CKF_GENERATE;
+        const GENERATE_KEY_PAIR = CKF_GENERATE_KEY_PAIR;
+        const WRAP = CKF_WRAP;
+        const UNWRAP = CKF_UNWRAP;
+        const DERIVE = CKF_DERIVE;
+        const EXTENSION = CKF_EXTENSION;
+        const EC_F_P = CKF_EC_F_P;
+        const EC_F_2M = CKF_EC_F_2M;
+        const EC_ECPARAMETERS = CKF_EC_ECPARAMETERS;
+        const EC_NAMEDCURVE = CKF_EC_NAMEDCURVE;
+        const EC_UNCOMPRESS = CKF_EC_UNCOMPRESS;
+        const EC_COMPRESS = CKF_EC_COMPRESS;
     }
 }
 
@@ -59,7 +36,7 @@ impl Debug for CkFlags<MechanismInfo> {
 pub struct MechanismInfo {
     min_key_size: usize,
     max_key_size: usize,
-    flags: CkFlags<Self>,
+    flags: MechanismInfoFlags,
 }
 
 impl MechanismInfo {
@@ -84,35 +61,35 @@ impl MechanismInfo {
     /// True if the mechanism is performed by the device; false if the
     /// mechanism is performed in software
     pub fn hardware(&self) -> bool {
-        self.flags.contains(HW)
+        self.flags.contains(MechanismInfoFlags::HW)
     }
 
     /// True if the mechanism can be used to encrypt data
     ///
     /// See [`Session::encrypt`](crate::session::Session::encrypt)
     pub fn encrypt(&self) -> bool {
-        self.flags.contains(ENCRYPT)
+        self.flags.contains(MechanismInfoFlags::ENCRYPT)
     }
 
     /// True if the mechanism can be used to decrypt encrypted data
     ///
     /// See [`Session::decrypt`](crate::session::Session::decrypt)
     pub fn decrypt(&self) -> bool {
-        self.flags.contains(DECRYPT)
+        self.flags.contains(MechanismInfoFlags::DECRYPT)
     }
 
     /// True if the mechanism can be used to digest a message
     ///
     // TODO See [`Session::digest`](crate::session::Session::digest)
     pub fn digest(&self) -> bool {
-        self.flags.contains(DIGEST)
+        self.flags.contains(MechanismInfoFlags::DIGEST)
     }
 
     /// True if the mechanism can be used to digitally sign data
     ///
     /// See [`Session::sign`](crate::session::Session::sign)
     pub fn sign(&self) -> bool {
-        self.flags.contains(SIGN)
+        self.flags.contains(MechanismInfoFlags::SIGN)
     }
 
     /// True if the mechanism can be used to digitally data which can be
@@ -120,14 +97,14 @@ impl MechanismInfo {
     ///
     // TODO See [`Session::sign_recover`](crate::session::Session::sign_recover)
     pub fn sign_recover(&self) -> bool {
-        self.flags.contains(SIGN_RECOVER)
+        self.flags.contains(MechanismInfoFlags::SIGN_RECOVER)
     }
 
     /// True if the mechanism can be used to verify a digital signature
     ///
     /// See [`Session::verify`](crate::session::Session::verify)
     pub fn verify(&self) -> bool {
-        self.flags.contains(VERIFY)
+        self.flags.contains(MechanismInfoFlags::VERIFY)
     }
 
     /// True if the mechanism can be used to verify a digital signature and
@@ -135,42 +112,42 @@ impl MechanismInfo {
     ///
     // TODO See [`Session::verify_recover`](crate::session::Session::verify_recover)
     pub fn verify_recover(&self) -> bool {
-        self.flags.contains(VERIFY_RECOVER)
+        self.flags.contains(MechanismInfoFlags::VERIFY_RECOVER)
     }
 
     /// True if the mechanism can be used to generate a secret key
     ///
     // TODO See [`Session::generate`](crate::session::Session::generate)
     pub fn generate(&self) -> bool {
-        self.flags.contains(GENERATE)
+        self.flags.contains(MechanismInfoFlags::GENERATE)
     }
 
     /// True if the mechanism can be used to generate a public/private key pair
     ///
     /// See [`Session::generate_key_pair`](crate::session::Session::generate_key_pair))
     pub fn generate_key_pair(&self) -> bool {
-        self.flags.contains(GENERATE_KEY_PAIR)
+        self.flags.contains(MechanismInfoFlags::GENERATE_KEY_PAIR)
     }
 
     /// True if the mechanism can be used to wrap (encrypt) a key
     ///
     // TODO See [`Session::wrap`](crate::session::Session::wrap))
     pub fn wrap(&self) -> bool {
-        self.flags.contains(WRAP)
+        self.flags.contains(MechanismInfoFlags::WRAP)
     }
 
     /// True if the mechanism can be used to unwrap (decrypt) a key
     ///
     // TODO See [`Session::unwrap`](crate::session::Session::unwrap))
     pub fn unwrap(&self) -> bool {
-        self.flags.contains(UNWRAP)
+        self.flags.contains(MechanismInfoFlags::UNWRAP)
     }
 
     /// True if the mechanism can be used to derive a key from a base key
     ///
     // TODO See [`Session::derive`](crate::session::Session::derive))
     pub fn derive(&self) -> bool {
-        self.flags.contains(DERIVE)
+        self.flags.contains(MechanismInfoFlags::DERIVE)
     }
 
     /// True if there is an extension to the flags; false if no extensions
@@ -178,7 +155,7 @@ impl MechanismInfo {
     /// **[Conformance](crate#conformance-notes):**
     /// This *must* be false for PKCS#11 v2.40
     pub fn extension(&self) -> bool {
-        self.flags.contains(EXTENSION)
+        self.flags.contains(MechanismInfoFlags::EXTENSION)
     }
 
     /// True if the mechanism can be used to  with elliptic curve domain
@@ -188,7 +165,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_f_p`](Self::ec_f_p) and
     /// [`ec_f_2m`](Self::ec_f_2m) must be `true`
     pub fn ec_f_p(&self) -> bool {
-        self.flags.contains(EC_F_P)
+        self.flags.contains(MechanismInfoFlags::EC_F_P)
     }
 
     /// True if the mechanism can be used with elliptic curve domain parameters
@@ -198,7 +175,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_f_p`](Self::ec_f_p) and
     /// [`ec_f_2m`](Self::ec_f_2m) must be `true`
     pub fn ec_f_2m(&self) -> bool {
-        self.flags.contains(EC_F_2M)
+        self.flags.contains(MechanismInfoFlags::EC_F_2M)
     }
 
     /// True if the mechanism supports specifying elliptic curve domain
@@ -208,7 +185,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
     /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
     pub fn ec_from_parameters(&self) -> bool {
-        self.flags.contains(EC_ECPARAMETERS)
+        self.flags.contains(MechanismInfoFlags::EC_ECPARAMETERS)
     }
 
     /// True if the mechanism supports specifying elliptic curve domain
@@ -218,7 +195,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
     /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
     pub fn ec_from_named_curve(&self) -> bool {
-        self.flags.contains(EC_NAMEDCURVE)
+        self.flags.contains(MechanismInfoFlags::EC_NAMEDCURVE)
     }
 
     /// True if the mechanism can be used with elliptic curve points in
@@ -228,7 +205,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and
     /// [`ec_compressed`](Self::ec_compressed) must be `true`
     pub fn ec_uncompressed(&self) -> bool {
-        self.flags.contains(EC_UNCOMPRESS)
+        self.flags.contains(MechanismInfoFlags::EC_UNCOMPRESS)
     }
 
     /// True if the mechanism can be used with elliptic curve points in
@@ -238,7 +215,7 @@ impl MechanismInfo {
     /// *At least* one of [`ec_uncompressed`](Self::ec_uncompressed) and
     /// [`ec_compressed`](Self::ec_compressed) must be `true`
     pub fn ec_compressed(&self) -> bool {
-        self.flags.contains(EC_COMPRESS)
+        self.flags.contains(MechanismInfoFlags::EC_COMPRESS)
     }
 }
 
@@ -248,73 +225,25 @@ impl From<CK_MECHANISM_INFO> for MechanismInfo {
         Self {
             min_key_size: val.ulMinKeySize as usize,
             max_key_size: val.ulMaxKeySize as usize,
-            flags: CkFlags::from(val.flags),
+            flags: MechanismInfoFlags::from_bits_truncate(val.flags),
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::MechanismInfo;
-    use crate::flag::CkFlags;
-    use cryptoki_sys::CK_FLAGS;
+    use super::{MechanismInfo, MechanismInfoFlags};
 
     #[test]
     fn debug_flags_all() {
-        let expected = r"Flags {
-    hw: true,
-    encrypt: true,
-    decrypt: true,
-    digest: true,
-    sign: true,
-    sign_recover: true,
-    verify: true,
-    verify_recover: true,
-    generate: true,
-    generate_key_pair: true,
-    wrap: true,
-    unwrap: true,
-    derive: true,
-    extension: true,
-    ec_f_p: true,
-    ec_f_2m: true,
-    ec_ecparameters: true,
-    ec_namedcurve: true,
-    ec_uncompress: true,
-    ec_compress: true,
-}";
-        let all: CkFlags<MechanismInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let expected = "\
+HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
+VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
+EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
+EC_UNCOMPRESS | EC_COMPRESS";
+        let all = MechanismInfoFlags::all();
         let observed = format!("{:#?}", all);
         println!("{}", observed);
-        assert_eq!(observed, expected);
-    }
-
-    #[test]
-    fn debug_flags_none() {
-        let expected = r"Flags {
-    hw: false,
-    encrypt: false,
-    decrypt: false,
-    digest: false,
-    sign: false,
-    sign_recover: false,
-    verify: false,
-    verify_recover: false,
-    generate: false,
-    generate_key_pair: false,
-    wrap: false,
-    unwrap: false,
-    derive: false,
-    extension: false,
-    ec_f_p: false,
-    ec_f_2m: false,
-    ec_ecparameters: false,
-    ec_namedcurve: false,
-    ec_uncompress: false,
-    ec_compress: false,
-}";
-        let none: CkFlags<MechanismInfo> = CkFlags::from(0);
-        let observed = format!("{:#?}", none);
         assert_eq!(observed, expected);
     }
 
@@ -323,33 +252,12 @@ mod test {
         let info = MechanismInfo {
             min_key_size: 16,
             max_key_size: 4096,
-            flags: CkFlags::from(0),
+            flags: MechanismInfoFlags::empty(),
         };
         let expected = r#"MechanismInfo {
     min_key_size: 16,
     max_key_size: 4096,
-    flags: Flags {
-        hw: false,
-        encrypt: false,
-        decrypt: false,
-        digest: false,
-        sign: false,
-        sign_recover: false,
-        verify: false,
-        verify_recover: false,
-        generate: false,
-        generate_key_pair: false,
-        wrap: false,
-        unwrap: false,
-        derive: false,
-        extension: false,
-        ec_f_p: false,
-        ec_f_2m: false,
-        ec_ecparameters: false,
-        ec_namedcurve: false,
-        ec_uncompress: false,
-        ec_compress: false,
-    },
+    flags: (empty),
 }"#;
         let observed = format!("{:#?}", info);
         assert_eq!(observed, expected);

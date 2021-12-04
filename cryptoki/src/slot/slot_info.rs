@@ -2,23 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 Slot info and associated flags
 
-use crate::flag::{CkFlags, FlagBit};
 use crate::{string_from_blank_padded, types::Version};
+use bitflags::bitflags;
 use cryptoki_sys::*;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::Debug;
 
-/// Collection of flags defined for [`CK_SLOT_INFO`]
-const TOKEN_PRESENT: FlagBit<SlotInfo> = FlagBit::new(CKF_TOKEN_PRESENT);
-const REMOVABLE_DEVICE: FlagBit<SlotInfo> = FlagBit::new(CKF_REMOVABLE_DEVICE);
-const HW_SLOT: FlagBit<SlotInfo> = FlagBit::new(CKF_HW_SLOT);
-
-impl Debug for CkFlags<SlotInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Flags")
-            .field("token_present", &(self.contains(TOKEN_PRESENT)))
-            .field("removable_device", &(self.contains(REMOVABLE_DEVICE)))
-            .field("hw_slot", &(self.contains(HW_SLOT)))
-            .finish()
+bitflags! {
+    /// Collection of flags defined for [`CK_SLOT_INFO`]
+    struct SlotInfoFlags: CK_FLAGS {
+        const TOKEN_PRESENT=CKF_TOKEN_PRESENT;
+        const REMOVABLE_DEVICE=CKF_REMOVABLE_DEVICE;
+        const HW_SLOT = CKF_HW_SLOT;
     }
 }
 
@@ -27,7 +21,7 @@ impl Debug for CkFlags<SlotInfo> {
 pub struct SlotInfo {
     slot_description: String,
     manufacturer_id: String,
-    flags: CkFlags<Self>,
+    flags: SlotInfoFlags,
     hardware_version: Version,
     firmware_version: Version,
 }
@@ -56,7 +50,7 @@ impl SlotInfo {
     /// considered to be present. That is, `slot.removable device() == false`
     /// implies `slot.token_present() == true`.
     pub fn token_present(&self) -> bool {
-        self.flags.contains(TOKEN_PRESENT)
+        self.flags.contains(SlotInfoFlags::TOKEN_PRESENT)
     }
 
     /// True if the reader supports removable devices.
@@ -64,13 +58,13 @@ impl SlotInfo {
     /// **[Conformance](crate#conformance-notes):**
     /// For a given slot, this flag *never* changes
     pub fn removable_device(&self) -> bool {
-        self.flags.contains(REMOVABLE_DEVICE)
+        self.flags.contains(SlotInfoFlags::REMOVABLE_DEVICE)
     }
 
     /// True if the slot is a hardware slot, as opposed to a software slot
     /// implementing a "soft token"
     pub fn hardware_slot(&self) -> bool {
-        self.flags.contains(HW_SLOT)
+        self.flags.contains(SlotInfoFlags::HW_SLOT)
     }
 
     /// Version number of the slot's hardware
@@ -90,7 +84,7 @@ impl From<CK_SLOT_INFO> for SlotInfo {
         Self {
             slot_description: string_from_blank_padded(&val.slotDescription),
             manufacturer_id: string_from_blank_padded(&val.manufacturerID),
-            flags: val.flags.into(),
+            flags: SlotInfoFlags::from_bits_truncate(val.flags),
             hardware_version: val.hardwareVersion.into(),
             firmware_version: val.firmwareVersion.into(),
         }
@@ -99,31 +93,14 @@ impl From<CK_SLOT_INFO> for SlotInfo {
 
 #[cfg(test)]
 mod test {
-    use super::SlotInfo;
-    use crate::{flag::CkFlags, types::Version};
-    use cryptoki_sys::CK_FLAGS;
+    use super::{SlotInfo, SlotInfoFlags};
+    use crate::types::Version;
 
     #[test]
     fn debug_flags_all() {
-        let expected = r"Flags {
-    token_present: true,
-    removable_device: true,
-    hw_slot: true,
-}";
-        let all: CkFlags<SlotInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let expected = "TOKEN_PRESENT | REMOVABLE_DEVICE | HW_SLOT";
+        let all = SlotInfoFlags::all();
         let observed = format!("{:#?}", all);
-        assert_eq!(observed, expected);
-    }
-
-    #[test]
-    fn debug_none_set() {
-        let expected = r"Flags {
-    token_present: false,
-    removable_device: false,
-    hw_slot: false,
-}";
-        let none: CkFlags<SlotInfo> = CkFlags::from(0);
-        let observed = format!("{:#?}", none);
         assert_eq!(observed, expected);
     }
 
@@ -132,18 +109,14 @@ mod test {
         let info = SlotInfo {
             slot_description: String::from("Slot Description"),
             manufacturer_id: String::from("Manufacturer ID"),
-            flags: CkFlags::from(0),
+            flags: SlotInfoFlags::empty(),
             hardware_version: Version::new(0, 255),
             firmware_version: Version::new(255, 0),
         };
         let expected = r#"SlotInfo {
     slot_description: "Slot Description",
     manufacturer_id: "Manufacturer ID",
-    flags: Flags {
-        token_present: false,
-        removable_device: false,
-        hw_slot: false,
-    },
+    flags: (empty),
     hardware_version: Version {
         major: 0,
         minor: 255,

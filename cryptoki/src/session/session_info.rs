@@ -3,21 +3,17 @@
 //! Session info
 
 use crate::error::{Error, Result};
-use crate::flag::{CkFlags, FlagBit};
 use crate::slot::Slot;
+use bitflags::bitflags;
 use cryptoki_sys::*;
 use std::convert::{TryFrom, TryInto};
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::Debug;
 
-const RW_SESSION: FlagBit<SessionInfo> = FlagBit::new(CKF_RW_SESSION);
-const SERIAL_SESSION: FlagBit<SessionInfo> = FlagBit::new(CKF_SERIAL_SESSION);
-
-impl Debug for CkFlags<SessionInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Flags")
-            .field("rw_session", &(self.contains(RW_SESSION)))
-            .field("serial_session", &(self.contains(SERIAL_SESSION)))
-            .finish()
+bitflags! {
+    /// Collection of flags defined for [`CK_SESSION_INFO`]
+    struct SessionInfoFlags: CK_FLAGS {
+        const RW_SESSION = CKF_RW_SESSION;
+        const SERIAL_SESSION = CKF_SERIAL_SESSION;
     }
 }
 
@@ -26,7 +22,7 @@ impl Debug for CkFlags<SessionInfo> {
 pub struct SessionInfo {
     slot_id: Slot,
     state: SessionState,
-    flags: CkFlags<Self>,
+    flags: SessionInfoFlags,
     device_error: u64,
 }
 
@@ -44,7 +40,7 @@ impl SessionInfo {
     /// True if the session has R/W access to token objects, and false if access
     /// is read-only
     pub fn read_write(&self) -> bool {
-        self.flags.contains(RW_SESSION)
+        self.flags.contains(SessionInfoFlags::RW_SESSION)
     }
 
     /// An error code defined by the cryptographic device (used for errors not
@@ -63,7 +59,7 @@ impl TryFrom<CK_SESSION_INFO> for SessionInfo {
         Ok(Self {
             slot_id: Slot::new(val.slotID),
             state: val.state.try_into()?,
-            flags: CkFlags::from(val.flags),
+            flags: SessionInfoFlags::from_bits_truncate(val.flags),
             device_error,
         })
     }
@@ -103,5 +99,39 @@ impl TryFrom<CK_STATE> for SessionState {
             CKS_RW_SO_FUNCTIONS => Ok(Self::RwSecurityOfficer),
             _ => Err(Error::InvalidValue),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{SessionInfo, SessionInfoFlags, SessionState};
+    use crate::slot::Slot;
+
+    #[test]
+    fn debug_flags_all() {
+        let expected = "RW_SESSION | SERIAL_SESSION";
+        let all = SessionInfoFlags::all();
+        let observed = format!("{:#?}", all);
+        assert_eq!(observed, expected);
+    }
+
+    #[test]
+    fn debug_info() {
+        let info = SessionInfo {
+            slot_id: Slot::new(100),
+            state: SessionState::RoPublic,
+            flags: SessionInfoFlags::empty(),
+            device_error: 0,
+        };
+        let expected = r#"SessionInfo {
+    slot_id: Slot {
+        slot_id: 100,
+    },
+    state: RoPublic,
+    flags: (empty),
+    device_error: 0,
+}"#;
+        let observed = format!("{:#?}", info);
+        assert_eq!(observed, expected);
     }
 }
