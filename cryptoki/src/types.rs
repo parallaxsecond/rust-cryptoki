@@ -10,32 +10,6 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
-pub(crate) trait Flags: std::fmt::Display {
-    type FlagType: Copy;
-
-    fn flag_value(&self) -> Self::FlagType;
-
-    fn flag(&self, flag: Self::FlagType) -> bool;
-
-    fn set_flag(&mut self, flag: Self::FlagType, b: bool);
-
-    fn stringify_flag(flag: Self::FlagType) -> &'static str;
-
-    fn stringify_fmt(&self, f: &mut Formatter<'_>, flags: Vec<Self::FlagType>) -> std::fmt::Result {
-        let mut first_done = false;
-        for flag in flags.iter() {
-            if self.flag(*flag) {
-                if first_done {
-                    write!(f, ", ")?;
-                }
-                write!(f, "{}", Self::stringify_flag(*flag))?;
-                first_done = true;
-            }
-        }
-        Ok(())
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 #[repr(transparent)]
 /// Value that represents a date
