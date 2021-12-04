@@ -2,58 +2,63 @@
 // SPDX-License-Identifier: Apache-2.0
 //! PKCS11 library information
 
+use crate::error::{Error, Result};
 use crate::string_from_blank_padded;
 use crate::types::Version;
 use cryptoki_sys::*;
-use std::ops::Deref;
+use std::convert::TryFrom;
 
-#[derive(Debug, Clone, Copy)]
-/// Type identifying the PKCS#11 library information
+#[derive(Debug, Clone)]
+/// General information about the Cryptoki (PKCS#11 library)
 pub struct Info {
-    val: CK_INFO,
+    cryptoki_version: Version,
+    manufacturer_id: String,
+    // flags
+    library_description: String,
+    library_version: Version,
 }
 
 impl Info {
-    pub(crate) fn new(val: CK_INFO) -> Self {
-        Self { val }
-    }
-
-    /// Returns the version of Cryptoki that the library is compatible with
+    /// Returns the version of Cryptoki interface for compatibility with future
+    /// revisions
     pub fn cryptoki_version(&self) -> Version {
-        self.val.cryptokiVersion.into()
+        self.cryptoki_version
     }
 
-    /// Returns the flags of the library (should be zero!)
-    pub fn flags(&self) -> CK_FLAGS {
-        self.val.flags
+    /// ID of the Cryptoki library manufacturer
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// This string is maximally 32 bytes (*not* chars) as UTF-8
+    pub fn manufacturer_id(&self) -> &str {
+        &self.manufacturer_id
     }
 
-    /// Returns the description of the library
-    pub fn library_description(&self) -> String {
-        string_from_blank_padded(&self.val.libraryDescription)
+    /// Description of the library
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// This string is maximally 32 bytes (*not* chars) as UTF-8
+    pub fn library_description(&self) -> &str {
+        &self.library_description
     }
 
-    /// Returns the version of the library
+    /// Cryptoki library version number
     pub fn library_version(&self) -> Version {
-        self.val.libraryVersion.into()
-    }
-
-    /// Returns the manufacturer of the library
-    pub fn manufacturer_id(&self) -> String {
-        string_from_blank_padded(&self.val.manufacturerID)
+        self.library_version
     }
 }
 
-impl Deref for Info {
-    type Target = CK_INFO;
-
-    fn deref(&self) -> &Self::Target {
-        &self.val
-    }
-}
-
-impl From<Info> for CK_INFO {
-    fn from(info: Info) -> Self {
-        *info
+#[doc(hidden)]
+impl TryFrom<CK_INFO> for Info {
+    type Error = Error;
+    fn try_from(val: CK_INFO) -> Result<Self> {
+        if val.flags != 0 {
+            return Err(Error::InvalidValue);
+        }
+        Ok(Self {
+            cryptoki_version: val.cryptokiVersion.into(),
+            manufacturer_id: string_from_blank_padded(&val.manufacturerID),
+            library_description: string_from_blank_padded(&val.libraryDescription),
+            library_version: val.libraryVersion.into(),
+        })
     }
 }
