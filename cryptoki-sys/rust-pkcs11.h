@@ -1,9 +1,7 @@
 #ifndef CRYPTOKI_SYS_RUST_PKCS11_H
 #define CRYPTOKI_SYS_RUST_PKCS11_H
 
-#ifdef _MSC_VER
 #pragma pack(push, cryptoki, 1)
-#endif
 
 // Define UNIX defaults for PKCS11 interface
 
@@ -35,8 +33,6 @@
 
 #include "oasis-headers/pkcs11.h"
 
-#ifdef _MSC_VER
 #pragma pack(pop, cryptoki)
-#endif
 
 #endif
