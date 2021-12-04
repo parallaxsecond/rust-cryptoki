@@ -1,7 +1,6 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 use cryptoki::context::{CInitializeArgs, Pkcs11};
-use cryptoki::session::SessionFlags;
 use cryptoki::session::UserType;
 use cryptoki::slot::Slot;
 use std::env;
@@ -25,10 +24,6 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
     pkcs11.init_token(slot, SO_PIN, "Test Token").unwrap();
-
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
 
     {
         // open a session

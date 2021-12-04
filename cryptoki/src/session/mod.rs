@@ -16,7 +16,6 @@ use std::ops::Deref;
 
 mod decryption;
 mod encryption;
-mod flags;
 mod key_management;
 mod object_management;
 mod random;
@@ -26,8 +25,6 @@ mod signing_macing;
 mod slot_token_management;
 
 pub use session_info::SessionInfo;
-
-pub use flags::*;
 
 /// Type that identifies a session
 ///
