@@ -112,8 +112,6 @@ mod generate_bindings {
             // Include types (e.g., structs) and constants (#define'd)
             .allowlist_type("*")
             .allowlist_var("*")
-            // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
-            .blocklist_type("max_align_t")
             // Two deprecated structs and their respective pointer types
             .blocklist_type("CK_AES_CCM_PARAMS")
             .blocklist_type("CK_AES_GCM_PARAMS")
