@@ -5,6 +5,7 @@
 use crate::context::{CInitializeArgs, Info, Pkcs11};
 use crate::error::{Result, Rv};
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
+use std::convert::TryFrom;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
@@ -26,6 +27,6 @@ pub(super) fn get_library_info(ctx: &Pkcs11) -> Result<Info> {
     let mut info = CK_INFO::default();
     unsafe {
         Rv::from(get_pkcs11!(ctx, C_GetInfo)(&mut info)).into_result()?;
-        Ok(Info::new(info))
+        Info::try_from(info)
     }
 }
