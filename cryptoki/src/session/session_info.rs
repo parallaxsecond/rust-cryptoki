@@ -2,14 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Session info
 
-use crate::{
-    flag::{CkFlags, FlagBit},
-    slot::Slot,
-};
+use crate::error::{Error, Result};
+use crate::flag::{CkFlags, FlagBit};
+use crate::slot::Slot;
 use cryptoki_sys::*;
+use std::convert::{TryFrom, TryInto};
 use std::fmt::{self, Debug, Formatter};
-
-use super::SessionState;
 
 const RW_SESSION: FlagBit<SessionInfo> = FlagBit::new(CKF_RW_SESSION);
 const SERIAL_SESSION: FlagBit<SessionInfo> = FlagBit::new(CKF_SERIAL_SESSION);
@@ -57,15 +55,53 @@ impl SessionInfo {
 }
 
 #[doc(hidden)]
-impl From<CK_SESSION_INFO> for SessionInfo {
-    fn from(val: CK_SESSION_INFO) -> Self {
+impl TryFrom<CK_SESSION_INFO> for SessionInfo {
+    type Error = Error;
+    fn try_from(val: CK_SESSION_INFO) -> Result<Self> {
         #[allow(trivial_numeric_casts)]
         let device_error = val.ulDeviceError as u64;
-        Self {
+        Ok(Self {
             slot_id: Slot::new(val.slotID),
-            state: val.state.into(),
+            state: val.state.try_into()?,
             flags: CkFlags::from(val.flags),
             device_error,
+        })
+    }
+}
+
+/// The current state of the session which describes access to token and session
+/// obects based on user type and login status
+#[derive(Debug, Copy, Clone)]
+pub enum SessionState {
+    /// The session has read-only access to public token objects and R/W access
+    /// to to public session objects
+    RoPublic,
+    /// A normal user has been authenticated to the token.
+    /// The session has read-only access to all public and private token objects
+    /// The session has R/W access to all public and private session objects
+    RoUser,
+    /// The session has read/write access to all public objects
+    RwPublic,
+    /// A normal user has been authenticated to the token.
+    /// The session has read/write access to all objects
+    RwUser,
+    /// A security officer (SO) user has been authenticated to the token.
+    /// The session has R/W access only to public token objects. The SO
+    /// can set the normal user's PIN.
+    RwSecurityOfficer,
+}
+
+#[doc(hidden)]
+impl TryFrom<CK_STATE> for SessionState {
+    type Error = Error;
+    fn try_from(value: CK_STATE) -> Result<Self> {
+        match value {
+            CKS_RO_PUBLIC_SESSION => Ok(Self::RoPublic),
+            CKS_RO_USER_FUNCTIONS => Ok(Self::RoUser),
+            CKS_RW_PUBLIC_SESSION => Ok(Self::RwPublic),
+            CKS_RW_USER_FUNCTIONS => Ok(Self::RwUser),
+            CKS_RW_SO_FUNCTIONS => Ok(Self::RwSecurityOfficer),
+            _ => Err(Error::InvalidValue),
         }
     }
 }

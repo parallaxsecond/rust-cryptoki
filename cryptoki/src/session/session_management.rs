@@ -5,7 +5,7 @@
 use crate::error::{Result, Rv};
 use crate::session::{Session, SessionInfo, UserType};
 use cryptoki_sys::CK_SESSION_INFO;
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 
 // See public docs on close() in parent mod.rs
 #[inline(always)]
@@ -52,6 +52,6 @@ pub(super) fn get_session_info(session: &Session) -> Result<SessionInfo> {
             &mut session_info,
         ))
         .into_result()?;
-        Ok(SessionInfo::from(session_info))
+        SessionInfo::try_from(session_info)
     }
 }
