@@ -3,79 +3,36 @@
 //! PKCS11 Token info and associated flags
 
 use crate::error::{Error, Result};
-use crate::flag::{CkFlags, FlagBit};
 use crate::string_from_blank_padded;
 use crate::types::{convert_utc_time, maybe_unlimited};
 use crate::types::{MaybeUnavailable, UtcTime, Version};
+use bitflags::bitflags;
 use cryptoki_sys::*;
 use std::convert::TryFrom;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::Debug;
 
-const RNG: FlagBit<TokenInfo> = FlagBit::new(CKF_RNG);
-const WRITE_PROTECTED: FlagBit<TokenInfo> = FlagBit::new(CKF_WRITE_PROTECTED);
-const LOGIN_REQUIRED: FlagBit<TokenInfo> = FlagBit::new(CKF_LOGIN_REQUIRED);
-const USER_PIN_INITIALIZED: FlagBit<TokenInfo> = FlagBit::new(CKF_USER_PIN_INITIALIZED);
-const RESTORE_KEY_NOT_NEEDED: FlagBit<TokenInfo> = FlagBit::new(CKF_RESTORE_KEY_NOT_NEEDED);
-const CLOCK_ON_TOKEN: FlagBit<TokenInfo> = FlagBit::new(CKF_CLOCK_ON_TOKEN);
-const PROTECTED_AUTHENTICATION_PATH: FlagBit<TokenInfo> =
-    FlagBit::new(CKF_PROTECTED_AUTHENTICATION_PATH);
-const DUAL_CRYPTO_OPERATIONS: FlagBit<TokenInfo> = FlagBit::new(CKF_DUAL_CRYPTO_OPERATIONS);
-const TOKEN_INITIALIZED: FlagBit<TokenInfo> = FlagBit::new(CKF_TOKEN_INITIALIZED);
-const SECONDARY_AUTHENTICATION: FlagBit<TokenInfo> = FlagBit::new(CKF_SECONDARY_AUTHENTICATION);
-const USER_PIN_COUNT_LOW: FlagBit<TokenInfo> = FlagBit::new(CKF_USER_PIN_COUNT_LOW);
-const USER_PIN_FINAL_TRY: FlagBit<TokenInfo> = FlagBit::new(CKF_USER_PIN_FINAL_TRY);
-const USER_PIN_LOCKED: FlagBit<TokenInfo> = FlagBit::new(CKF_USER_PIN_LOCKED);
-const USER_PIN_TO_BE_CHANGED: FlagBit<TokenInfo> = FlagBit::new(CKF_USER_PIN_TO_BE_CHANGED);
-const SO_PIN_COUNT_LOW: FlagBit<TokenInfo> = FlagBit::new(CKF_SO_PIN_COUNT_LOW);
-const SO_PIN_FINAL_TRY: FlagBit<TokenInfo> = FlagBit::new(CKF_SO_PIN_FINAL_TRY);
-const SO_PIN_LOCKED: FlagBit<TokenInfo> = FlagBit::new(CKF_SO_PIN_LOCKED);
-const SO_PIN_TO_BE_CHANGED: FlagBit<TokenInfo> = FlagBit::new(CKF_SO_PIN_TO_BE_CHANGED);
-const ERROR_STATE: FlagBit<TokenInfo> = FlagBit::new(CKF_ERROR_STATE);
-
-impl Debug for CkFlags<TokenInfo> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Flags")
-            .field("rng", &(self.contains(RNG)))
-            .field("write_protected", &(self.contains(WRITE_PROTECTED)))
-            .field("login_required", &(self.contains(LOGIN_REQUIRED)))
-            .field(
-                "user_pin_initialized",
-                &(self.contains(USER_PIN_INITIALIZED)),
-            )
-            .field(
-                "restore_key_not_needed",
-                &(self.contains(RESTORE_KEY_NOT_NEEDED)),
-            )
-            .field("clock_on token", &(self.contains(CLOCK_ON_TOKEN)))
-            .field(
-                "protected_authentication_path",
-                &(self.contains(PROTECTED_AUTHENTICATION_PATH)),
-            )
-            .field(
-                "dual_crypto_operations",
-                &(self.contains(DUAL_CRYPTO_OPERATIONS)),
-            )
-            .field("token_initialized", &(self.contains(TOKEN_INITIALIZED)))
-            .field(
-                "secondary_authentication",
-                &(self.contains(SECONDARY_AUTHENTICATION)),
-            )
-            .field("user_pin_count_low", &(self.contains(USER_PIN_COUNT_LOW)))
-            .field("user_pin_final_try", &(self.contains(USER_PIN_FINAL_TRY)))
-            .field("user_pin_locked", &(self.contains(USER_PIN_LOCKED)))
-            .field(
-                "user_pin_to_be_changed",
-                &(self.contains(USER_PIN_TO_BE_CHANGED)),
-            )
-            .field("so_pin_count_low", &(self.contains(SO_PIN_COUNT_LOW)))
-            .field("so_pin_final_try", &(self.contains(SO_PIN_FINAL_TRY)))
-            .field("so_pin_locked", &(self.contains(SO_PIN_LOCKED)))
-            .field(
-                "so_pin_to_be_changed",
-                &(self.contains(SO_PIN_TO_BE_CHANGED)),
-            )
-            .field("error_state", &(self.contains(ERROR_STATE)))
-            .finish()
+bitflags! {
+    /// Collection of flags defined for [`CK_TOKEN_INFO`]
+    struct TokenInfoFlags: CK_FLAGS {
+        const RNG = CKF_RNG;
+        const WRITE_PROTECTED = CKF_WRITE_PROTECTED;
+        const LOGIN_REQUIRED = CKF_LOGIN_REQUIRED;
+        const USER_PIN_INITIALIZED = CKF_USER_PIN_INITIALIZED;
+        const RESTORE_KEY_NOT_NEEDED = CKF_RESTORE_KEY_NOT_NEEDED;
+        const CLOCK_ON_TOKEN = CKF_CLOCK_ON_TOKEN;
+        const PROTECTED_AUTHENTICATION_PATH = CKF_PROTECTED_AUTHENTICATION_PATH;
+        const DUAL_CRYPTO_OPERATIONS = CKF_DUAL_CRYPTO_OPERATIONS;
+        const TOKEN_INITIALIZED = CKF_TOKEN_INITIALIZED;
+        const SECONDARY_AUTHENTICATION = CKF_SECONDARY_AUTHENTICATION;
+        const USER_PIN_COUNT_LOW = CKF_USER_PIN_COUNT_LOW;
+        const USER_PIN_FINAL_TRY = CKF_USER_PIN_FINAL_TRY;
+        const USER_PIN_LOCKED = CKF_USER_PIN_LOCKED;
+        const USER_PIN_TO_BE_CHANGED = CKF_USER_PIN_TO_BE_CHANGED;
+        const SO_PIN_COUNT_LOW = CKF_SO_PIN_COUNT_LOW;
+        const SO_PIN_FINAL_TRY = CKF_SO_PIN_FINAL_TRY;
+        const SO_PIN_LOCKED = CKF_SO_PIN_LOCKED;
+        const SO_PIN_TO_BE_CHANGED = CKF_SO_PIN_TO_BE_CHANGED;
+        const ERROR_STATE = CKF_ERROR_STATE;
     }
 }
 
@@ -86,7 +43,7 @@ pub struct TokenInfo {
     manufacturer_id: String, // 32
     model: String,           // 16
     serial_number: String,   // 16
-    flags: CkFlags<Self>,
+    flags: TokenInfoFlags,
     max_session_count: Option<Option<u64>>,
     session_count: Option<u64>,
     max_rw_session_count: Option<Option<u64>>,
@@ -137,7 +94,7 @@ impl TokenInfo {
 
     /// True if the token has its own random number generator
     pub fn rng(&self) -> bool {
-        self.flags.contains(RNG)
+        self.flags.contains(TokenInfoFlags::RNG)
     }
 
     /// True if the token is write-protected
@@ -159,35 +116,36 @@ impl TokenInfo {
     /// public or private, to be created, modified, or deleted unless the user
     /// has successfully called [`Session::login`](crate::session::Session::login).
     pub fn write_protected(&self) -> bool {
-        self.flags.contains(WRITE_PROTECTED)
+        self.flags.contains(TokenInfoFlags::WRITE_PROTECTED)
     }
 
     /// True if there are some cryptographic functions that a user *must* be
     /// logged in to perform
     pub fn login_required(&self) -> bool {
-        self.flags.contains(LOGIN_REQUIRED)
+        self.flags.contains(TokenInfoFlags::LOGIN_REQUIRED)
     }
 
     /// True of the normal user's PIN has been initialized
     pub fn user_pin_initialized(&self) -> bool {
-        self.flags.contains(USER_PIN_INITIALIZED)
+        self.flags.contains(TokenInfoFlags::USER_PIN_INITIALIZED)
     }
 
     /// True if a successful save of a session's cryptographic operations state
     /// *always* contains all keys needed to restore the state of the session.
     pub fn restore_key_not_needed(&self) -> bool {
-        self.flags.contains(RESTORE_KEY_NOT_NEEDED)
+        self.flags.contains(TokenInfoFlags::RESTORE_KEY_NOT_NEEDED)
     }
 
     /// True if the token has its own hardware clock
     pub fn clock_on_token(&self) -> bool {
-        self.flags.contains(CLOCK_ON_TOKEN)
+        self.flags.contains(TokenInfoFlags::CLOCK_ON_TOKEN)
     }
 
     /// True if the token has a "protected authentication path" whereby a user
     /// can log into the token without passing a PIN
     pub fn protected_authentication_path(&self) -> bool {
-        self.flags.contains(PROTECTED_AUTHENTICATION_PATH)
+        self.flags
+            .contains(TokenInfoFlags::PROTECTED_AUTHENTICATION_PATH)
     }
 
     /// True if a single session with the token can perform dual cryptographic
@@ -198,7 +156,7 @@ impl TokenInfo {
     // * sign_encrypt_update
     // * decrypt_verify_update
     pub fn dual_crypto_operations(&self) -> bool {
-        self.flags.contains(DUAL_CRYPTO_OPERATIONS)
+        self.flags.contains(TokenInfoFlags::DUAL_CRYPTO_OPERATIONS)
     }
 
     /// True if the token has been initialized with
@@ -209,7 +167,7 @@ impl TokenInfo {
     /// Calling [`Pkcs11::init_token`](crate::context::Pkcs11::init_token) when
     /// this flag is set will cause the token to be reinitialized.
     pub fn token_initialized(&self) -> bool {
-        self.flags.contains(TOKEN_INITIALIZED)
+        self.flags.contains(TokenInfoFlags::TOKEN_INITIALIZED)
     }
 
     /// True if the token supports secondary authentication for private key
@@ -217,7 +175,8 @@ impl TokenInfo {
     /// **[Conformance](crate#conformance-notes):**
     /// This field is deprecated and new providers *must not* set it. I.e., this function must always return `false`.
     pub fn secondary_authentication(&self) -> bool {
-        self.flags.contains(SECONDARY_AUTHENTICATION)
+        self.flags
+            .contains(TokenInfoFlags::SECONDARY_AUTHENTICATION)
     }
 
     /// True if an incorrect user login PIN has been entered at least once
@@ -228,7 +187,7 @@ impl TokenInfo {
     /// support the functionality or will not reveal the information because of
     /// its security policy.
     pub fn user_pin_count_low(&self) -> bool {
-        self.flags.contains(USER_PIN_COUNT_LOW)
+        self.flags.contains(TokenInfoFlags::USER_PIN_COUNT_LOW)
     }
 
     /// True if supplying an incorrect user PIN will cause it to become locked
@@ -238,13 +197,13 @@ impl TokenInfo {
     /// support the functionality or will not reveal the information because of
     /// its security policy.
     pub fn user_pin_final_try(&self) -> bool {
-        self.flags.contains(USER_PIN_FINAL_TRY)
+        self.flags.contains(TokenInfoFlags::USER_PIN_FINAL_TRY)
     }
 
     /// True if the user PIN has been locked; user login to the token is not
     /// possible
     pub fn user_pin_locked(&self) -> bool {
-        self.flags.contains(USER_PIN_LOCKED)
+        self.flags.contains(TokenInfoFlags::USER_PIN_LOCKED)
     }
 
     /// True if the user PIN value is the default value set by the token
@@ -265,7 +224,7 @@ impl TokenInfo {
     /// [`Session::set_pin`][crate::session::Session::set_pin] is called
     /// successfully.
     pub fn user_pin_to_be_changed(&self) -> bool {
-        self.flags.contains(USER_PIN_TO_BE_CHANGED)
+        self.flags.contains(TokenInfoFlags::USER_PIN_TO_BE_CHANGED)
     }
 
     /// True if an incorrect Security Officer login PIN has been entered at least once since
@@ -276,7 +235,7 @@ impl TokenInfo {
     /// support the functionality or will not reveal the information because of
     /// its security policy.
     pub fn so_pin_count_low(&self) -> bool {
-        self.flags.contains(SO_PIN_COUNT_LOW)
+        self.flags.contains(TokenInfoFlags::SO_PIN_COUNT_LOW)
     }
 
     /// True if supplying an incorrect Security Officer PIN will cause it to become locked
@@ -286,13 +245,13 @@ impl TokenInfo {
     /// support the functionality or will not reveal the information because of
     /// its security policy.
     pub fn so_pin_final_try(&self) -> bool {
-        self.flags.contains(SO_PIN_FINAL_TRY)
+        self.flags.contains(TokenInfoFlags::SO_PIN_FINAL_TRY)
     }
 
     /// True if the Security Officer PIN has been locked; Security Officer login to the token is not
     /// possible
     pub fn so_pin_locked(&self) -> bool {
-        self.flags.contains(SO_PIN_LOCKED)
+        self.flags.contains(TokenInfoFlags::SO_PIN_LOCKED)
     }
 
     /// True if the Security Officer PIN value is the default value set by the token
@@ -312,12 +271,12 @@ impl TokenInfo {
     /// [`Session::set_pin`][crate::session::Session::set_pin] is called
     /// successfully.
     pub fn so_pin_to_be_changed(&self) -> bool {
-        self.flags.contains(SO_PIN_TO_BE_CHANGED)
+        self.flags.contains(TokenInfoFlags::SO_PIN_TO_BE_CHANGED)
     }
 
     /// True if the token failed a FIPS 140-2 self-test and entered an error state
     pub fn error_state(&self) -> bool {
-        self.flags.contains(ERROR_STATE)
+        self.flags.contains(TokenInfoFlags::ERROR_STATE)
     }
 
     /// The maximum number of sessions that can be opened with the token at one
@@ -416,8 +375,8 @@ impl TokenInfo {
 impl TryFrom<CK_TOKEN_INFO> for TokenInfo {
     type Error = Error;
     fn try_from(val: CK_TOKEN_INFO) -> Result<Self> {
-        let flags = CkFlags::from(val.flags);
-        let utc_time = if flags.contains(CLOCK_ON_TOKEN) {
+        let flags = TokenInfoFlags::from_bits_truncate(val.flags);
+        let utc_time = if flags.contains(TokenInfoFlags::CLOCK_ON_TOKEN) {
             convert_utc_time(val.utcTime)?
         } else {
             None
@@ -447,63 +406,20 @@ impl TryFrom<CK_TOKEN_INFO> for TokenInfo {
 
 #[cfg(test)]
 mod test {
-    use super::TokenInfo;
-    use crate::{flag::CkFlags, types::UtcTime, types::Version};
-    use cryptoki_sys::CK_FLAGS;
+    use super::{TokenInfo, TokenInfoFlags};
+    use crate::types::{UtcTime, Version};
 
     #[test]
     fn debug_flags_all() {
-        let expected = r"Flags {
-    rng: true,
-    write_protected: true,
-    login_required: true,
-    user_pin_initialized: true,
-    restore_key_not_needed: true,
-    clock_on token: true,
-    protected_authentication_path: true,
-    dual_crypto_operations: true,
-    token_initialized: true,
-    secondary_authentication: true,
-    user_pin_count_low: true,
-    user_pin_final_try: true,
-    user_pin_locked: true,
-    user_pin_to_be_changed: true,
-    so_pin_count_low: true,
-    so_pin_final_try: true,
-    so_pin_locked: true,
-    so_pin_to_be_changed: true,
-    error_state: true,
-}";
-        let all: CkFlags<TokenInfo> = CkFlags::from(CK_FLAGS::MAX);
+        let expected = "\
+RNG | WRITE_PROTECTED | LOGIN_REQUIRED | USER_PIN_INITIALIZED | \
+RESTORE_KEY_NOT_NEEDED | CLOCK_ON_TOKEN | PROTECTED_AUTHENTICATION_PATH | \
+DUAL_CRYPTO_OPERATIONS | TOKEN_INITIALIZED | SECONDARY_AUTHENTICATION | \
+USER_PIN_COUNT_LOW | USER_PIN_FINAL_TRY | USER_PIN_LOCKED | \
+USER_PIN_TO_BE_CHANGED | SO_PIN_COUNT_LOW | SO_PIN_FINAL_TRY | SO_PIN_LOCKED | \
+SO_PIN_TO_BE_CHANGED | ERROR_STATE";
+        let all = TokenInfoFlags::all();
         let observed = format!("{:#?}", all);
-        assert_eq!(observed, expected);
-    }
-
-    #[test]
-    fn debug_flags_none() {
-        let expected = r"Flags {
-    rng: false,
-    write_protected: false,
-    login_required: false,
-    user_pin_initialized: false,
-    restore_key_not_needed: false,
-    clock_on token: false,
-    protected_authentication_path: false,
-    dual_crypto_operations: false,
-    token_initialized: false,
-    secondary_authentication: false,
-    user_pin_count_low: false,
-    user_pin_final_try: false,
-    user_pin_locked: false,
-    user_pin_to_be_changed: false,
-    so_pin_count_low: false,
-    so_pin_final_try: false,
-    so_pin_locked: false,
-    so_pin_to_be_changed: false,
-    error_state: false,
-}";
-        let none: CkFlags<TokenInfo> = CkFlags::from(0);
-        let observed = format!("{:#?}", none);
         assert_eq!(observed, expected);
     }
 
@@ -514,7 +430,7 @@ mod test {
             manufacturer_id: String::from("Manufacturer ID"),
             model: String::from("Token Model"),
             serial_number: String::from("Serial Number"),
-            flags: CkFlags::from(0),
+            flags: TokenInfoFlags::empty(),
             max_session_count: Some(Some(100)), // max == 100
             session_count: None,                // unavailable
             max_rw_session_count: Some(None),   // max == infinite
@@ -541,27 +457,7 @@ mod test {
     manufacturer_id: "Manufacturer ID",
     model: "Token Model",
     serial_number: "Serial Number",
-    flags: Flags {
-        rng: false,
-        write_protected: false,
-        login_required: false,
-        user_pin_initialized: false,
-        restore_key_not_needed: false,
-        clock_on token: false,
-        protected_authentication_path: false,
-        dual_crypto_operations: false,
-        token_initialized: false,
-        secondary_authentication: false,
-        user_pin_count_low: false,
-        user_pin_final_try: false,
-        user_pin_locked: false,
-        user_pin_to_be_changed: false,
-        so_pin_count_low: false,
-        so_pin_final_try: false,
-        so_pin_locked: false,
-        so_pin_to_be_changed: false,
-        error_state: false,
-    },
+    flags: (empty),
     max_session_count: Some(
         Some(
             100,
