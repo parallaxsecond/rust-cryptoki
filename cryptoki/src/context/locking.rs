@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Locking related type
 
-use super::InitializeFlags;
+use cryptoki_sys::{CKF_OS_LOCKING_OK, CK_FLAGS};
+
 use std::ptr;
 
 /// Argument for the initialize function
@@ -16,12 +17,12 @@ pub enum CInitializeArgs {
 
 impl From<CInitializeArgs> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
     fn from(c_initialize_args: CInitializeArgs) -> Self {
-        let mut flags = InitializeFlags::default();
+        let mut flags = CK_FLAGS::default();
         match c_initialize_args {
             CInitializeArgs::OsThreads => {
-                let _ = flags.set_os_locking_ok(true);
+                flags |= CKF_OS_LOCKING_OK;
                 Self {
-                    flags: flags.into(),
+                    flags,
                     CreateMutex: None,
                     DestroyMutex: None,
                     LockMutex: None,

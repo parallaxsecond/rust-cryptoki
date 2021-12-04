@@ -13,7 +13,6 @@ macro_rules! get_pkcs11 {
     };
 }
 
-mod flags;
 mod general_purpose;
 mod info;
 mod locking;
@@ -21,7 +20,6 @@ mod session_management;
 mod slot_token_management;
 
 use cryptoki_sys::{CK_FALSE, CK_TRUE};
-pub use flags::*;
 pub use info::*;
 pub use locking::*;
 
