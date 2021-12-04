@@ -441,19 +441,16 @@ fn get_session_info_test() -> Result<()> {
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
-        assert_eq!(
+        assert!(matches!(
             session_info.session_state(),
-            SessionState::RO_PUBLIC_SESSION
-        );
+            SessionState::RoPublic
+        ));
 
         session.login(UserType::User, Some(USER_PIN))?;
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
-        assert_eq!(
-            session_info.session_state(),
-            SessionState::RO_USER_FUNCTIONS
-        );
+        assert!(matches!(session_info.session_state(), SessionState::RoUser));
         session.logout()?;
         if let Err(cryptoki::error::Error::Pkcs11(rv_error)) =
             session.login(UserType::So, Some(SO_PIN))
@@ -468,25 +465,25 @@ fn get_session_info_test() -> Result<()> {
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
-    assert_eq!(
+    assert!(matches!(
         session_info.session_state(),
-        SessionState::RW_PUBLIC_SESSION
-    );
+        SessionState::RwPublic
+    ));
 
     session.login(UserType::User, Some(USER_PIN))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
-    assert_eq!(
-        session_info.session_state(),
-        SessionState::RW_USER_FUNCTIONS
-    );
+    assert!(matches!(session_info.session_state(), SessionState::RwUser,));
     session.logout()?;
     session.login(UserType::So, Some(SO_PIN))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
-    assert_eq!(session_info.session_state(), SessionState::RW_SO_FUNCTIONS);
+    assert!(matches!(
+        session_info.session_state(),
+        SessionState::RwSecurityOfficer
+    ));
 
     Ok(())
 }

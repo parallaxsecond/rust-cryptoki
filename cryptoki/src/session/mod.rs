@@ -12,7 +12,6 @@ use log::error;
 use std::collections::HashMap;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
-use std::ops::Deref;
 
 mod decryption;
 mod encryption;
@@ -24,7 +23,7 @@ mod session_management;
 mod signing_macing;
 mod slot_token_management;
 
-pub use session_info::SessionInfo;
+pub use session_info::{SessionInfo, SessionState};
 
 /// Type that identifies a session
 ///
@@ -364,76 +363,5 @@ impl From<UserType> for CK_USER_TYPE {
             UserType::User => CKU_USER,
             UserType::ContextSpecific => CKU_CONTEXT_SPECIFIC,
         }
-    }
-}
-
-/// Represents the state of a session
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct SessionState {
-    val: CK_STATE,
-}
-
-impl SessionState {
-    /// Read-only public session
-    pub const RO_PUBLIC_SESSION: SessionState = SessionState {
-        val: CKS_RO_PUBLIC_SESSION,
-    };
-
-    /// Read-only user access
-    pub const RO_USER_FUNCTIONS: SessionState = SessionState {
-        val: CKS_RO_USER_FUNCTIONS,
-    };
-
-    /// Read/write public session
-    pub const RW_PUBLIC_SESSION: SessionState = SessionState {
-        val: CKS_RW_PUBLIC_SESSION,
-    };
-
-    /// Read/write user access
-    pub const RW_USER_FUNCTIONS: SessionState = SessionState {
-        val: CKS_RW_USER_FUNCTIONS,
-    };
-
-    /// Read/write SO access
-    pub const RW_SO_FUNCTIONS: SessionState = SessionState {
-        val: CKS_RW_SO_FUNCTIONS,
-    };
-
-    /// Stringifies the value of a [CK_STATE]
-    pub(crate) fn stringify(state: CK_STATE) -> &'static str {
-        match state {
-            CKS_RO_PUBLIC_SESSION => stringify!(CKS_RO_PUBLIC_SESSION),
-            CKS_RO_USER_FUNCTIONS => stringify!(CKS_RO_USER_FUNCTIONS),
-            CKS_RW_PUBLIC_SESSION => stringify!(CKS_RW_PUBLIC_SESSION),
-            CKS_RW_USER_FUNCTIONS => stringify!(CKS_RW_USER_FUNCTIONS),
-            CKS_RW_SO_FUNCTIONS => stringify!(CKS_RW_SO_FUNCTIONS),
-            _ => "Unknown state value",
-        }
-    }
-}
-
-impl Deref for SessionState {
-    type Target = CK_STATE;
-
-    fn deref(&self) -> &Self::Target {
-        &self.val
-    }
-}
-
-impl From<SessionState> for CK_STATE {
-    fn from(session_state: SessionState) -> Self {
-        *session_state
-    }
-}
-
-impl From<CK_STATE> for SessionState {
-    fn from(val: CK_STATE) -> Self {
-        Self { val }
-    }
-}
-
-impl std::fmt::Display for SessionState {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", SessionState::stringify(self.val))
     }
 }
