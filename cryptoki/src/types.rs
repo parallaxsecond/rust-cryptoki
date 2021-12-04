@@ -6,7 +6,6 @@ use crate::error::{Error, Result};
 use cryptoki_sys::*;
 use std::convert::TryFrom;
 use std::convert::TryInto;
-use std::fmt;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
@@ -250,12 +249,17 @@ pub struct UtcTime {
     pub second: u8,
 }
 
-/// Uses ISO 8601 format for convenience, but does not guarantee
-/// or enforce any part of that standard.
-impl fmt::Display for UtcTime {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+impl UtcTime {
+    /// Stringify the structure in ISO 8601 format.
+    ///
+    /// PKCS#11 and ISO are unrelated standards, and this funciton is provided
+    /// only for convenience. ISO format is more widely recognized and parsable
+    /// by various date/time utilities, while PKCS#11's internal representation
+    /// of this type is is not used elsewhere.
+    /// Other than formatting, this crate does not guarantee or enforce any part
+    /// of the ISO standard.
+    pub fn as_iso8601_string(&self) -> String {
+        format!(
             "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z",
             self.year, self.month, self.day, self.hour, self.minute, self.second
         )
@@ -329,7 +333,7 @@ mod test {
     }
     #[test]
     fn utc_time_display_fmt() {
-        let display = format!("{}", UTC_TIME);
-        assert_eq!(&display, "1970-01-01T00:00:00Z");
+        let iso_format = UTC_TIME.as_iso8601_string();
+        assert_eq!(&iso_format, "1970-01-01T00:00:00Z");
     }
 }
