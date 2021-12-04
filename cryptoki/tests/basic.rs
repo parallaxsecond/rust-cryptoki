@@ -7,7 +7,7 @@ use common::init_pins;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
-use cryptoki::session::{SessionFlags, SessionState, UserType};
+use cryptoki::session::{SessionState, UserType};
 use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
@@ -27,10 +27,6 @@ type Result<T> = std::result::Result<T, ErrorWithStacktrace>;
 #[serial]
 fn sign_verify() -> Result<()> {
     let (pkcs11, slot) = init_pins();
-
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true)?;
@@ -79,10 +75,6 @@ fn sign_verify() -> Result<()> {
 #[serial]
 fn encrypt_decrypt() -> Result<()> {
     let (pkcs11, slot) = init_pins();
-
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true)?;
@@ -135,10 +127,6 @@ fn encrypt_decrypt() -> Result<()> {
 #[serial]
 fn derive_key() -> Result<()> {
     let (pkcs11, slot) = init_pins();
-
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true)?;
@@ -231,10 +219,6 @@ fn derive_key() -> Result<()> {
 fn import_export() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
-
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true)?;
 
@@ -301,10 +285,6 @@ fn get_token_info() -> Result<()> {
 #[serial]
 fn wrap_and_unwrap_key() {
     let (pkcs11, slot) = init_pins();
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
-
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true).unwrap();
 
@@ -390,11 +370,6 @@ fn login_feast() {
     const SESSIONS: usize = 100;
 
     let (pkcs11, slot) = init_pins();
-
-    // set flags
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
-
     let mut threads = Vec::new();
 
     for _ in 0..SESSIONS {
@@ -461,9 +436,6 @@ fn get_slot_info_test() -> Result<()> {
 #[serial]
 fn get_session_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
-
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_serial_session(true);
     {
         let session = pkcs11.open_session_no_callback(slot, false)?;
         let session_info = session.get_session_info()?;
@@ -491,8 +463,6 @@ fn get_session_info_test() -> Result<()> {
             panic!("Should error when attempting to log in as CKU_SO on a read-only session");
         }
     }
-
-    let _ = flags.set_rw_session(true);
 
     let session = pkcs11.open_session_no_callback(slot, true)?;
     let session_info = session.get_session_info()?;
@@ -526,9 +496,6 @@ fn get_session_info_test() -> Result<()> {
 fn generate_random_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
-    let mut flags = SessionFlags::new();
-
-    let _ = flags.set_serial_session(true);
     let session = pkcs11.open_session_no_callback(slot, false)?;
 
     let poor_seed: [u8; 32] = [0; 32];
@@ -553,9 +520,6 @@ fn set_pin_test() -> Result<()> {
     let new_user_pin = "123456";
     let (pkcs11, slot) = init_pins();
 
-    let mut flags = SessionFlags::new();
-
-    let _ = flags.set_serial_session(true).set_rw_session(true);
     let session = pkcs11.open_session_no_callback(slot, true)?;
 
     session.login(UserType::User, Some(USER_PIN))?;
@@ -570,9 +534,6 @@ fn set_pin_test() -> Result<()> {
 #[serial]
 fn get_attribute_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
-
-    let mut flags = SessionFlags::new();
-    let _ = flags.set_rw_session(true).set_serial_session(true);
 
     // open a session
     let session = pkcs11.open_session_no_callback(slot, true)?;
