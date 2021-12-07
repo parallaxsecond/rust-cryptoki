@@ -2891,6 +2891,7 @@ pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut ck_des_cbc_encrypt_data_param
 pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS = ck_aes_cbc_encrypt_data_params;
 pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut ck_aes_cbc_encrypt_data_params;
 extern crate libloading;
+use libloading::os::unix::RTLD_NOW;
 pub struct Pkcs11 {
     __library: ::libloading::Library,
     pub C_GetFunctionList: Result<
@@ -2903,7 +2904,10 @@ impl Pkcs11 {
     where
         P: AsRef<::std::ffi::OsStr>,
     {
-        let library = ::libloading::Library::new(path)?;
+        // https://github.com/parallaxsecond/rust-cryptoki/issues/72
+        let RTLD_NODELETE = 0x1000;
+        let os_lib = libloading::os::unix::Library::open(Some(path), RTLD_NOW | RTLD_NODELETE)?;
+        let library = libloading::Library::from(os_lib);
         Self::from_library(library)
     }
     pub unsafe fn from_library<L>(library: L) -> Result<Self, ::libloading::Error>
