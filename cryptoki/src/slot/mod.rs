@@ -10,7 +10,7 @@ mod slot_info;
 mod token_info;
 
 pub use slot_info::SlotInfo;
-pub use token_info::TokenInfo;
+pub use token_info::{Limit, TokenInfo};
 
 use crate::error::{Error, Result};
 use cryptoki_sys::CK_SLOT_ID;

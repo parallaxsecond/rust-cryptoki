@@ -4,8 +4,8 @@
 
 use crate::error::{Error, Result};
 use crate::string_from_blank_padded;
-use crate::types::{convert_utc_time, maybe_unlimited};
-use crate::types::{MaybeUnavailable, UtcTime, Version};
+use crate::types::convert_utc_time;
+use crate::types::{UtcTime, Version};
 use bitflags::bitflags;
 use cryptoki_sys::*;
 use std::convert::TryFrom;
@@ -36,6 +36,17 @@ bitflags! {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+/// A limiting value for the token that may or may not take an explicit value
+pub enum Limit {
+    /// There is an explict value for this limit
+    Max(u64),
+    /// The token does not provide information about this limit
+    Unavailable,
+    /// The limit is "effectively infinite" and may be treated as such
+    Infinite,
+}
+
 /// Information about a token
 #[derive(Debug, Clone)]
 pub struct TokenInfo {
@@ -44,9 +55,9 @@ pub struct TokenInfo {
     model: String,           // 16
     serial_number: String,   // 16
     flags: TokenInfoFlags,
-    max_session_count: Option<Option<u64>>,
+    max_session_count: Limit,
     session_count: Option<u64>,
-    max_rw_session_count: Option<Option<u64>>,
+    max_rw_session_count: Limit,
     rw_session_count: Option<u64>,
     max_pin_len: usize,
     min_pin_len: usize,
@@ -57,6 +68,53 @@ pub struct TokenInfo {
     hardware_version: Version,
     firmware_version: Version,
     utc_time: Option<UtcTime>,
+}
+trait MaybeUnavailable: Sized {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<Self>;
+}
+
+impl MaybeUnavailable for usize {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<usize> {
+        if value == CK_UNAVAILABLE_INFORMATION {
+            None
+        } else {
+            Some(value as usize)
+        }
+    }
+}
+
+impl MaybeUnavailable for u64 {
+    fn maybe_unavailable(value: CK_ULONG) -> Option<u64> {
+        if value == CK_UNAVAILABLE_INFORMATION {
+            None
+        } else {
+            // Must have cast for when ulong is 32 bits
+            // Must have lint suppression when ulong is 64 bits
+            #[allow(trivial_numeric_casts)]
+            Some(value as u64)
+        }
+    }
+}
+
+/// Flattens both `Infinite` and `Unavailable` to `None`,
+impl From<Limit> for Option<u64> {
+    fn from(limit: Limit) -> Self {
+        match limit {
+            Limit::Unavailable | Limit::Infinite => None,
+            Limit::Max(n) => Some(n),
+        }
+    }
+}
+
+fn maybe_unlimited(value: CK_ULONG) -> Limit {
+    match value {
+        CK_UNAVAILABLE_INFORMATION => Limit::Unavailable,
+        CK_EFFECTIVELY_INFINITE => Limit::Infinite,
+        // Must have cast for when ulong is 32 bits
+        // Must have lint suppression when ulong is 64 bits
+        #[allow(trivial_numeric_casts)]
+        _ => Limit::Max(value as u64),
+    }
 }
 
 impl TokenInfo {
@@ -280,11 +338,8 @@ impl TokenInfo {
     }
 
     /// The maximum number of sessions that can be opened with the token at one
-    /// time by a single application
-    /// If `None`, this information was unavailable.
-    /// If `Some(None)` there is no maximum, meaning the value is effectively infinite
-    /// If `Some(Some(n))` the maximum number of sessions is `n`
-    pub fn max_session_count(&self) -> Option<Option<u64>> {
+    /// time by a single application.
+    pub fn max_session_count(&self) -> Limit {
         self.max_session_count
     }
 
@@ -295,11 +350,8 @@ impl TokenInfo {
     }
 
     /// The maximum number of read/write sessions that can be opened with the
-    /// token at one time by a single application
-    /// If `None`, this information was unavailable.
-    /// If `Some(None)` there is no maximum, meaning the value is effectively infinite
-    /// If `Some(Some(n))` the maximum number of read/write sessions is `n`
-    pub fn max_rw_session_count(&self) -> Option<Option<u64>> {
+    /// token at one time by a single application.
+    pub fn max_rw_session_count(&self) -> Limit {
         self.max_rw_session_count
     }
 
@@ -406,7 +458,7 @@ impl TryFrom<CK_TOKEN_INFO> for TokenInfo {
 
 #[cfg(test)]
 mod test {
-    use super::{TokenInfo, TokenInfoFlags};
+    use super::{Limit, TokenInfo, TokenInfoFlags};
     use crate::types::{UtcTime, Version};
 
     #[test]
@@ -431,9 +483,9 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
             model: String::from("Token Model"),
             serial_number: String::from("Serial Number"),
             flags: TokenInfoFlags::empty(),
-            max_session_count: Some(Some(100)), // max == 100
-            session_count: None,                // unavailable
-            max_rw_session_count: Some(None),   // max == infinite
+            max_session_count: Limit::Max(100),    // max == 100
+            session_count: None,                   // unavailable
+            max_rw_session_count: Limit::Infinite, // max == infinite
             rw_session_count: Some(1),
             max_pin_len: 16,
             min_pin_len: 4,
@@ -458,15 +510,11 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
     model: "Token Model",
     serial_number: "Serial Number",
     flags: (empty),
-    max_session_count: Some(
-        Some(
-            100,
-        ),
+    max_session_count: Max(
+        100,
     ),
     session_count: None,
-    max_rw_session_count: Some(
-        None,
-    ),
+    max_rw_session_count: Infinite,
     rw_session_count: Some(
         1,
     ),
