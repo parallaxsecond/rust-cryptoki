@@ -1,5 +1,37 @@
 # Changelog
 
+## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2021-11-22)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-0.4.0)
+
+**Implemented enhancements:**
+
+- PIN Handling [\#50](https://github.com/parallaxsecond/rust-cryptoki/issues/50)
+- Updates for getting attribute info - \#42 [\#48](https://github.com/parallaxsecond/rust-cryptoki/pull/48) ([mjb3279](https://github.com/mjb3279))
+- Add secret key generation and key wrapping functions [\#38](https://github.com/parallaxsecond/rust-cryptoki/pull/38) ([wiktor-k](https://github.com/wiktor-k))
+
+**Fixed bugs:**
+
+- Provide attribute type in return from `get_attribute_info` [\#42](https://github.com/parallaxsecond/rust-cryptoki/issues/42)
+- Remove unused field [\#53](https://github.com/parallaxsecond/rust-cryptoki/pull/53) ([hug-dev](https://github.com/hug-dev))
+
+**Closed issues:**
+
+- Module tree structure makes docs difficult to navigate [\#55](https://github.com/parallaxsecond/rust-cryptoki/issues/55)
+
+**Merged pull requests:**
+
+- Suppress null pointer deref warnings [\#62](https://github.com/parallaxsecond/rust-cryptoki/pull/62) ([vkkoskie](https://github.com/vkkoskie))
+- Use rust's own bool type in abstraction crate [\#61](https://github.com/parallaxsecond/rust-cryptoki/pull/61) ([vkkoskie](https://github.com/vkkoskie))
+- Switch to inclusive bindgen naming [\#60](https://github.com/parallaxsecond/rust-cryptoki/pull/60) ([vkkoskie](https://github.com/vkkoskie))
+- Implemented new way of holding the context within the session [\#59](https://github.com/parallaxsecond/rust-cryptoki/pull/59) ([mjb3279](https://github.com/mjb3279))
+- Module tree hygiene [\#56](https://github.com/parallaxsecond/rust-cryptoki/pull/56) ([vkkoskie](https://github.com/vkkoskie))
+- Fixes to address \#50 [\#52](https://github.com/parallaxsecond/rust-cryptoki/pull/52) ([mjb3279](https://github.com/mjb3279))
+- Merge `devel` into `main` [\#51](https://github.com/parallaxsecond/rust-cryptoki/pull/51) ([hug-dev](https://github.com/hug-dev))
+- Added support for `C_SetPIN` [\#49](https://github.com/parallaxsecond/rust-cryptoki/pull/49) ([mjb3279](https://github.com/mjb3279))
+- Simplify test code by using Results instead of unwraps [\#39](https://github.com/parallaxsecond/rust-cryptoki/pull/39) ([wiktor-k](https://github.com/wiktor-k))
+- Update CHaNGELOG [\#37](https://github.com/parallaxsecond/rust-cryptoki/pull/37) ([hug-dev](https://github.com/hug-dev))
+
 ## [cryptoki-0.2.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.2.0) (2021-08-03)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.2...cryptoki-0.2.0)
