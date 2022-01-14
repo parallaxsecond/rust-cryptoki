@@ -155,7 +155,8 @@ impl std::fmt::Display for Version {
 
 impl Version {
     /// Construct a new version
-    pub fn new(major: u8, minor: u8) -> Self {
+    #[cfg(test)]
+    pub(crate) fn new(major: u8, minor: u8) -> Self {
         Self { major, minor }
     }
 
