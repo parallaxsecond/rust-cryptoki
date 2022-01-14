@@ -429,7 +429,7 @@ impl TryFrom<CK_TOKEN_INFO> for TokenInfo {
     fn try_from(val: CK_TOKEN_INFO) -> Result<Self> {
         let flags = TokenInfoFlags::from_bits_truncate(val.flags);
         let utc_time = if flags.contains(TokenInfoFlags::CLOCK_ON_TOKEN) {
-            convert_utc_time(val.utcTime)?
+            Some(convert_utc_time(val.utcTime)?)
         } else {
             None
         };

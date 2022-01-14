@@ -229,17 +229,17 @@ impl UtcTime {
 }
 
 // UTC time has the format YYYYMMDDhhmmss00 as ASCII digits
-pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<Option<UtcTime>> {
+pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<UtcTime> {
     // Note: No validaiton of these values beyond being ASCII digits
     // because PKCS#11 doesn't impose any such restrictions.
-    Ok(Some(UtcTime {
+    Ok(UtcTime {
         year: std::str::from_utf8(&orig[0..4])?.parse()?,
         month: std::str::from_utf8(&orig[4..6])?.parse()?,
         day: std::str::from_utf8(&orig[6..8])?.parse()?,
         hour: std::str::from_utf8(&orig[8..10])?.parse()?,
         minute: std::str::from_utf8(&orig[10..12])?.parse()?,
         second: std::str::from_utf8(&orig[12..14])?.parse()?,
-    }))
+    })
 }
 
 #[cfg(test)]
@@ -261,7 +261,7 @@ mod test {
             0x31, 0x39, 0x37, 0x30, 0x30, 0x31, 0x30, 0x31, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30,
             0x30, 0x30,
         ];
-        let valid = convert_utc_time(valid).unwrap().unwrap();
+        let valid = convert_utc_time(valid).unwrap();
         assert_eq!(valid.year, UTC_TIME.year);
         assert_eq!(valid.month, UTC_TIME.month);
         assert_eq!(valid.day, UTC_TIME.day);
