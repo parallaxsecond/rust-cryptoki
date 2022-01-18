@@ -108,6 +108,24 @@ impl MechanismType {
         val: CKM_SHA512_RSA_PKCS,
     };
 
+    // SHAn-RSA-PKCS-PSS
+    /// SHA1-RSA-PKCS-PSS mechanism
+    pub const SHA1_RSA_PKCS_PSS: MechanismType = MechanismType {
+        val: CKM_SHA1_RSA_PKCS_PSS,
+    };
+    /// SHA256-RSA-PKCS-PSS mechanism
+    pub const SHA256_RSA_PKCS_PSS: MechanismType = MechanismType {
+        val: CKM_SHA256_RSA_PKCS_PSS,
+    };
+    /// SHA384-RSA-PKCS-PSS mechanism
+    pub const SHA384_RSA_PKCS_PSS: MechanismType = MechanismType {
+        val: CKM_SHA384_RSA_PKCS_PSS,
+    };
+    /// SHA512-RSA-PKCS-PSS mechanism
+    pub const SHA512_RSA_PKCS_PSS: MechanismType = MechanismType {
+        val: CKM_SHA512_RSA_PKCS_PSS,
+    };
+
     pub(crate) fn stringify(mech: CK_MECHANISM_TYPE) -> String {
         match mech {
             CKM_RSA_PKCS_KEY_PAIR_GEN => String::from(stringify!(CKM_RSA_PKCS_KEY_PAIR_GEN)),
@@ -575,6 +593,16 @@ pub enum Mechanism {
     Sha384RsaPkcs,
     /// SHA512-RSA-PKCS mechanism
     Sha512RsaPkcs,
+
+    // SHAn-RSA-PKCS-PSS
+    /// SHA1-RSA-PKCS-PSS mechanism
+    Sha1RsaPkcsPss(rsa::PkcsPssParams),
+    /// SHA256-RSA-PKCS-PSS mechanism
+    Sha256RsaPkcsPss(rsa::PkcsPssParams),
+    /// SHA256-RSA-PKCS-PSS mechanism
+    Sha384RsaPkcsPss(rsa::PkcsPssParams),
+    /// SHA256-RSA-PKCS-PSS mechanism
+    Sha512RsaPkcsPss(rsa::PkcsPssParams),
 }
 
 impl Mechanism {
@@ -605,6 +633,11 @@ impl Mechanism {
             Mechanism::Sha256RsaPkcs => MechanismType::SHA256_RSA_PKCS,
             Mechanism::Sha384RsaPkcs => MechanismType::SHA384_RSA_PKCS,
             Mechanism::Sha512RsaPkcs => MechanismType::SHA512_RSA_PKCS,
+
+            Mechanism::Sha1RsaPkcsPss(_) => MechanismType::SHA1_RSA_PKCS_PSS,
+            Mechanism::Sha256RsaPkcsPss(_) => MechanismType::SHA256_RSA_PKCS_PSS,
+            Mechanism::Sha384RsaPkcsPss(_) => MechanismType::SHA384_RSA_PKCS_PSS,
+            Mechanism::Sha512RsaPkcsPss(_) => MechanismType::SHA512_RSA_PKCS_PSS,
         }
     }
 }
@@ -613,7 +646,11 @@ impl From<&Mechanism> for CK_MECHANISM {
     fn from(mech: &Mechanism) -> Self {
         let mechanism = mech.mechanism_type().into();
         match mech {
-            Mechanism::RsaPkcsPss(params) => CK_MECHANISM {
+            Mechanism::RsaPkcsPss(params)
+            | Mechanism::Sha1RsaPkcsPss(params)
+            | Mechanism::Sha256RsaPkcsPss(params)
+            | Mechanism::Sha384RsaPkcsPss(params)
+            | Mechanism::Sha512RsaPkcsPss(params) => CK_MECHANISM {
                 mechanism,
                 pParameter: params as *const _ as *mut c_void,
                 ulParameterLen: std::mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>()

@@ -135,12 +135,6 @@ pub struct PkcsPssParams {
     pub s_len: Ulong,
 }
 
-impl From<PkcsPssParams> for Mechanism {
-    fn from(pkcs_pss_params: PkcsPssParams) -> Self {
-        Mechanism::RsaPkcsPss(pkcs_pss_params)
-    }
-}
-
 /// Parameters of the RsaPkcsOaep mechanism
 #[derive(Copy, Debug, Clone)]
 #[repr(C)]
