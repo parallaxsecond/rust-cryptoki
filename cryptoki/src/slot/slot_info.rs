@@ -47,7 +47,7 @@ impl SlotInfo {
     ///
     /// **[Conformance](crate#conformance-notes):**
     /// If this slot does not represent a removable device, a token is *always*
-    /// considered to be present. That is, `slot.removable device() == false`
+    /// considered to be present. That is, `slot.removable_device() == false`
     /// implies `slot.token_present() == true`.
     pub fn token_present(&self) -> bool {
         self.flags.contains(SlotInfoFlags::TOKEN_PRESENT)

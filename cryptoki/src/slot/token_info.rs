@@ -50,10 +50,14 @@ pub enum Limit {
 /// Information about a token
 #[derive(Debug, Clone)]
 pub struct TokenInfo {
-    label: String,           // 32
-    manufacturer_id: String, // 32
-    model: String,           // 16
-    serial_number: String,   // 16
+    // The following four strings are limited in size based on
+    // the orignating struct definition. Sizes are in *bytes*
+    // but UTF-8 data may represent fewer characters.
+    // Original buffers were space (0x20) padded.
+    label: String,           // len <= 32 bytes
+    manufacturer_id: String, // len <= 32 bytes
+    model: String,           // len <= 16 bytes
+    serial_number: String,   // len <= 16 bytes
     flags: TokenInfoFlags,
     max_session_count: Limit,
     session_count: Option<u64>,
