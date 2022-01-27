@@ -625,3 +625,24 @@ fn get_attribute_info_test() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn is_fn_supported_test() {
+    use cryptoki::context::Function;
+
+    let (pkcs11, _) = init_pins();
+
+    assert!(
+        pkcs11.is_fn_supported(Function::Initialize),
+        "C_Initialize function reports as not supported"
+    );
+    assert!(
+        pkcs11.is_fn_supported(Function::Sign),
+        "C_Sign function reports as not supported"
+    );
+    assert!(
+        pkcs11.is_fn_supported(Function::DigestFinal),
+        "C_DigestFinal function reports as not supported"
+    );
+}
