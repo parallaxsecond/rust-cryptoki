@@ -20,6 +20,7 @@ mod session_management;
 mod slot_token_management;
 
 use cryptoki_sys::{CK_FALSE, CK_TRUE};
+pub use general_purpose::*;
 pub use info::*;
 pub use locking::*;
 
@@ -77,7 +78,7 @@ pub struct Pkcs11 {
 }
 
 impl Pkcs11 {
-    /// Instantiate a new context from the path of a PKCS11 dynamic llibrary implementation.
+    /// Instantiate a new context from the path of a PKCS11 dynamic library implementation.
     pub fn new<P>(filename: P) -> Result<Self>
     where
         P: AsRef<Path>,
@@ -102,7 +103,7 @@ impl Pkcs11 {
 
     /// Initialize the PKCS11 library
     pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
-        general_purpose::initialize(self, init_args)
+        initialize(self, init_args)
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
@@ -111,7 +112,7 @@ impl Pkcs11 {
 
     /// Returns the information about the library
     pub fn get_library_info(&self) -> Result<Info> {
-        general_purpose::get_library_info(self)
+        get_library_info(self)
     }
 
     /// Get all slots available with a token
@@ -159,5 +160,10 @@ impl Pkcs11 {
     /// Open a new session with no callback set
     pub fn open_session_no_callback(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
         session_management::open_session_no_callback(self, slot_id, read_write)
+    }
+
+    /// Check whether a given PKCS11 spec-defined function is supported by this implementation
+    pub fn is_fn_supported(&self, function: Function) -> bool {
+        is_fn_supported(self, function)
     }
 }
