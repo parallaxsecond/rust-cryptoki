@@ -11,7 +11,7 @@ pub static USER_PIN: &str = "fedcba";
 pub static SO_PIN: &str = "abcdef";
 
 pub fn init_pins() -> (Pkcs11, Slot) {
-    let pkcs11 = Pkcs11::new(
+    let mut pkcs11 = Pkcs11::new(
         env::var("PKCS11_SOFTHSM2_MODULE")
             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     )
