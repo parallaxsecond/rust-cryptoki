@@ -646,3 +646,34 @@ fn is_fn_supported_test() {
         "C_DigestFinal function reports as not supported"
     );
 }
+
+#[test]
+#[serial]
+fn is_initialized_test() {
+    use cryptoki::context::{CInitializeArgs, Pkcs11};
+
+    let mut pkcs11 = Pkcs11::new(
+        std::env::var("PKCS11_SOFTHSM2_MODULE")
+            .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
+    )
+    .unwrap();
+
+    assert!(
+        !pkcs11.is_initialized(),
+        "Context created with initialized flag on"
+    );
+
+    // initialize the library
+    pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+
+    assert!(
+        pkcs11.is_initialized(),
+        "Context was not marked as initialized"
+    );
+
+    match pkcs11.initialize(CInitializeArgs::OsThreads) {
+        Err(Error::AlreadyInitialized) => (),
+        Err(e) => panic!("Got unexpected error when initializing: {}", e),
+        Ok(()) => panic!("Initializing twice should not have been allowed"),
+    }
+}

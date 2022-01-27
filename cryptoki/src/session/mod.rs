@@ -150,7 +150,7 @@ impl Session {
     /// use std::collections::HashMap;
     /// use std::env;
     ///
-    /// let pkcs11 = Pkcs11::new(
+    /// let mut pkcs11 = Pkcs11::new(
     ///         env::var("PKCS11_SOFTHSM2_MODULE")
     ///             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     ///     )
