@@ -215,7 +215,7 @@ pub struct UtcTime {
 impl UtcTime {
     /// Stringify the structure in ISO 8601 format.
     ///
-    /// PKCS#11 and ISO are unrelated standards, and this funciton is provided
+    /// PKCS#11 and ISO are unrelated standards, and this function is provided
     /// only for convenience. ISO format is more widely recognized and parsable
     /// by various date/time utilities, while PKCS#11's internal representation
     /// of this type is is not used elsewhere.
