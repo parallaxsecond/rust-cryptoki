@@ -16,6 +16,14 @@ jobs:
           path: cryptoki
           skip: "*/target,*-sys"
 
+  formatting:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
   build:
     name: Execute CI script
     runs-on: ubuntu-latest
