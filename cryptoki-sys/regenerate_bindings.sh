@@ -5,24 +5,21 @@
 
 set -xeuf -o pipefail
 
-# x86_64-unknown-darwin is included as a stable toolchain but does not
-# include `rust-std` as a component (see https://doc.rust-lang.org/nightly/rustc/platform-support.html)
-targets=( aarch64-unknown-linux-gnu arm-unknown-linux-gnueabi i686-unknown-linux-gnu powerpc64-unknown-linux-gnu x86_64-unknown-linux-gnu )
+targets="aarch64-unknown-linux-gnu arm-unknown-linux-gnueabi i686-unknown-linux-gnu powerpc64-unknown-linux-gnu x86_64-unknown-linux-gnu x86_64-apple-darwin"
+TARGET_INSTALLED=
 
-grepcwe() { grep -c "$@" || test $? = 1; }
+for target in $targets; do
 
-for target in "${targets[@]}"
-do
-	PREVIOUSLY_INSTALLED=`rustup target list | grepcwe "$target (installed)"`
-
-    if [ "$PREVIOUSLY_INSTALLED" == "0" ]; then
+    # Check if the target is already installed
+    if ! rustup target list | grep -q "$target (installed)"; then
         rustup target install $target
+        TARGET_INSTALLED="$target"
     fi
 
     cargo build --target $target --features generate-bindings
     find ../target/$target/ -name pkcs11_bindings.rs | xargs -I '{}' cp '{}' src/bindings/$target.rs
 
-    if [ "$PREVIOUSLY_INSTALLED" == "0" ]; then
+    if [ "$TARGET_INSTALLED" == "$target" ]; then
         rustup target remove $target
     fi
 done
