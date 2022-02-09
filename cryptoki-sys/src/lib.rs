@@ -70,6 +70,16 @@ include!(concat!(
     "/src/bindings/x86_64-apple-darwin.rs"
 ));
 
+#[cfg(all(
+    not(feature = "generate-bindings"),
+    target_arch = "aarch64",
+    target_os = "macos"
+))]
+include!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/bindings/aarch64-apple-darwin.rs"
+));
+
 // If the "generate-bindings" feature is on, use the generated bindings.
 #[cfg(feature = "generate-bindings")]
 include!(concat!(env!("OUT_DIR"), "/pkcs11_bindings.rs"));
