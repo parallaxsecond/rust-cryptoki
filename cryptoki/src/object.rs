@@ -884,41 +884,49 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                 Ok(Attribute::AllowedMechanisms(types))
             }
             AttributeType::EndDate => {
-                let date = val.as_ptr() as *const CK_DATE;
-                unsafe {
-                    let year = String::from_utf8_lossy(Vec::from((*date).year).as_slice())
-                        .trim_end()
-                        .to_string();
-                    let month = String::from_utf8_lossy(Vec::from((*date).month).as_slice())
-                        .trim_end()
-                        .to_string();
-                    let day = String::from_utf8_lossy(Vec::from((*date).day).as_slice())
-                        .trim_end()
-                        .to_string();
-                    Ok(Attribute::EndDate(Date::new_from_str_slice(
-                        year.as_str(),
-                        month.as_str(),
-                        day.as_str(),
-                    )?))
+                if val.is_empty() {
+                    Ok(Attribute::EndDate(Date::new_empty()))
+                } else {
+                    let date = val.as_ptr() as *const CK_DATE;
+                    unsafe {
+                        let year = String::from_utf8_lossy(Vec::from((*date).year).as_slice())
+                            .trim_end()
+                            .to_string();
+                        let month = String::from_utf8_lossy(Vec::from((*date).month).as_slice())
+                            .trim_end()
+                            .to_string();
+                        let day = String::from_utf8_lossy(Vec::from((*date).day).as_slice())
+                            .trim_end()
+                            .to_string();
+                        Ok(Attribute::EndDate(Date::new_from_str_slice(
+                            year.as_str(),
+                            month.as_str(),
+                            day.as_str(),
+                        )?))
+                    }
                 }
             }
             AttributeType::StartDate => {
-                let date = val.as_ptr() as *const CK_DATE;
-                unsafe {
-                    let year = String::from_utf8_lossy(Vec::from((*date).year).as_slice())
-                        .trim_end()
-                        .to_string();
-                    let month = String::from_utf8_lossy(Vec::from((*date).month).as_slice())
-                        .trim_end()
-                        .to_string();
-                    let day = String::from_utf8_lossy(Vec::from((*date).day).as_slice())
-                        .trim_end()
-                        .to_string();
-                    Ok(Attribute::StartDate(Date::new_from_str_slice(
-                        year.as_str(),
-                        month.as_str(),
-                        day.as_str(),
-                    )?))
+                if val.is_empty() {
+                    Ok(Attribute::EndDate(Date::new_empty()))
+                } else {
+                    let date = val.as_ptr() as *const CK_DATE;
+                    unsafe {
+                        let year = String::from_utf8_lossy(Vec::from((*date).year).as_slice())
+                            .trim_end()
+                            .to_string();
+                        let month = String::from_utf8_lossy(Vec::from((*date).month).as_slice())
+                            .trim_end()
+                            .to_string();
+                        let day = String::from_utf8_lossy(Vec::from((*date).day).as_slice())
+                            .trim_end()
+                            .to_string();
+                        Ok(Attribute::StartDate(Date::new_from_str_slice(
+                            year.as_str(),
+                            month.as_str(),
+                            day.as_str(),
+                        )?))
+                    }
                 }
             }
         }

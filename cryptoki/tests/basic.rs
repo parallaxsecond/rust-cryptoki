@@ -677,3 +677,37 @@ fn is_initialized_test() {
         Ok(()) => panic!("Initializing twice should not have been allowed"),
     }
 }
+
+#[test]
+#[serial]
+fn aes_key_attributes_test() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_session_no_callback(slot, true)?;
+
+    // log in the session
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // get mechanism
+    let mechanism = Mechanism::AesKeyGen;
+
+    // pub key template
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::ValueLen(16.into()),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Label(b"testAES".to_vec()),
+        Attribute::Private(true),
+    ];
+
+    // generate a key pair
+    let key = session.generate_key(&mechanism, &key_template)?;
+
+    let _attributes_result =
+        session.get_attributes(key, &[AttributeType::EndDate, AttributeType::StartDate])?;
+
+    Ok(())
+}

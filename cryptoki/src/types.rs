@@ -53,6 +53,29 @@ impl Date {
         let date = CK_DATE { year, month, day };
         Self { date }
     }
+
+    /// Creates a new, empty `Date` structure
+    ///
+    /// This represents the default value of the attribute (on
+    /// newer implementations of `Cryptoki`).
+    pub fn new_empty() -> Self {
+        let date = CK_DATE {
+            year: Default::default(),
+            month: Default::default(),
+            day: Default::default(),
+        };
+        Self { date }
+    }
+
+    /// Check if `Date` is empty
+    ///
+    /// *NOTE*: This function is only representative of newer implementations
+    /// of `Cryptoki`, for which dates are represented as empty object attributes.
+    pub fn is_empty(&self) -> bool {
+        self.date.year == <[u8; 4]>::default()
+            && self.date.month == <[u8; 2]>::default()
+            && self.date.day == <[u8; 2]>::default()
+    }
 }
 
 impl Deref for Date {
