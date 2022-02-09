@@ -5,8 +5,8 @@
 
 set -xeuf -o pipefail
 
-# x86_64-unknown-darwin is not included as the stable toolchain does not
-# include `rust-std` as a components (see https://doc.rust-lang.org/nightly/rustc/platform-support.html)
+# x86_64-unknown-darwin is included as a stable toolchain but does not
+# include `rust-std` as a component (see https://doc.rust-lang.org/nightly/rustc/platform-support.html)
 targets=( aarch64-unknown-linux-gnu arm-unknown-linux-gnueabi i686-unknown-linux-gnu powerpc64-unknown-linux-gnu x86_64-unknown-linux-gnu )
 
 grepcwe() { grep -c "$@" || test $? = 1; }
