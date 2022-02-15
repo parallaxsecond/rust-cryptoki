@@ -9,7 +9,7 @@ use std::convert::TryInto;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 #[repr(transparent)]
 /// Value that represents a date
 pub struct Date {
@@ -59,12 +59,7 @@ impl Date {
     /// This represents the default value of the attribute (on
     /// newer implementations of `Cryptoki`).
     pub fn new_empty() -> Self {
-        let date = CK_DATE {
-            year: Default::default(),
-            month: Default::default(),
-            day: Default::default(),
-        };
-        Self { date }
+        Self::default()
     }
 
     /// Check if `Date` is empty
