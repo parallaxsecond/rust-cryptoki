@@ -3,6 +3,27 @@ name: Continuous Integration
 on: [push, pull_request]
 
 jobs:
+  # Use the following command to fix words locally:
+  # codespell --ignore-words-list "crate" --skip "*/target,*-sys" --write-changes
+  check-spelling:
+    name: Check spelling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check spelling
+        uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: "crate"
+          path: cryptoki
+          skip: "*/target,*-sys"
+
+  formatting:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
   build:
     name: Execute CI script
     runs-on: ubuntu-latest

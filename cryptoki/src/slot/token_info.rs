@@ -39,7 +39,7 @@ bitflags! {
 #[derive(Debug, Clone, Copy)]
 /// A limiting value for the token that may or may not take an explicit value
 pub enum Limit {
-    /// There is an explict value for this limit
+    /// There is an explicit value for this limit
     Max(u64),
     /// The token does not provide information about this limit
     Unavailable,
@@ -162,7 +162,7 @@ impl TokenInfo {
     /// True if the token is write-protected
     ///
     /// **[Conformance](crate#conformance-notes):**
-    /// Exaclty what this value means is determined by the application. An
+    /// Exactly what this value means is determined by the application. An
     /// application may be unable to perform certain actions on a write-
     /// protected token. These actions can include any of the following (non-
     /// exhaustive):
