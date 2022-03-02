@@ -706,8 +706,20 @@ fn aes_key_attributes_test() -> Result<()> {
     // generate a key pair
     let key = session.generate_key(&mechanism, &key_template)?;
 
-    let _attributes_result =
+    let mut attributes_result =
         session.get_attributes(key, &[AttributeType::EndDate, AttributeType::StartDate])?;
+
+    if let Some(Attribute::StartDate(date)) = attributes_result.pop() {
+        assert!(date.is_empty());
+    } else {
+        panic!("Last attribute was not a start date");
+    }
+
+    if let Some(Attribute::EndDate(date)) = attributes_result.pop() {
+        assert!(date.is_empty());
+    } else {
+        panic!("First attribute was not an end date");
+    }
 
     Ok(())
 }

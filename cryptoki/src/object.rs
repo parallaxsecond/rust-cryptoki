@@ -877,8 +877,8 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                     )
                 };
                 let types: Vec<MechanismType> = val
-                    .to_vec()
-                    .into_iter()
+                    .iter()
+                    .copied()
                     .map(|t| t.try_into())
                     .collect::<Result<Vec<MechanismType>>>()?;
                 Ok(Attribute::AllowedMechanisms(types))
@@ -908,7 +908,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             }
             AttributeType::StartDate => {
                 if val.is_empty() {
-                    Ok(Attribute::EndDate(Date::new_empty()))
+                    Ok(Attribute::StartDate(Date::new_empty()))
                 } else {
                     let date = val.as_ptr() as *const CK_DATE;
                     unsafe {
