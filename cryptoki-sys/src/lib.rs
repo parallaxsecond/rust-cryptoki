@@ -76,6 +76,16 @@ include!(concat!(
 
 #[cfg(all(
     not(feature = "generate-bindings"),
+    target_arch = "aarch64",
+    target_os = "macos"
+))]
+include!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/bindings/aarch64-unknown-darwin.rs"
+));
+
+#[cfg(all(
+    not(feature = "generate-bindings"),
     target_arch = "x86_64",
     target_os = "windows"
 ))]
