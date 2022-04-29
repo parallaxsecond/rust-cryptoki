@@ -100,6 +100,22 @@ impl Session {
         session_management::login(self, user_type, pin)
     }
 
+    /// Logs a session in using a slice of raw bytes as a PIN. Some dongle drivers allow
+    /// non UTF-8 characters in the PIN and as a result, we aren't guaranteed that we can
+    /// pass in a UTF-8 string to login. Therefore, it's useful to be able to pass in raw bytes
+    /// rather than convert a UTF-8 string to bytes.
+    ///
+    /// # Arguments
+    ///
+    /// * `user_type` - The type of user to log in as
+    /// * `pin` - The PIN to use
+    ///
+    /// _NOTE: By passing `None` into `login`, you must ensure that the
+    /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
+    pub fn login_with_raw(&self, user_type: UserType, pin: &[u8]) -> Result<()> {
+        session_management::login_with_raw(self, user_type, pin)
+    }
+
     /// Log a session out
     pub fn logout(&self) -> Result<()> {
         session_management::logout(self)
