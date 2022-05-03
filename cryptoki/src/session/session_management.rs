@@ -38,6 +38,20 @@ pub(super) fn login(session: &Session, user_type: UserType, pin: Option<&str>) -
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
+pub(super) fn login_with_raw(session: &Session, user_type: UserType, pin: &[u8]) -> Result<()> {
+    unsafe {
+        Rv::from(get_pkcs11!(session.client(), C_Login)(
+            session.handle(),
+            user_type.into(),
+            pin.as_ptr() as *mut u8,
+            pin.len().try_into()?,
+        ))
+        .into_result()
+    }
+}
+
+// See public docs on stub in parent mod.rs
+#[inline(always)]
 pub(super) fn logout(session: &Session) -> Result<()> {
     unsafe { Rv::from(get_pkcs11!(session.client(), C_Logout)(session.handle())).into_result() }
 }
