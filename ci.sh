@@ -18,6 +18,7 @@ RUST_BACKTRACE=1 cargo build --target powerpc64-unknown-linux-gnu
 RUST_BACKTRACE=1 cargo build --target powerpc64le-unknown-linux-gnu
 RUST_BACKTRACE=1 cargo build --target x86_64-pc-windows-msvc
 RUST_BACKTRACE=1 cargo build --target x86_64-apple-darwin
+RUST_BACKTRACE=1 cargo build --target aarch64-apple-darwin
 
 pushd cryptoki-sys
 RUST_BACKTRACE=1 cargo build --features generate-bindings
