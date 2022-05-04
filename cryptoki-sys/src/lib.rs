@@ -71,7 +71,7 @@ include!(concat!(
 ))]
 include!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/src/bindings/x86_64-unknown-darwin.rs"
+    "/src/bindings/x86_64-apple-darwin.rs"
 ));
 
 #[cfg(all(
@@ -81,7 +81,7 @@ include!(concat!(
 ))]
 include!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/src/bindings/aarch64-unknown-darwin.rs"
+    "/src/bindings/aarch64-apple-darwin.rs"
 ));
 
 #[cfg(all(
