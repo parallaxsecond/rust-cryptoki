@@ -12,14 +12,14 @@ for target in $targets; do
 
     # Check if the target is already installed
     if ! rustup target list | grep -q "$target (installed)"; then
-        rustup target install $target
+        rustup target install "$target"
         TARGET_INSTALLED="$target"
     fi
 
-    cargo build --target $target --features generate-bindings
-    find ../target/$target/ -name pkcs11_bindings.rs | xargs -I '{}' cp '{}' src/bindings/$target.rs
+    cargo build --target "$target" --features generate-bindings
+    find ../target/"$target"/ -print0 -name "pkcs11_bindings.rs" | xargs -I '{}' cp '{}' src/bindings/"$target".rs
 
     if [ "$TARGET_INSTALLED" == "$target" ]; then
-        rustup target remove $target
+        rustup target remove "$target"
     fi
 done
