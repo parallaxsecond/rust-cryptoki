@@ -36,14 +36,14 @@ pub(super) fn get_library_info(ctx: &Pkcs11) -> Result<Info> {
 }
 
 macro_rules! check_fn {
-    ($pkcs11:expr, $func_name:ident) => {
-        paste! { $pkcs11
+    ($pkcs11:expr, $func_name:ident) => {{
+        let func = paste! { $pkcs11
             .impl_
-            .function_list
-            .[< C_ $func_name >]
-            .is_some()
-        }
-    };
+                .function_list
+                .[<C_ $func_name>]
+        };
+        func.is_some()
+    }};
 }
 
 #[allow(clippy::enum_variant_names, missing_docs)]
