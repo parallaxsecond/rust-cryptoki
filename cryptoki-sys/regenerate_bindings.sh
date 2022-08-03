@@ -5,7 +5,7 @@
 
 set -xeuf -o pipefail
 
-targets="aarch64-unknown-linux-gnu arm-unknown-linux-gnueabi i686-unknown-linux-gnu powerpc64-unknown-linux-gnu x86_64-unknown-linux-gnu x86_64-apple-darwin aarch64-apple-darwin"
+targets="aarch64-unknown-linux-gnu arm-unknown-linux-gnueabi i686-unknown-linux-gnu powerpc64-unknown-linux-gnu x86_64-unknown-linux-gnu x86_64-apple-darwin aarch64-apple-darwin x86_64-unknown-freebsd"
 TARGET_INSTALLED=
 
 for target in $targets; do

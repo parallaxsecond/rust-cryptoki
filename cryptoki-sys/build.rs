@@ -23,6 +23,7 @@ fn main() {
             (Architecture::X86_64, OperatingSystem::Darwin) => {}
             (Architecture::Aarch64(_), OperatingSystem::Darwin) => {}
             (Architecture::X86_64, OperatingSystem::Windows) => {}
+            (Architecture::X86_64, OperatingSystem::Freebsd) => {}
             (arch, os) => {
                 panic!("Compilation target (architecture, OS) tuple ({}, {}) is not part of the supported tuples. Please compile with the \"generate-bindings\" feature or add support for your platform :)", arch, os);
             }
