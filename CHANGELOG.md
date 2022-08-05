@@ -1,8 +1,34 @@
 # Changelog
 
-## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2021-11-22)
+## [cryptoki-sys-0.1.4](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.4) (2022-08-03)
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-0.4.0)
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.1...cryptoki-sys-0.1.4)
+
+**Implemented enhancements:**
+
+- Solve open issues [\#84](https://github.com/parallaxsecond/rust-cryptoki/pull/84) ([ionut-arm](https://github.com/ionut-arm))
+- Add SHAn-RSA-PKCS-PSS mechanisms [\#81](https://github.com/parallaxsecond/rust-cryptoki/pull/81) ([ionut-arm](https://github.com/ionut-arm))
+
+**Closed issues:**
+
+- How to test for supported functions? [\#78](https://github.com/parallaxsecond/rust-cryptoki/issues/78)
+- Add `is_initialized()` to `Pkcs11` [\#77](https://github.com/parallaxsecond/rust-cryptoki/issues/77)
+- Segmentation fault on parsing `Date` [\#74](https://github.com/parallaxsecond/rust-cryptoki/issues/74)
+
+**Merged pull requests:**
+
+- Fix CI error for x86\_64-pc-windows-msvc [\#95](https://github.com/parallaxsecond/rust-cryptoki/pull/95) ([hug-dev](https://github.com/hug-dev))
+- Add bindings for FreeBSD on x86-64. [\#94](https://github.com/parallaxsecond/rust-cryptoki/pull/94) ([ximon18](https://github.com/ximon18))
+- Add script for regenerating bindings [\#91](https://github.com/parallaxsecond/rust-cryptoki/pull/91) ([ionut-arm](https://github.com/ionut-arm))
+- session\_management: Add ability to login with raw bytes [\#90](https://github.com/parallaxsecond/rust-cryptoki/pull/90) ([Subject38](https://github.com/Subject38))
+- Add bindings for aarch64-darwin [\#89](https://github.com/parallaxsecond/rust-cryptoki/pull/89) ([Subject38](https://github.com/Subject38))
+- Remove serial\_test\_derive from deps [\#86](https://github.com/parallaxsecond/rust-cryptoki/pull/86) ([palfrey](https://github.com/palfrey))
+- Fix typos and add automatic check to CI [\#83](https://github.com/parallaxsecond/rust-cryptoki/pull/83) ([wiktor-k](https://github.com/wiktor-k))
+- Info flags refactor [\#68](https://github.com/parallaxsecond/rust-cryptoki/pull/68) ([vkkoskie](https://github.com/vkkoskie))
+
+## [cryptoki-0.3.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.0) (2021-11-22)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-0.3.0)
 
 **Implemented enhancements:**
 
