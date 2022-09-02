@@ -29,7 +29,7 @@ fn sign_verify() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -77,7 +77,7 @@ fn encrypt_decrypt() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -129,7 +129,7 @@ fn derive_key() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -220,7 +220,7 @@ fn import_export() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -286,7 +286,7 @@ fn get_token_info() -> Result<()> {
 fn wrap_and_unwrap_key() {
     let (pkcs11, slot) = init_pins();
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true).unwrap();
+    let session = pkcs11.open_rw_session(slot).unwrap();
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN)).unwrap();
@@ -375,7 +375,7 @@ fn login_feast() {
     for _ in 0..SESSIONS {
         let pkcs11 = pkcs11.clone();
         threads.push(thread::spawn(move || {
-            let session = pkcs11.open_session_no_callback(slot, true).unwrap();
+            let session = pkcs11.open_rw_session(slot).unwrap();
             match session.login(UserType::User, Some(USER_PIN)) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
@@ -437,7 +437,7 @@ fn get_slot_info_test() -> Result<()> {
 fn get_session_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
     {
-        let session = pkcs11.open_session_no_callback(slot, false)?;
+        let session = pkcs11.open_ro_session(slot)?;
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
@@ -461,7 +461,7 @@ fn get_session_info_test() -> Result<()> {
         }
     }
 
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
@@ -493,7 +493,7 @@ fn get_session_info_test() -> Result<()> {
 fn generate_random_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
-    let session = pkcs11.open_session_no_callback(slot, false)?;
+    let session = pkcs11.open_ro_session(slot)?;
 
     let poor_seed: [u8; 32] = [0; 32];
     session.seed_random(&poor_seed)?;
@@ -517,7 +517,7 @@ fn set_pin_test() -> Result<()> {
     let new_user_pin = "123456";
     let (pkcs11, slot) = init_pins();
 
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     session.login(UserType::User, Some(USER_PIN))?;
     session.set_pin(USER_PIN, new_user_pin)?;
@@ -533,7 +533,7 @@ fn get_attribute_info_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -684,7 +684,7 @@ fn aes_key_attributes_test() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_session_no_callback(slot, true)?;
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;
@@ -719,6 +719,64 @@ fn aes_key_attributes_test() -> Result<()> {
         assert!(date.is_empty());
     } else {
         panic!("First attribute was not an end date");
+    }
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn ro_rw_session_test() -> Result<()> {
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
+    let modulus = vec![0xFF; 1024];
+
+    let template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::Modulus(modulus),
+        Attribute::Class(ObjectClass::PUBLIC_KEY),
+        Attribute::KeyType(KeyType::RSA),
+        Attribute::Verify(true),
+    ];
+
+    let (pkcs11, slot) = init_pins();
+
+    // Try out Read-Only session
+    {
+        // open a session
+        let ro_session = pkcs11.open_ro_session(slot)?;
+
+        // log in the session
+        ro_session.login(UserType::User, Some(USER_PIN))?;
+
+        // generate a key pair
+        // This should NOT work using the Read/Write session
+        let e = ro_session.create_object(&template).unwrap_err();
+
+        if let Error::Pkcs11(RvError::SessionReadOnly) = e {
+            // as expected
+        } else {
+            panic!("Got wrong error code (expecting SessionReadOnly): {}", e);
+        }
+        ro_session.logout()?;
+    }
+
+    // Try out Read/Write session
+    {
+        // open a session
+        let rw_session = pkcs11.open_rw_session(slot)?;
+
+        // log in the session
+        rw_session.login(UserType::User, Some(USER_PIN))?;
+
+        // generate a key pair
+        // This should work using the Read/Write session
+        let object = rw_session.create_object(&template)?;
+
+        // delete keys
+        rw_session.destroy_object(object)?;
+        rw_session.logout()?;
     }
 
     Ok(())

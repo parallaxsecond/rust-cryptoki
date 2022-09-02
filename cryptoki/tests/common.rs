@@ -27,7 +27,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
 
     {
         // open a session
-        let session = pkcs11.open_session_no_callback(slot, true).unwrap();
+        let session = pkcs11.open_rw_session(slot).unwrap();
         // log in the session
         session.login(UserType::So, Some(SO_PIN)).unwrap();
         session.init_pin(USER_PIN).unwrap();
