@@ -168,9 +168,20 @@ impl Pkcs11 {
         slot_token_management::get_mechanism_info(self, slot, type_)
     }
 
-    /// Open a new session with no callback set
-    pub fn open_session_no_callback(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
-        session_management::open_session_no_callback(self, slot_id, read_write)
+    /// Open a new Read-Only session
+    ///
+    /// For a Read-Write session, use `open_rw_session`
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
+        session_management::open_session_no_callback(self, slot_id, false)
+    }
+
+    /// Open a new Read/Write session
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session> {
+        session_management::open_session_no_callback(self, slot_id, true)
     }
 
     /// Check whether a given PKCS11 spec-defined function is supported by this implementation

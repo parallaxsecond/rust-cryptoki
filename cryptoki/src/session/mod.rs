@@ -175,7 +175,7 @@ impl Session {
     /// pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
     ///
-    /// let session = pkcs11.open_session_no_callback(slot, true).unwrap();
+    /// let session = pkcs11.open_ro_session(slot).unwrap();
     /// session.login(UserType::User, Some("fedcba"));
     ///
     /// let empty_attrib= vec![];
