@@ -751,7 +751,7 @@ fn ro_rw_session_test() -> Result<()> {
         ro_session.login(UserType::User, Some(USER_PIN))?;
 
         // generate a key pair
-        // This should NOT work using the Read/Write session
+        // This should NOT work using the Read-Only session
         let e = ro_session.create_object(&template).unwrap_err();
 
         if let Error::Pkcs11(RvError::SessionReadOnly) = e {
