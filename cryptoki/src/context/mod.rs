@@ -174,14 +174,14 @@ impl Pkcs11 {
     ///
     /// Note: No callback is set when opening the session.
     pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
-        session_management::open_session_no_callback(self, slot_id, false)
+        session_management::open_session(self, slot_id, false)
     }
 
     /// Open a new Read/Write session
     ///
     /// Note: No callback is set when opening the session.
     pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session> {
-        session_management::open_session_no_callback(self, slot_id, true)
+        session_management::open_session(self, slot_id, true)
     }
 
     /// Check whether a given PKCS11 spec-defined function is supported by this implementation
