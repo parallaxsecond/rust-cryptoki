@@ -1,8 +1,8 @@
 # Changelog
 
-## [cryptoki-sys-0.1.4](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.4) (2022-08-03)
+## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2022-09-07)
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.1...cryptoki-sys-0.1.4)
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.4...cryptoki-0.4.0)
 
 **Implemented enhancements:**
 
@@ -16,19 +16,44 @@
 - Segmentation fault on parsing `Date` [\#74](https://github.com/parallaxsecond/rust-cryptoki/issues/74)
 
 **Merged pull requests:**
-
 - Fix CI error for x86\_64-pc-windows-msvc [\#95](https://github.com/parallaxsecond/rust-cryptoki/pull/95) ([hug-dev](https://github.com/hug-dev))
-- Add bindings for FreeBSD on x86-64. [\#94](https://github.com/parallaxsecond/rust-cryptoki/pull/94) ([ximon18](https://github.com/ximon18))
-- Add script for regenerating bindings [\#91](https://github.com/parallaxsecond/rust-cryptoki/pull/91) ([ionut-arm](https://github.com/ionut-arm))
 - session\_management: Add ability to login with raw bytes [\#90](https://github.com/parallaxsecond/rust-cryptoki/pull/90) ([Subject38](https://github.com/Subject38))
-- Add bindings for aarch64-darwin [\#89](https://github.com/parallaxsecond/rust-cryptoki/pull/89) ([Subject38](https://github.com/Subject38))
 - Remove serial\_test\_derive from deps [\#86](https://github.com/parallaxsecond/rust-cryptoki/pull/86) ([palfrey](https://github.com/palfrey))
 - Fix typos and add automatic check to CI [\#83](https://github.com/parallaxsecond/rust-cryptoki/pull/83) ([wiktor-k](https://github.com/wiktor-k))
 - Info flags refactor [\#68](https://github.com/parallaxsecond/rust-cryptoki/pull/68) ([vkkoskie](https://github.com/vkkoskie))
 
-## [cryptoki-0.3.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.0) (2021-11-22)
+**Merged pull requests:**
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-0.3.0)
+- Make separate constructors for RO/RW sessions [\#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101) ([ionut-arm](https://github.com/ionut-arm))
+- Fix issues reported by clippy [\#98](https://github.com/parallaxsecond/rust-cryptoki/pull/98) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
+## [cryptoki-sys-0.1.4](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.4) (2022-08-11)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.1...cryptoki-sys-0.1.4)
+
+**Merged pull requests:**
+
+- Prepare release of changes to bindings [\#96](https://github.com/parallaxsecond/rust-cryptoki/pull/96) ([ionut-arm](https://github.com/ionut-arm))
+- Add bindings for FreeBSD on x86-64. [\#94](https://github.com/parallaxsecond/rust-cryptoki/pull/94) ([ximon18](https://github.com/ximon18))
+- Add script for regenerating bindings [\#91](https://github.com/parallaxsecond/rust-cryptoki/pull/91) ([ionut-arm](https://github.com/ionut-arm))
+- Add bindings for aarch64-darwin [\#89](https://github.com/parallaxsecond/rust-cryptoki/pull/89) ([Subject38](https://github.com/Subject38))
+
+## [cryptoki-0.2.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.2.1) (2022-02-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.0...cryptoki-0.2.1)
+
+**Closed issues:**
+
+- Signing with RSA-PSS does not hash the message with the given function [\#80](https://github.com/parallaxsecond/rust-cryptoki/issues/80)
+- Force cache flush? [\#75](https://github.com/parallaxsecond/rust-cryptoki/issues/75)
+
+## [cryptoki-0.3.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.0) (2022-01-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.3...cryptoki-0.3.0)
+
+## [cryptoki-sys-0.1.3](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.3) (2022-01-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-sys-0.1.3)
 
 **Implemented enhancements:**
 
@@ -39,14 +64,19 @@
 **Fixed bugs:**
 
 - Provide attribute type in return from `get_attribute_info` [\#42](https://github.com/parallaxsecond/rust-cryptoki/issues/42)
+- Resizing/Truncating returned lists [\#34](https://github.com/parallaxsecond/rust-cryptoki/issues/34)
 - Remove unused field [\#53](https://github.com/parallaxsecond/rust-cryptoki/pull/53) ([hug-dev](https://github.com/hug-dev))
 
 **Closed issues:**
 
+- `get_attributes()` with AttributeType::Class fails for private key with YubiHSM2 Nano [\#76](https://github.com/parallaxsecond/rust-cryptoki/issues/76)
+- `pkcs11.open_session_no_callback` against Luna Network HSM crashed with SIGSEGV [\#72](https://github.com/parallaxsecond/rust-cryptoki/issues/72)
+- Solution for `Session` lifetimes [\#57](https://github.com/parallaxsecond/rust-cryptoki/issues/57)
 - Module tree structure makes docs difficult to navigate [\#55](https://github.com/parallaxsecond/rust-cryptoki/issues/55)
 
 **Merged pull requests:**
 
+- Version bump [\#79](https://github.com/parallaxsecond/rust-cryptoki/pull/79) ([ionut-arm](https://github.com/ionut-arm))
 - Suppress null pointer deref warnings [\#62](https://github.com/parallaxsecond/rust-cryptoki/pull/62) ([vkkoskie](https://github.com/vkkoskie))
 - Use rust's own bool type in abstraction crate [\#61](https://github.com/parallaxsecond/rust-cryptoki/pull/61) ([vkkoskie](https://github.com/vkkoskie))
 - Switch to inclusive bindgen naming [\#60](https://github.com/parallaxsecond/rust-cryptoki/pull/60) ([vkkoskie](https://github.com/vkkoskie))
@@ -79,7 +109,7 @@
 
 - Issue with code comment [\#25](https://github.com/parallaxsecond/rust-cryptoki/issues/25)
 - Test fails on 32 bit platforms [\#19](https://github.com/parallaxsecond/rust-cryptoki/issues/19)
-- Implement `CKM\_EC\_KEY\_PAIR\_GEN` to `MechanismType` conversion [\#32](https://github.com/parallaxsecond/rust-cryptoki/pull/32) ([daxpedda](https://github.com/daxpedda))
+- Implement `CKM_EC_KEY_PAIR_GEN` to `MechanismType` conversion [\#32](https://github.com/parallaxsecond/rust-cryptoki/pull/32) ([daxpedda](https://github.com/daxpedda))
 
 **Merged pull requests:**
 
