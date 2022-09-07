@@ -2,6 +2,11 @@
 
 ## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2022-09-07)
 
+### Breaking changes since 0.3.0
+
+- A change to the way `Pkcs11::initialize` needs to be called, and a new error variant in [#84](https://github.com/parallaxsecond/rust-cryptoki/pull/84)
+- A change to the way sessions are created, in [#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101)
+
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.4...cryptoki-0.4.0)
 
 **Implemented enhancements:**
@@ -21,9 +26,6 @@
 - Remove serial\_test\_derive from deps [\#86](https://github.com/parallaxsecond/rust-cryptoki/pull/86) ([palfrey](https://github.com/palfrey))
 - Fix typos and add automatic check to CI [\#83](https://github.com/parallaxsecond/rust-cryptoki/pull/83) ([wiktor-k](https://github.com/wiktor-k))
 - Info flags refactor [\#68](https://github.com/parallaxsecond/rust-cryptoki/pull/68) ([vkkoskie](https://github.com/vkkoskie))
-
-**Merged pull requests:**
-
 - Make separate constructors for RO/RW sessions [\#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101) ([ionut-arm](https://github.com/ionut-arm))
 - Fix issues reported by clippy [\#98](https://github.com/parallaxsecond/rust-cryptoki/pull/98) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
 
