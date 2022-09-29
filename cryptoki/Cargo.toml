@@ -1,6 +1,6 @@
 [package]
 name = "cryptoki"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Contributors to the Parsec project"]
 edition = '2018'
 description = "Rust-native wrapper around the PKCS #11 API"

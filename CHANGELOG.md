@@ -1,5 +1,11 @@
 # Changelog
 
+## [cryptoki-0.4.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.1) (2022-09-29)
+
+**Implemented enhancements:**
+
+- Implement Eq for SessionState [\#103](https://github.com/parallaxsecond/rust-cryptoki/pull/103) ([a1ien](https://github.com/a1ien))
+
 ## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2022-09-07)
 
 ### Breaking changes since 0.3.0
