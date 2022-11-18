@@ -220,7 +220,7 @@ fn import_export() -> Result<()> {
     let (pkcs11, slot) = init_pins();
 
     // open a session
-    let session = pkcs11.open_rw_session(slot)?;
+    let mut session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
     session.login(UserType::User, Some(USER_PIN))?;

@@ -23,6 +23,7 @@ mod session_management;
 mod signing_macing;
 mod slot_token_management;
 
+pub use object_management::FindObjects;
 pub use session_info::{SessionInfo, SessionState};
 
 /// Type that identifies a session
@@ -126,9 +127,55 @@ impl Session {
         session_management::get_session_info(self)
     }
 
-    /// Search for session objects matching a template
-    pub fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
+    /// Search for token and session objects matching a template
+    pub fn find_objects(&mut self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
         object_management::find_objects(self, template)
+    }
+
+    /// Initiate a search for token and session objects matching a template
+    ///
+    /// # Arguments
+    ///
+    /// * `template` - The list of attributes to match
+    ///
+    /// # Returns
+    ///
+    /// This function returns a [FindObjects], which represents an ongoing search.  The
+    /// lifetime of this search is tied to a mutable borrow of the session, so that there
+    /// may only be one search per session at once.  When the [FindObjects] is dropped,
+    /// the search is ended.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use cryptoki::error::Result;
+    /// use cryptoki::object::{Attribute, AttributeType};
+    /// use cryptoki::session::Session;
+    ///
+    /// const BATCH_SIZE: usize = 10;
+    ///
+    /// fn print_object_labels(session: &mut Session, template: &[Attribute]) -> Result<()> {
+    ///     // Initiate the search.
+    ///     let mut search = session.find_objects_init(template)?;
+    ///
+    ///     // Iterate over batches of results, while find_next returns a non-empty batch
+    ///     while let ref objects @ [_, ..] = search.find_next(BATCH_SIZE)?[..] {
+    ///         // Iterate over objects in the batch.
+    ///         for &object in objects {
+    ///             // Look up the label for the object.  We can't use `session` directly here,
+    ///             // since it's mutably borrowed by search.  Instead, use `search.session()`.
+    ///             let attrs = search.session().get_attributes(object, &[AttributeType::Label])?;
+    ///             if let Some(Attribute::Label(label)) = attrs.get(0) {
+    ///                 println!("Found object: {}", String::from_utf8_lossy(&label));
+    ///             }
+    ///         }
+    ///     }
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn find_objects_init<'a>(&'a mut self, template: &[Attribute]) -> Result<FindObjects<'a>> {
+        object_management::find_objects_init(self, template)
     }
 
     /// Create a new object
@@ -175,7 +222,7 @@ impl Session {
     /// pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
     ///
-    /// let session = pkcs11.open_ro_session(slot).unwrap();
+    /// let mut session = pkcs11.open_ro_session(slot).unwrap();
     /// session.login(UserType::User, Some("fedcba"));
     ///
     /// let empty_attrib= vec![];
