@@ -32,6 +32,18 @@ impl MechanismType {
     pub const AES_KEY_GEN: MechanismType = MechanismType {
         val: CKM_AES_KEY_GEN,
     };
+    /// AES-ECB mechanism
+    pub const AES_ECB: MechanismType = MechanismType { val: CKM_AES_ECB };
+    /// AES key wrap mechanism.  This mechanism can only wrap a key or encrypt a block of data
+    /// whose length is a multiple of the AES Key Wrap algorithm block size.
+    pub const AES_KEY_WRAP: MechanismType = MechanismType {
+        val: CKM_AES_KEY_WRAP,
+    };
+    /// AES key wrap mechanism.  This mechanism can wrap a key or encrypt a block of data of any
+    /// length.  It does the padding detailed in PKCS#7 of inputs.
+    pub const AES_KEY_WRAP_PAD: MechanismType = MechanismType {
+        val: CKM_AES_KEY_WRAP_PAD,
+    };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -51,13 +63,29 @@ impl MechanismType {
     pub const RSA_PKCS_OAEP: MechanismType = MechanismType {
         val: CKM_RSA_PKCS_OAEP,
     };
+    /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
+    /// RSA, as assumed in X.509.
+    pub const RSA_X_509: MechanismType = MechanismType { val: CKM_RSA_X_509 };
 
     // DES
+    /// DES
+    /// Note that DES is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
+    pub const DES_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_DES_KEY_GEN,
+    };
+    /// DES2
+    /// Note that DES2 is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
+    pub const DES2_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_DES2_KEY_GEN,
+    };
     /// DES3
     /// Note that DES3 is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
     pub const DES3_KEY_GEN: MechanismType = MechanismType {
         val: CKM_DES3_KEY_GEN,
     };
+    /// DES ECB
+    /// Note that DES is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
+    pub const DES_ECB: MechanismType = MechanismType { val: CKM_DES_ECB };
     /// DES3 ECB
     /// Note that DES3 is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
     pub const DES3_ECB: MechanismType = MechanismType { val: CKM_DES3_ECB };
@@ -83,10 +111,32 @@ impl MechanismType {
 
     /// ECDSA mechanism
     pub const ECDSA: MechanismType = MechanismType { val: CKM_ECDSA };
+    /// ECDSA with SHA-1 mechanism
+    pub const ECDSA_SHA1: MechanismType = MechanismType {
+        val: CKM_ECDSA_SHA1,
+    };
+    /// ECDSA with SHA-224 mechanism
+    pub const ECDSA_SHA224: MechanismType = MechanismType {
+        val: CKM_ECDSA_SHA224,
+    };
+    /// ECDSA with SHA-256 mechanism
+    pub const ECDSA_SHA256: MechanismType = MechanismType {
+        val: CKM_ECDSA_SHA256,
+    };
+    /// ECDSA with SHA-384 mechanism
+    pub const ECDSA_SHA384: MechanismType = MechanismType {
+        val: CKM_ECDSA_SHA384,
+    };
+    /// ECDSA with SHA-512 mechanism
+    pub const ECDSA_SHA512: MechanismType = MechanismType {
+        val: CKM_ECDSA_SHA512,
+    };
 
     // SHA-n
     /// SHA-1 mechanism
     pub const SHA1: MechanismType = MechanismType { val: CKM_SHA_1 };
+    /// SHA-224 mechanism
+    pub const SHA224: MechanismType = MechanismType { val: CKM_SHA224 };
     /// SHA-256 mechanism
     pub const SHA256: MechanismType = MechanismType { val: CKM_SHA256 };
     /// SHA-384 mechanism
@@ -95,6 +145,14 @@ impl MechanismType {
     pub const SHA512: MechanismType = MechanismType { val: CKM_SHA512 };
 
     // SHAn-RSA-PKCS
+    /// SHA1-RSA-PKCS mechanism
+    pub const SHA1_RSA_PKCS: MechanismType = MechanismType {
+        val: CKM_SHA1_RSA_PKCS,
+    };
+    /// SHA224-RSA-PKCS mechanism
+    pub const SHA224_RSA_PKCS: MechanismType = MechanismType {
+        val: CKM_SHA224_RSA_PKCS,
+    };
     /// SHA256-RSA-PKCS mechanism
     pub const SHA256_RSA_PKCS: MechanismType = MechanismType {
         val: CKM_SHA256_RSA_PKCS,
@@ -545,6 +603,13 @@ pub enum Mechanism {
     // AES
     /// AES key gen mechanism
     AesKeyGen,
+    /// AES in ECB mode
+    AesEcb,
+    /// AES key wrap
+    AesKeyWrap,
+    /// AES key wrap with padding block
+    AesKeyWrapPad,
+
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
     RsaPkcsKeyPairGen,
@@ -557,10 +622,19 @@ pub enum Mechanism {
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
     RsaPkcsOaep(rsa::PkcsOaepParams),
+    /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
+    /// RSA, as assumed in X.509.
+    RsaX509,
 
     // DES
+    /// DES
+    DesKeyGen,
+    /// DES2
+    Des2KeyGen,
     /// DES3
     Des3KeyGen,
+    /// DES ECB
+    DesEcb,
     /// DES3 ECB
     Des3Ecb,
 
@@ -575,10 +649,22 @@ pub enum Mechanism {
     Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams),
     /// ECDSA mechanism
     Ecdsa,
+    /// ECDSA with SHA-1 mechanism
+    EcdsaSha1,
+    /// ECDSA with SHA-224 mechanism
+    EcdsaSha224,
+    /// ECDSA with SHA-256 mechanism
+    EcdsaSha256,
+    /// ECDSA with SHA-384 mechanism
+    EcdsaSha384,
+    /// ECDSA with SHA-512 mechanism
+    EcdsaSha512,
 
     // SHA-n
     /// SHA-1 mechanism
     Sha1,
+    /// SHA-224 mechanism
+    Sha224,
     /// SHA-256 mechanism
     Sha256,
     /// SHA-384 mechanism
@@ -587,6 +673,10 @@ pub enum Mechanism {
     Sha512,
 
     // SHAn-RSA-PKCS
+    /// SHA1-RSA-PKCS mechanism
+    Sha1RsaPkcs,
+    /// SHA224-RSA-PKCS mechanism
+    Sha224RsaPkcs,
     /// SHA256-RSA-PKCS mechanism
     Sha256RsaPkcs,
     /// SHA384-RSA-PKCS mechanism
@@ -610,13 +700,20 @@ impl Mechanism {
     pub fn mechanism_type(&self) -> MechanismType {
         match self {
             Mechanism::AesKeyGen => MechanismType::AES_KEY_GEN,
+            Mechanism::AesEcb => MechanismType::AES_ECB,
+            Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
+            Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
 
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
+            Mechanism::RsaX509 => MechanismType::RSA_X_509,
 
+            Mechanism::DesKeyGen => MechanismType::DES_KEY_GEN,
+            Mechanism::Des2KeyGen => MechanismType::DES2_KEY_GEN,
             Mechanism::Des3KeyGen => MechanismType::DES3_KEY_GEN,
+            Mechanism::DesEcb => MechanismType::DES_ECB,
             Mechanism::Des3Ecb => MechanismType::DES3_ECB,
 
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
@@ -624,12 +721,20 @@ impl Mechanism {
             Mechanism::EccMontgomeryKeyPairGen => MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN,
             Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
+            Mechanism::EcdsaSha1 => MechanismType::ECDSA_SHA1,
+            Mechanism::EcdsaSha224 => MechanismType::ECDSA_SHA224,
+            Mechanism::EcdsaSha256 => MechanismType::ECDSA_SHA256,
+            Mechanism::EcdsaSha384 => MechanismType::ECDSA_SHA384,
+            Mechanism::EcdsaSha512 => MechanismType::ECDSA_SHA512,
 
             Mechanism::Sha1 => MechanismType::SHA1,
+            Mechanism::Sha224 => MechanismType::SHA224,
             Mechanism::Sha256 => MechanismType::SHA256,
             Mechanism::Sha384 => MechanismType::SHA384,
             Mechanism::Sha512 => MechanismType::SHA512,
 
+            Mechanism::Sha1RsaPkcs => MechanismType::SHA1_RSA_PKCS,
+            Mechanism::Sha224RsaPkcs => MechanismType::SHA224_RSA_PKCS,
             Mechanism::Sha256RsaPkcs => MechanismType::SHA256_RSA_PKCS,
             Mechanism::Sha384RsaPkcs => MechanismType::SHA384_RSA_PKCS,
             Mechanism::Sha512RsaPkcs => MechanismType::SHA512_RSA_PKCS,
@@ -673,18 +778,33 @@ impl From<&Mechanism> for CK_MECHANISM {
             },
             // Mechanisms without parameters
             Mechanism::AesKeyGen
+            | Mechanism::AesEcb
+            | Mechanism::AesKeyWrap
+            | Mechanism::AesKeyWrapPad
             | Mechanism::RsaPkcsKeyPairGen
             | Mechanism::RsaPkcs
+            | Mechanism::RsaX509
             | Mechanism::Sha1
+            | Mechanism::Sha224
             | Mechanism::Sha256
             | Mechanism::Sha384
             | Mechanism::Sha512
+            | Mechanism::DesKeyGen
+            | Mechanism::Des2KeyGen
             | Mechanism::Des3KeyGen
+            | Mechanism::DesEcb
             | Mechanism::Des3Ecb
             | Mechanism::EccKeyPairGen
             | Mechanism::EccEdwardsKeyPairGen
             | Mechanism::EccMontgomeryKeyPairGen
             | Mechanism::Ecdsa
+            | Mechanism::EcdsaSha1
+            | Mechanism::EcdsaSha224
+            | Mechanism::EcdsaSha256
+            | Mechanism::EcdsaSha384
+            | Mechanism::EcdsaSha512
+            | Mechanism::Sha1RsaPkcs
+            | Mechanism::Sha224RsaPkcs
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs
             | Mechanism::Sha512RsaPkcs => CK_MECHANISM {
