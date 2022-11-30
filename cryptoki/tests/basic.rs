@@ -912,3 +912,141 @@ fn find_objects_many() -> Result<()> {
     assert_eq!(expected_labels, labels);
     Ok(())
 }
+
+// Find all objects incrementally (i.e. empty template)
+#[test]
+#[serial]
+fn find_objects_incrementally_all() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let mut session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // Generate some sample objects
+    let expected_labels = vec!["bar", "baz", "foo"];
+    generate_sample_objects(&session, &expected_labels)?;
+
+    // Find all objects
+    let mut search = session.find_objects_init(&[])?;
+    let objects = search.find_next(10)?;
+    assert!(search.find_next(10)?.is_empty());
+    drop(search);
+
+    // Check that we get the same objects back
+    let labels = object_labels_sorted(&session, objects)?;
+    assert_eq!(expected_labels, labels);
+
+    Ok(())
+}
+
+// Find objects incrementally when none match.
+#[test]
+#[serial]
+fn find_objects_incrementally_none() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let mut session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // Generate a sample object labeled "foo"
+    generate_sample_objects(&session, ["foo"])?;
+
+    // Search for objects labeled "bar"
+    let mut search = session.find_objects_init(&[Attribute::Label(b"bar".to_vec())])?;
+    assert!(search.find_next(10)?.is_empty());
+    Ok(())
+}
+
+// Find objects incrementally in a single batch.
+#[test]
+#[serial]
+fn find_objects_incrementally_single_batch() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let mut session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // generate some sample AES keys to match
+    let expected_labels = vec!["bar", "baz", "foo"];
+    generate_sample_objects(&session, &expected_labels)?;
+
+    // generate a key that shouldn't match (DES3 vs AES)
+    session.generate_key(
+        &Mechanism::Des3KeyGen,
+        &[Attribute::Label(b"quux".to_vec())],
+    )?;
+
+    // search for all AES keys
+    let mut search = session.find_objects_init(&[Attribute::KeyType(KeyType::AES)])?;
+    let objects = search.find_next(10)?;
+    assert!(search.find_next(10)?.is_empty());
+    drop(search);
+
+    let labels = object_labels_sorted(&session, objects)?;
+    assert_eq!(expected_labels, labels);
+    Ok(())
+}
+
+// Find objects incrementally in multiple batches.
+#[test]
+#[serial]
+fn find_objects_incrementally_multiple_batches() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let mut session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // generate some sample AES keys to match
+    let expected_labels = vec!["bar", "baz", "foo"];
+    generate_sample_objects(&session, &expected_labels)?;
+
+    // generate a key that shouldn't match (DES3 vs AES)
+    session.generate_key(
+        &Mechanism::Des3KeyGen,
+        &[Attribute::Label(b"quux".to_vec())],
+    )?;
+
+    // search for all AES keys
+    let mut search = session.find_objects_init(&[Attribute::KeyType(KeyType::AES)])?;
+    let objects1 = search.find_next(2)?;
+    assert_eq!(2, objects1.len());
+    let objects2 = search.find_next(2)?;
+    assert_eq!(1, objects2.len());
+    assert!(search.find_next(2)?.is_empty());
+    drop(search);
+
+    let objects = objects1.into_iter().chain(objects2);
+    let labels = object_labels_sorted(&session, objects)?;
+    assert_eq!(expected_labels, labels);
+    Ok(())
+}
+
+// Find objects incrementally with a zero-sized batch.
+#[test]
+#[serial]
+fn find_objects_incrementally_zero_batch() -> Result<()> {
+    let (pkcs11, slot) = init_pins();
+    let mut session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // generate some sample AES keys to match
+    let expected_labels = vec!["bar", "baz", "foo"];
+    generate_sample_objects(&session, &expected_labels)?;
+
+    // generate a key that shouldn't match (DES3 vs AES)
+    session.generate_key(
+        &Mechanism::Des3KeyGen,
+        &[Attribute::Label(b"quux".to_vec())],
+    )?;
+
+    // search for all AES keys
+    let mut search = session.find_objects_init(&[Attribute::KeyType(KeyType::AES)])?;
+
+    // get a batch of size 0
+    assert!(search.find_next(0)?.is_empty());
+
+    // continue the search
+    let objects = search.find_next(10)?;
+    assert!(search.find_next(10)?.is_empty());
+    drop(search);
+
+    let labels = object_labels_sorted(&session, objects)?;
+    assert_eq!(expected_labels, labels);
+    Ok(())
+}
