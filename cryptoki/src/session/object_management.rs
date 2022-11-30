@@ -101,53 +101,12 @@ pub(super) fn find_objects(
     session: &mut Session,
     template: &[Attribute],
 ) -> Result<Vec<ObjectHandle>> {
-    let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
-
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_FindObjectsInit)(
-            session.handle(),
-            template.as_mut_ptr(),
-            template.len().try_into()?,
-        ))
-        .into_result()?;
-    }
-
-    let mut object_handles = [0; MAX_OBJECT_COUNT];
-    let mut object_count = 0;
+    let mut search = session.find_objects_init(template)?;
     let mut objects = Vec::new();
 
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_FindObjects)(
-            session.handle(),
-            object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-            MAX_OBJECT_COUNT.try_into()?,
-            &mut object_count,
-        ))
-        .into_result()?;
+    while let ref new_objects @ [_, ..] = search.find_next(MAX_OBJECT_COUNT)?[..] {
+        objects.extend_from_slice(new_objects)
     }
-
-    while object_count > 0 {
-        objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-
-        unsafe {
-            Rv::from(get_pkcs11!(session.client(), C_FindObjects)(
-                session.handle(),
-                object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-                MAX_OBJECT_COUNT.try_into()?,
-                &mut object_count,
-            ))
-            .into_result()?;
-        }
-    }
-
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_FindObjectsFinal)(
-            session.handle(),
-        ))
-        .into_result()?;
-    }
-
-    let objects = objects.into_iter().map(ObjectHandle::new).collect();
 
     Ok(objects)
 }
