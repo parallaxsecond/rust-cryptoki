@@ -6,17 +6,81 @@ use crate::error::{Result, Rv, RvError};
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
 use cryptoki_sys::*;
+use log::error;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-// Search 10 elements at a time
-const MAX_OBJECT_COUNT: usize = 10;
+/// Represents an ongoing object search
+///
+/// See the documentation for [Session::find_objects_init].
+#[derive(Debug)]
+pub struct FindObjects<'a> {
+    session: &'a mut Session,
+}
+
+impl<'a> FindObjects<'a> {
+    /// Continue an ongoing object search
+    ///
+    /// # Arguments
+    ///
+    /// * `max_objects` - The maximum number of objects to return
+    ///
+    /// # Returns
+    ///
+    /// This function returns up to `max_objects` objects.  If there are no remaining
+    /// objects, or `max_objects` is 0, then it returns an empty vector.
+    pub fn find_next(&mut self, max_objects: usize) -> Result<Vec<ObjectHandle>> {
+        if max_objects == 0 {
+            return Ok(vec![]);
+        }
+
+        let mut object_handles = Vec::with_capacity(max_objects);
+        let mut object_count = 0;
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.session.client(), C_FindObjects)(
+                self.session.handle(),
+                object_handles.as_mut_ptr(),
+                max_objects.try_into()?,
+                &mut object_count,
+            ))
+            .into_result()?;
+            object_handles.set_len(object_count.try_into()?)
+        }
+
+        Ok(object_handles.into_iter().map(ObjectHandle::new).collect())
+    }
+
+    /// Get the session associated to the search
+    pub fn session(&self) -> &Session {
+        self.session
+    }
+}
+
+impl<'a> Drop for FindObjects<'a> {
+    fn drop(&mut self) {
+        if let Err(e) = find_objects_final_private(self.session) {
+            error!("Failed to terminate object search: {}", e);
+        }
+    }
+}
+
+fn find_objects_final_private(session: &Session) -> Result<()> {
+    unsafe {
+        Rv::from(get_pkcs11!(session.client(), C_FindObjectsFinal)(
+            session.handle(),
+        ))
+        .into_result()
+    }
+}
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn find_objects(session: &Session, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
+pub(super) fn find_objects_init<'a>(
+    session: &'a mut Session,
+    template: &[Attribute],
+) -> Result<FindObjects<'a>> {
     let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
-
     unsafe {
         Rv::from(get_pkcs11!(session.client(), C_FindObjectsInit)(
             session.handle(),
@@ -25,43 +89,24 @@ pub(super) fn find_objects(session: &Session, template: &[Attribute]) -> Result<
         ))
         .into_result()?;
     }
+    Ok(FindObjects { session })
+}
 
-    let mut object_handles = [0; MAX_OBJECT_COUNT];
-    let mut object_count = 0;
+// Search 10 elements at a time
+const MAX_OBJECT_COUNT: usize = 10;
+
+// See public docs on stub in parent mod.rs
+#[inline(always)]
+pub(super) fn find_objects(
+    session: &mut Session,
+    template: &[Attribute],
+) -> Result<Vec<ObjectHandle>> {
+    let mut search = session.find_objects_init(template)?;
     let mut objects = Vec::new();
 
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_FindObjects)(
-            session.handle(),
-            object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-            MAX_OBJECT_COUNT.try_into()?,
-            &mut object_count,
-        ))
-        .into_result()?;
+    while let ref new_objects @ [_, ..] = search.find_next(MAX_OBJECT_COUNT)?[..] {
+        objects.extend_from_slice(new_objects)
     }
-
-    while object_count > 0 {
-        objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-
-        unsafe {
-            Rv::from(get_pkcs11!(session.client(), C_FindObjects)(
-                session.handle(),
-                object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-                MAX_OBJECT_COUNT.try_into()?,
-                &mut object_count,
-            ))
-            .into_result()?;
-        }
-    }
-
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_FindObjectsFinal)(
-            session.handle(),
-        ))
-        .into_result()?;
-    }
-
-    let objects = objects.into_iter().map(ObjectHandle::new).collect();
 
     Ok(objects)
 }
