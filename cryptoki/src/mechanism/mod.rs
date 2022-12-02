@@ -646,7 +646,7 @@ pub enum Mechanism<'a> {
     /// EC montgomery key pair generation
     EccMontgomeryKeyPairGen,
     /// ECDH
-    Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams),
+    Ecdh1Derive(elliptic_curve::Ecdh1DeriveParams<'a>),
     /// ECDSA mechanism
     Ecdsa,
     /// ECDSA with SHA-1 mechanism
