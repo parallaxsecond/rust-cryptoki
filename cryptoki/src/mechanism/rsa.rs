@@ -7,8 +7,9 @@ use crate::error::{Error, Result};
 use crate::types::Ulong;
 use cryptoki_sys::*;
 use log::error;
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 use std::ffi::c_void;
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -75,47 +76,37 @@ impl TryFrom<CK_RSA_PKCS_MGF_TYPE> for PkcsMgfType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(transparent)]
+#[derive(Debug, Clone, Copy)]
 /// Source of the encoding parameter when formatting a message block for the PKCS #1 OAEP
 /// encryption scheme
-pub struct PkcsOaepSourceType {
-    val: CK_RSA_PKCS_OAEP_SOURCE_TYPE,
-}
+pub struct PkcsOaepSource<'a>(&'a [u8]);
 
-impl PkcsOaepSourceType {
-    /// Array of CK_BYTE containing the value of the encoding parameter. If the parameter is
-    /// empty, pSourceData must be NULL and ulSourceDataLen must be zero.
-    pub const DATA_SPECIFIED: PkcsOaepSourceType = PkcsOaepSourceType {
-        val: CKZ_DATA_SPECIFIED,
-    };
-}
-
-impl Deref for PkcsOaepSourceType {
-    type Target = CK_RSA_PKCS_OAEP_SOURCE_TYPE;
-
-    fn deref(&self) -> &Self::Target {
-        &self.val
+impl<'a> PkcsOaepSource<'a> {
+    /// Construct an empty encoding parameter.
+    ///
+    /// This is equivalent to `data_specified(&[])`.
+    pub fn empty() -> Self {
+        Self(&[])
     }
-}
 
-impl From<PkcsOaepSourceType> for CK_RSA_PKCS_OAEP_SOURCE_TYPE {
-    fn from(pkcs_oaep_source_type: PkcsOaepSourceType) -> Self {
-        *pkcs_oaep_source_type
+    /// Construct an encoding parameter from an array of bytes.
+    pub fn data_specified(source_data: &'a [u8]) -> Self {
+        Self(source_data)
     }
-}
 
-impl TryFrom<CK_RSA_PKCS_OAEP_SOURCE_TYPE> for PkcsOaepSourceType {
-    type Error = Error;
+    pub(crate) fn source_ptr(&self) -> *const c_void {
+        self.0.as_ptr() as _
+    }
 
-    fn try_from(pkcs_oaep_source_type: CK_RSA_PKCS_OAEP_SOURCE_TYPE) -> Result<Self> {
-        match pkcs_oaep_source_type {
-            CKZ_DATA_SPECIFIED => Ok(PkcsOaepSourceType::DATA_SPECIFIED),
-            other => {
-                error!("OAEP source type {} is not one of the valid values.", other);
-                Err(Error::InvalidValue)
-            }
-        }
+    pub(crate) fn source_len(&self) -> Ulong {
+        self.0
+            .len()
+            .try_into()
+            .expect("usize can not fit in CK_ULONG")
+    }
+
+    pub(crate) fn source_type(&self) -> CK_RSA_PKCS_OAEP_SOURCE_TYPE {
+        CKZ_DATA_SPECIFIED
     }
 }
 
@@ -138,22 +129,49 @@ pub struct PkcsPssParams {
 /// Parameters of the RsaPkcsOaep mechanism
 #[derive(Copy, Debug, Clone)]
 #[repr(C)]
-pub struct PkcsOaepParams {
+pub struct PkcsOaepParams<'a> {
     /// mechanism ID of the message digest algorithm used to calculate the digest of the encoding
     /// parameter
-    pub hash_alg: MechanismType,
+    hash_alg: MechanismType,
     /// mask generation function to use on the encoded block
-    pub mgf: PkcsMgfType,
+    mgf: PkcsMgfType,
     /// source of the encoding parameter
-    pub source: PkcsOaepSourceType,
+    source: CK_RSA_PKCS_OAEP_SOURCE_TYPE,
     /// data used as the input for the encoding parameter source
-    pub source_data: *const c_void,
+    source_data: *const c_void,
     /// length of the encoding parameter source input
-    pub source_data_len: Ulong,
+    source_data_len: Ulong,
+    /// marker type to ensure we don't outlive the source_data
+    _marker: PhantomData<&'a [u8]>,
 }
 
-impl From<PkcsOaepParams> for Mechanism {
-    fn from(pkcs_oaep_params: PkcsOaepParams) -> Self {
+impl<'a> PkcsOaepParams<'a> {
+    /// Construct a new `PkcsOaepParams`.
+    ///
+    /// # Arguments
+    ///
+    /// * `hash_alg` - The message digest algorithm used to calculate
+    ///    a digest of the encoding parameter.
+    /// * `mgf` - The mask generation function to use on the encoded block.
+    /// * `encoding_parameter` - The encoding parameter, also known as the label.
+    pub fn new(
+        hash_alg: MechanismType,
+        mgf: PkcsMgfType,
+        encoding_parameter: PkcsOaepSource<'a>,
+    ) -> Self {
+        PkcsOaepParams {
+            hash_alg,
+            mgf,
+            source: encoding_parameter.source_type(),
+            source_data: encoding_parameter.source_ptr(),
+            source_data_len: encoding_parameter.source_len(),
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<'a> From<PkcsOaepParams<'a>> for Mechanism<'a> {
+    fn from(pkcs_oaep_params: PkcsOaepParams<'a>) -> Self {
         Mechanism::RsaPkcsOaep(pkcs_oaep_params)
     }
 }

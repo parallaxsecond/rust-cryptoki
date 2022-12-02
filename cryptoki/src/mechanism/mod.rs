@@ -599,7 +599,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
 #[derive(Copy, Debug, Clone)]
 #[non_exhaustive]
 /// Type defining a specific mechanism and its parameters
-pub enum Mechanism {
+pub enum Mechanism<'a> {
     // AES
     /// AES key gen mechanism
     AesKeyGen,
@@ -621,7 +621,7 @@ pub enum Mechanism {
     RsaPkcsPss(rsa::PkcsPssParams),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
-    RsaPkcsOaep(rsa::PkcsOaepParams),
+    RsaPkcsOaep(rsa::PkcsOaepParams<'a>),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
     /// RSA, as assumed in X.509.
     RsaX509,
@@ -695,7 +695,7 @@ pub enum Mechanism {
     Sha512RsaPkcsPss(rsa::PkcsPssParams),
 }
 
-impl Mechanism {
+impl Mechanism<'_> {
     /// Get the type of a mechanism
     pub fn mechanism_type(&self) -> MechanismType {
         match self {
@@ -747,7 +747,7 @@ impl Mechanism {
     }
 }
 
-impl From<&Mechanism> for CK_MECHANISM {
+impl From<&Mechanism<'_>> for CK_MECHANISM {
     fn from(mech: &Mechanism) -> Self {
         let mechanism = mech.mechanism_type().into();
         match mech {
