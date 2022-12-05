@@ -200,6 +200,10 @@ extern "C" {
 #define aad_ptr pAAD
 #define aad_len ulAADLen
 #define tag_bits ulTagBits
+#define data_len ulDataLen
+#define nonce_ptr pNonce
+#define nonce_len ulNonceLen
+#define mac_len ulMACLen
 #define shared_data_len ulSharedDataLen
 #define shared_data pSharedData
 #define public_data_len ulPublicDataLen
@@ -988,6 +992,15 @@ struct ck_gcm_params {
   unsigned long tag_bits;
 };
 
+struct ck_ccm_params {
+  unsigned long data_len;
+  unsigned char *nonce_ptr;
+  unsigned long nonce_len;
+  unsigned char *aad_ptr;
+  unsigned long aad_len;
+  unsigned long mac_len;
+};
+
 
 /* The following EC Key Derivation Functions are defined */
 #define CKD_NULL			(0x01UL)
@@ -1632,6 +1645,9 @@ typedef struct ck_aes_ctr_params *CK_AES_CTR_PARAMS_PTR;
 typedef struct ck_gcm_params CK_GCM_PARAMS;
 typedef struct ck_gcm_params *CK_GCM_PARAMS_PTR;
 
+typedef struct ck_ccm_params CK_CCM_PARAMS;
+typedef struct ck_ccm_params *CK_CCM_PARAMS_PTR;
+
 typedef struct ck_ecdh1_derive_params CK_ECDH1_DERIVE_PARAMS;
 typedef struct ck_ecdh1_derive_params *CK_ECDH1_DERIVE_PARAMS_PTR;
 
@@ -1736,6 +1752,32 @@ typedef struct ck_aes_cbc_encrypt_data_params *CK_AES_CBC_ENCRYPT_DATA_PARAMS_PT
 #undef lock_mutex
 #undef unlock_mutex
 #undef reserved
+
+#undef ck_rsa_pkcs_mgf_type_t
+#undef ck_rsa_pkcs_oaep_source_type_t
+#undef hash_alg
+#undef s_len
+#undef source_data
+#undef source_data_len
+
+#undef counter_bits
+#undef iv_ptr
+#undef iv_len
+#undef iv_bits
+#undef aad_ptr
+#undef aad_len
+#undef tag_bits
+#undef data_len
+#undef nonce_ptr
+#undef nonce_len
+#undef mac_len
+#undef shared_data_len
+#undef shared_data
+#undef public_data_len
+#undef public_data
+#undef string_data
+#undef string_data_len
+#undef data_params
 
 #endif	/* CRYPTOKI_COMPAT */
 

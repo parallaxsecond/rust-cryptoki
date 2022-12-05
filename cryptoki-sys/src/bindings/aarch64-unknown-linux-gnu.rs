@@ -1135,6 +1135,98 @@ impl Default for ck_gcm_params {
         }
     }
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ck_ccm_params {
+    pub ulDataLen: ::std::os::raw::c_ulong,
+    pub pNonce: *mut ::std::os::raw::c_uchar,
+    pub ulNonceLen: ::std::os::raw::c_ulong,
+    pub pAAD: *mut ::std::os::raw::c_uchar,
+    pub ulAADLen: ::std::os::raw::c_ulong,
+    pub ulMACLen: ::std::os::raw::c_ulong,
+}
+#[test]
+fn bindgen_test_layout_ck_ccm_params() {
+    assert_eq!(
+        ::std::mem::size_of::<ck_ccm_params>(),
+        48usize,
+        concat!("Size of: ", stringify!(ck_ccm_params))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<ck_ccm_params>(),
+        8usize,
+        concat!("Alignment of ", stringify!(ck_ccm_params))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulDataLen as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(ulDataLen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).pNonce as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(pNonce)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulNonceLen as *const _ as usize },
+        16usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(ulNonceLen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).pAAD as *const _ as usize },
+        24usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(pAAD)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulAADLen as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(ulAADLen)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulMACLen as *const _ as usize },
+        40usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(ck_ccm_params),
+            "::",
+            stringify!(ulMACLen)
+        )
+    );
+}
+impl Default for ck_ccm_params {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub type ck_ec_kdf_t = ::std::os::raw::c_ulong;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -1594,7 +1686,7 @@ pub type CK_C_Encrypt = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: ::std::os::raw::c_ulong,
+        ulDataLen: ::std::os::raw::c_ulong,
         encrypted_data: *mut ::std::os::raw::c_uchar,
         encrypted_data_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -1628,7 +1720,7 @@ pub type CK_C_Decrypt = ::std::option::Option<
         encrypted_data: *mut ::std::os::raw::c_uchar,
         encrypted_data_len: ::std::os::raw::c_ulong,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: *mut ::std::os::raw::c_ulong,
+        ulDataLen: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
 >;
 pub type CK_C_DecryptUpdate = ::std::option::Option<
@@ -1654,7 +1746,7 @@ pub type CK_C_Digest = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: ::std::os::raw::c_ulong,
+        ulDataLen: ::std::os::raw::c_ulong,
         digest: *mut ::std::os::raw::c_uchar,
         digest_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -1687,7 +1779,7 @@ pub type CK_C_Sign = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: ::std::os::raw::c_ulong,
+        ulDataLen: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -1717,7 +1809,7 @@ pub type CK_C_SignRecover = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: ::std::os::raw::c_ulong,
+        ulDataLen: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -1733,7 +1825,7 @@ pub type CK_C_Verify = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: ::std::os::raw::c_ulong,
+        ulDataLen: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -1765,7 +1857,7 @@ pub type CK_C_VerifyRecover = ::std::option::Option<
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: ::std::os::raw::c_ulong,
         data: *mut ::std::os::raw::c_uchar,
-        data_len: *mut ::std::os::raw::c_ulong,
+        ulDataLen: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
 >;
 pub type CK_C_DigestEncryptUpdate = ::std::option::Option<
@@ -2882,6 +2974,8 @@ pub type CK_AES_CTR_PARAMS = ck_aes_ctr_params;
 pub type CK_AES_CTR_PARAMS_PTR = *mut ck_aes_ctr_params;
 pub type CK_GCM_PARAMS = ck_gcm_params;
 pub type CK_GCM_PARAMS_PTR = *mut ck_gcm_params;
+pub type CK_CCM_PARAMS = ck_ccm_params;
+pub type CK_CCM_PARAMS_PTR = *mut ck_ccm_params;
 pub type CK_ECDH1_DERIVE_PARAMS = ck_ecdh1_derive_params;
 pub type CK_ECDH1_DERIVE_PARAMS_PTR = *mut ck_ecdh1_derive_params;
 pub type CK_KEY_DERIVATION_STRING_DATA = ck_key_derivation_string_data;
