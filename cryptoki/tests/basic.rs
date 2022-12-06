@@ -5,6 +5,7 @@ mod common;
 use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::error::{Error, RvError};
+use cryptoki::mechanism::aead::GcmParams;
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
@@ -772,5 +773,67 @@ fn ro_rw_session_test() -> Result<()> {
         rw_session.logout()?;
     }
 
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn aes_gcm_no_aad() -> Result<()> {
+    // Encrypt two blocks of zeros with AES-128-GCM
+    let key = vec![0; 16];
+    let iv = [0; 12];
+    let aad = [];
+    let plain = [0; 32];
+    let expected_cipher_and_tag = [
+        0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
+        0x78, 0xf7, 0x95, 0xaa, 0xab, 0x49, 0x4b, 0x59, 0x23, 0xf7, 0xfd, 0x89, 0xff, 0x94, 0x8b,
+        0xc1, 0xe0, 0x40, 0x49, 0x0a, 0xf4, 0x80, 0x56, 0x06, 0xb2, 0xa3, 0xa2, 0xe7, 0x93,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
+    let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn aes_gcm_with_aad() -> Result<()> {
+    // Encrypt a block of zeros with AES-128-GCM.
+    // Use another block of zeros for AAD.
+    let key = vec![0; 16];
+    let iv = [0; 12];
+    let aad = [0; 16];
+    let plain = [0; 16];
+    let expected_cipher_and_tag = [
+        0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
+        0x78, 0xd2, 0x4e, 0x50, 0x3a, 0x1b, 0xb0, 0x37, 0x07, 0x1c, 0x71, 0xb3, 0x5d,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
+    let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
 }
