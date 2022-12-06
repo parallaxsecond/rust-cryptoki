@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Data types for mechanisms
 
+pub mod aead;
 pub mod elliptic_curve;
 mod mechanism_info;
 pub mod rsa;
@@ -44,6 +45,10 @@ impl MechanismType {
     pub const AES_KEY_WRAP_PAD: MechanismType = MechanismType {
         val: CKM_AES_KEY_WRAP_PAD,
     };
+    /// AES-GCM mechanism
+    pub const AES_GCM: MechanismType = MechanismType { val: CKM_AES_GCM };
+    /// AES-CCM mechanism
+    pub const AES_CCM: MechanismType = MechanismType { val: CKM_AES_CCM };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -609,6 +614,10 @@ pub enum Mechanism<'a> {
     AesKeyWrap,
     /// AES key wrap with padding block
     AesKeyWrapPad,
+    /// AES-GCM mechanism
+    AesGcm(aead::GcmParams<'a>),
+    /// AES-CCM mechanism
+    AesCcm(aead::CcmParams<'a>),
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -703,6 +712,8 @@ impl Mechanism<'_> {
             Mechanism::AesEcb => MechanismType::AES_ECB,
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
+            Mechanism::AesGcm(_) => MechanismType::AES_GCM,
+            Mechanism::AesCcm(_) => MechanismType::AES_CCM,
 
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
@@ -751,6 +762,20 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
     fn from(mech: &Mechanism) -> Self {
         let mechanism = mech.mechanism_type().into();
         match mech {
+            Mechanism::AesGcm(params) => CK_MECHANISM {
+                mechanism,
+                pParameter: params as *const _ as *mut c_void,
+                ulParameterLen: std::mem::size_of::<CK_GCM_PARAMS>()
+                    .try_into()
+                    .expect("usize can not fit in CK_ULONG"),
+            },
+            Mechanism::AesCcm(params) => CK_MECHANISM {
+                mechanism,
+                pParameter: params as *const _ as *mut c_void,
+                ulParameterLen: std::mem::size_of::<CK_CCM_PARAMS>()
+                    .try_into()
+                    .expect("usize can not fit in CK_ULONG"),
+            },
             Mechanism::RsaPkcsPss(params)
             | Mechanism::Sha1RsaPkcsPss(params)
             | Mechanism::Sha256RsaPkcsPss(params)
