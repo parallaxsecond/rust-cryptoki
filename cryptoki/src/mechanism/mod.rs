@@ -104,6 +104,10 @@ impl MechanismType {
         val: CKM_EC_MONTGOMERY_KEY_PAIR_GEN,
     };
 
+    /// EDDSA mechanism
+    pub const EDDSA: MechanismType = MechanismType {
+        val: CKM_EDDSA,
+    };
     /// ECDH key derivation mechanism
     pub const ECDH1_DERIVE: MechanismType = MechanismType {
         val: CKM_ECDH1_DERIVE,
@@ -539,6 +543,9 @@ impl MechanismType {
             CKM_EC_MONTGOMERY_KEY_PAIR_GEN => {
                 String::from(stringify!(CKM_EC_MONTGOMERY_KEY_PAIR_GEN))
             }
+            CKM_EDDSA => {
+                String::from(stringify!(CKM_EDDSA))
+            }
             _ => format!("unknown {:08x}", mech),
         }
     }
@@ -659,6 +666,8 @@ pub enum Mechanism {
     EcdsaSha384,
     /// ECDSA with SHA-512 mechanism
     EcdsaSha512,
+    /// EDDSA mechanism
+    Eddsa,
 
     // SHA-n
     /// SHA-1 mechanism
@@ -719,6 +728,7 @@ impl Mechanism {
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
             Mechanism::EccEdwardsKeyPairGen => MechanismType::ECC_EDWARDS_KEY_PAIR_GEN,
             Mechanism::EccMontgomeryKeyPairGen => MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN,
+            Mechanism::Eddsa => MechanismType::EDDSA,
             Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
             Mechanism::EcdsaSha1 => MechanismType::ECDSA_SHA1,
@@ -797,6 +807,7 @@ impl From<&Mechanism> for CK_MECHANISM {
             | Mechanism::EccKeyPairGen
             | Mechanism::EccEdwardsKeyPairGen
             | Mechanism::EccMontgomeryKeyPairGen
+            | Mechanism::Eddsa
             | Mechanism::Ecdsa
             | Mechanism::EcdsaSha1
             | Mechanism::EcdsaSha224
