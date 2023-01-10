@@ -93,9 +93,7 @@ impl MaybeUnavailable for u64 {
             None
         } else {
             // Must have cast for when ulong is 32 bits
-            // Must have lint suppression when ulong is 64 bits
-            #[allow(trivial_numeric_casts)]
-            Some(value as u64)
+            Some(value.into())
         }
     }
 }
@@ -115,9 +113,7 @@ fn maybe_unlimited(value: CK_ULONG) -> Limit {
         CK_UNAVAILABLE_INFORMATION => Limit::Unavailable,
         CK_EFFECTIVELY_INFINITE => Limit::Infinite,
         // Must have cast for when ulong is 32 bits
-        // Must have lint suppression when ulong is 64 bits
-        #[allow(trivial_numeric_casts)]
-        _ => Limit::Max(value as u64),
+        _ => Limit::Max(value.into()),
     }
 }
 

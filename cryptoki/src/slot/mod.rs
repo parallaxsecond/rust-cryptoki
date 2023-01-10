@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Depending on the target, CK_SLOT_ID is not u64
 #![allow(clippy::useless_conversion)]
-#![allow(trivial_numeric_casts)]
 
 //! Slot and token types
 
@@ -46,7 +45,7 @@ impl Slot {
 
     /// Underlying ID used for a slot
     pub fn id(&self) -> u64 {
-        self.slot_id as u64
+        self.slot_id.into()
     }
 }
 
