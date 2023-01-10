@@ -343,7 +343,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_APPLICATION => Ok(AttributeType::Application),
             CKA_ATTR_TYPES => Ok(AttributeType::AttrTypes),
             CKA_BASE => Ok(AttributeType::Base),
-            CKA_CERTIFICATE_CATEGORY => Ok(AttributeType::CertificateType),
+            CKA_CERTIFICATE_TYPE => Ok(AttributeType::CertificateType),
             CKA_CHECK_VALUE => Ok(AttributeType::CheckValue),
             CKA_CLASS => Ok(AttributeType::Class),
             CKA_COEFFICIENT => Ok(AttributeType::Coefficient),
