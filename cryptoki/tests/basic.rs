@@ -781,3 +781,64 @@ fn ro_rw_session_test() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn aes_cbc_encrypt() -> Result<()> {
+    // Encrypt two blocks of zeros with AES-128-CBC, and zero IV
+    let key = vec![0; 16];
+    let iv = [0; 16];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b,
+        0x2e, 0xf7, 0x95, 0xbd, 0x4a, 0x52, 0xe2, 0x9e, 0xd7, 0x13, 0xd3, 0x13, 0xfa, 0x20, 0xe9,
+        0x8d, 0xbc,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesCbc(iv);
+    let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn aes_cbc_pad_encrypt() -> Result<()> {
+    // Encrypt two blocks of zeros with AES-128-CBC and PKCS#7 padding, and zero IV
+    let key = vec![0; 16];
+    let iv = [0; 16];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b,
+        0x2e, 0xf7, 0x95, 0xbd, 0x4a, 0x52, 0xe2, 0x9e, 0xd7, 0x13, 0xd3, 0x13, 0xfa, 0x20, 0xe9,
+        0x8d, 0xbc, 0x5c, 0x04, 0x76, 0x16, 0x75, 0x6f, 0xdc, 0x1c, 0x32, 0xe0, 0xdf, 0x6e, 0x8c,
+        0x59, 0xbb, 0x2a,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesCbcPad(iv);
+    let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    Ok(())
+}

@@ -32,6 +32,22 @@ impl MechanismType {
     pub const AES_KEY_GEN: MechanismType = MechanismType {
         val: CKM_AES_KEY_GEN,
     };
+    /// AES-CBC mechanism
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    pub const AES_CBC: MechanismType = MechanismType { val: CKM_AES_CBC };
+    /// AES-CBC with PKCS#7 padding mechanism
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    pub const AES_CBC_PAD: MechanismType = MechanismType {
+        val: CKM_AES_CBC_PAD,
+    };
     /// AES-ECB mechanism
     pub const AES_ECB: MechanismType = MechanismType { val: CKM_AES_ECB };
     /// AES key wrap mechanism.  This mechanism can only wrap a key or encrypt a block of data
@@ -82,6 +98,38 @@ impl MechanismType {
     /// Note that DES3 is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
     pub const DES3_KEY_GEN: MechanismType = MechanismType {
         val: CKM_DES3_KEY_GEN,
+    };
+    /// DES-CBC mechanism.
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    pub const DES_CBC: MechanismType = MechanismType { val: CKM_DES_CBC };
+    /// DES3-CBC mechanism.
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    pub const DES3_CBC: MechanismType = MechanismType { val: CKM_DES3_CBC };
+    /// DES-CBC with PKCS#7 padding mechanism
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    pub const DES_CBC_PAD: MechanismType = MechanismType {
+        val: CKM_DES_CBC_PAD,
+    };
+    /// DES3-CBC with PKCS#7 padding mechanism
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    pub const DES3_CBC_PAD: MechanismType = MechanismType {
+        val: CKM_DES3_CBC_PAD,
     };
     /// DES ECB
     /// Note that DES is deprecated. See <https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf> section 2, p. 6.
@@ -603,6 +651,24 @@ pub enum Mechanism {
     // AES
     /// AES key gen mechanism
     AesKeyGen,
+    /// AES-CBC mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    AesCbc([u8; 16]),
+    /// AES-CBC with PKCS#7 padding mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    AesCbcPad([u8; 16]),
     /// AES in ECB mode
     AesEcb,
     /// AES key wrap
@@ -633,6 +699,42 @@ pub enum Mechanism {
     Des2KeyGen,
     /// DES3
     Des3KeyGen,
+    /// DES-CBC mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    DesCbc([u8; 8]),
+    /// DES3-CBC mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// For encryption, the message length must be a multiple of the block
+    /// size.  For wrapping, the mechanism encrypts the value of the key,
+    /// padded on the trailing end with up to block size minus one null bytes.
+    /// For unwrapping, the result is truncated according to the key type and
+    /// the length provided by the template.
+    Des3Cbc([u8; 8]),
+    /// DES-CBC with PKCS#7 padding mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    DesCbcPad([u8; 8]),
+    /// DES3-CBC with PKCS#7 padding mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector.
+    ///
+    /// The plaintext may be any size.  The PKCS#7 padding allows the length of
+    /// the plaintext to be recovered from the ciphertext.  Therefore no length
+    /// should be provided when unwrapping keys with this mechanism.
+    Des3CbcPad([u8; 8]),
     /// DES ECB
     DesEcb,
     /// DES3 ECB
@@ -701,6 +803,8 @@ impl Mechanism {
         match self {
             Mechanism::AesKeyGen => MechanismType::AES_KEY_GEN,
             Mechanism::AesEcb => MechanismType::AES_ECB,
+            Mechanism::AesCbc(_) => MechanismType::AES_CBC,
+            Mechanism::AesCbcPad(_) => MechanismType::AES_CBC_PAD,
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
 
@@ -713,6 +817,10 @@ impl Mechanism {
             Mechanism::DesKeyGen => MechanismType::DES_KEY_GEN,
             Mechanism::Des2KeyGen => MechanismType::DES2_KEY_GEN,
             Mechanism::Des3KeyGen => MechanismType::DES3_KEY_GEN,
+            Mechanism::DesCbc(_) => MechanismType::DES_CBC,
+            Mechanism::Des3Cbc(_) => MechanismType::DES3_CBC,
+            Mechanism::DesCbcPad(_) => MechanismType::DES_CBC_PAD,
+            Mechanism::Des3CbcPad(_) => MechanismType::DES3_CBC_PAD,
             Mechanism::DesEcb => MechanismType::DES_ECB,
             Mechanism::Des3Ecb => MechanismType::DES3_ECB,
 
@@ -751,31 +859,21 @@ impl From<&Mechanism> for CK_MECHANISM {
     fn from(mech: &Mechanism) -> Self {
         let mechanism = mech.mechanism_type().into();
         match mech {
+            // Mechanisms with parameters
+            Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
+                make_mechanism(mechanism, params)
+            }
+            Mechanism::DesCbc(params)
+            | Mechanism::Des3Cbc(params)
+            | Mechanism::DesCbcPad(params)
+            | Mechanism::Des3CbcPad(params) => make_mechanism(mechanism, params),
             Mechanism::RsaPkcsPss(params)
             | Mechanism::Sha1RsaPkcsPss(params)
             | Mechanism::Sha256RsaPkcsPss(params)
             | Mechanism::Sha384RsaPkcsPss(params)
-            | Mechanism::Sha512RsaPkcsPss(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: std::mem::size_of::<CK_RSA_PKCS_PSS_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
-            Mechanism::RsaPkcsOaep(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: std::mem::size_of::<CK_RSA_PKCS_OAEP_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
-            Mechanism::Ecdh1Derive(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: std::mem::size_of::<CK_ECDH1_DERIVE_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
+            | Mechanism::Sha512RsaPkcsPss(params) => make_mechanism(mechanism, params),
+            Mechanism::RsaPkcsOaep(params) => make_mechanism(mechanism, params),
+            Mechanism::Ecdh1Derive(params) => make_mechanism(mechanism, params),
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
@@ -813,6 +911,20 @@ impl From<&Mechanism> for CK_MECHANISM {
                 ulParameterLen: 0,
             },
         }
+    }
+}
+
+// Make a CK_MECHANISM from mechanism type and parameter
+fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
+    CK_MECHANISM {
+        mechanism,
+        // SAFETY: Although the type signature says *mut, none of the
+        // mechanisms we support involve mutating the parameter, so
+        // this cast is OK.
+        pParameter: param as *const T as *mut c_void,
+        ulParameterLen: std::mem::size_of::<T>()
+            .try_into()
+            .expect("usize can not fit in CK_ULONG"),
     }
 }
 
