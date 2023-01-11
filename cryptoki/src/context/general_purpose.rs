@@ -46,7 +46,7 @@ macro_rules! check_fn {
     }};
 }
 
-#[allow(clippy::enum_variant_names, missing_docs)]
+#[allow(missing_docs)]
 #[derive(Debug, Copy, Clone)]
 /// Enumeration of all functions defined by the PKCS11 spec
 pub enum Function {
