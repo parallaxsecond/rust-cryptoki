@@ -174,15 +174,8 @@ fn derive_key() -> Result<()> {
     };
 
     use cryptoki::mechanism::elliptic_curve::*;
-    use std::convert::TryInto;
 
-    let params = Ecdh1DeriveParams {
-        kdf: EcKdfType::NULL,
-        shared_data_len: 0_usize.try_into()?,
-        shared_data: std::ptr::null(),
-        public_data_len: (*ec_point).len().try_into()?,
-        public_data: ec_point.as_ptr() as *const std::ffi::c_void,
-    };
+    let params = Ecdh1DeriveParams::new(EcKdf::null(), &ec_point);
 
     let shared_secret = session.derive_key(
         &Mechanism::Ecdh1Derive(params),
