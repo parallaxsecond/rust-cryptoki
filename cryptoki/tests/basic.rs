@@ -12,20 +12,11 @@ use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
 
-#[derive(Debug)]
-struct ErrorWithStacktrace;
-
-impl<T: std::error::Error> From<T> for ErrorWithStacktrace {
-    fn from(p: T) -> Self {
-        panic!("Error: {:#?}", p);
-    }
-}
-
-type Result<T> = std::result::Result<T, ErrorWithStacktrace>;
+use testresult::TestResult;
 
 #[test]
 #[serial]
-fn sign_verify() -> Result<()> {
+fn sign_verify() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -73,7 +64,7 @@ fn sign_verify() -> Result<()> {
 
 #[test]
 #[serial]
-fn encrypt_decrypt() -> Result<()> {
+fn encrypt_decrypt() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -125,7 +116,7 @@ fn encrypt_decrypt() -> Result<()> {
 
 #[test]
 #[serial]
-fn derive_key() -> Result<()> {
+fn derive_key() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -209,7 +200,7 @@ fn derive_key() -> Result<()> {
 
 #[test]
 #[serial]
-fn import_export() -> Result<()> {
+fn import_export() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -266,7 +257,7 @@ fn import_export() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_token_info() -> Result<()> {
+fn get_token_info() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
     assert_eq!("SoftHSM project", info.manufacturer_id());
@@ -403,7 +394,7 @@ fn login_feast() {
 
 #[test]
 #[serial]
-fn get_info_test() -> Result<()> {
+fn get_info_test() -> TestResult {
     let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
@@ -415,7 +406,7 @@ fn get_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_slot_info_test() -> Result<()> {
+fn get_slot_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let slot_info = pkcs11.get_slot_info(slot)?;
     assert!(slot_info.token_present());
@@ -427,7 +418,7 @@ fn get_slot_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_session_info_test() -> Result<()> {
+fn get_session_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
     {
         let session = pkcs11.open_ro_session(slot)?;
@@ -483,7 +474,7 @@ fn get_session_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn generate_random_test() -> Result<()> {
+fn generate_random_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_ro_session(slot)?;
@@ -506,7 +497,7 @@ fn generate_random_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn set_pin_test() -> Result<()> {
+fn set_pin_test() -> TestResult {
     let new_user_pin = "123456";
     let (pkcs11, slot) = init_pins();
 
@@ -522,7 +513,7 @@ fn set_pin_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_attribute_info_test() -> Result<()> {
+fn get_attribute_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -673,7 +664,7 @@ fn is_initialized_test() {
 
 #[test]
 #[serial]
-fn aes_key_attributes_test() -> Result<()> {
+fn aes_key_attributes_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -719,7 +710,7 @@ fn aes_key_attributes_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn ro_rw_session_test() -> Result<()> {
+fn ro_rw_session_test() -> TestResult {
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let modulus = vec![0xFF; 1024];
 
@@ -777,7 +768,7 @@ fn ro_rw_session_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn aes_cbc_encrypt() -> Result<()> {
+fn aes_cbc_encrypt() -> TestResult {
     // Encrypt two blocks of zeros with AES-128-CBC, and zero IV
     let key = vec![0; 16];
     let iv = [0; 16];
@@ -807,7 +798,7 @@ fn aes_cbc_encrypt() -> Result<()> {
 
 #[test]
 #[serial]
-fn aes_cbc_pad_encrypt() -> Result<()> {
+fn aes_cbc_pad_encrypt() -> TestResult {
     // Encrypt two blocks of zeros with AES-128-CBC and PKCS#7 padding, and zero IV
     let key = vec![0; 16];
     let iv = [0; 16];
