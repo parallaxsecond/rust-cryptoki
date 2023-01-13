@@ -194,3 +194,22 @@ pub(super) fn get_attributes(
     // Convert from CK_ATTRIBUTE to Attribute
     template.into_iter().map(|attr| attr.try_into()).collect()
 }
+
+impl Session {
+    /// Sets the attributes of an object
+    pub fn update_attributes(&self, object: ObjectHandle, template: &[Attribute]) -> Result<()> {
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_SetAttributeValue)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+            ))
+            .into_result()?;
+        }
+
+        Ok(())
+    }
+}
