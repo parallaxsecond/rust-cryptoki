@@ -21,7 +21,6 @@
 // This list comes from
 // https://github.com/rust-unofficial/patterns/blob/master/anti_patterns/deny-warnings.md
 #![deny(bad_style,
-       const_err,
        dead_code,
        improper_ctypes,
        non_shorthand_field_patterns,
