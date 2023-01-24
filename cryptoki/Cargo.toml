@@ -24,6 +24,7 @@ paste = "1.0.6"
 num-traits = "0.2.14"
 hex = "0.4.3"
 serial_test = "0.5.1"
+testresult = "0.2.0"
 
 [features]
 psa-crypto-conversions = ["psa-crypto"]
