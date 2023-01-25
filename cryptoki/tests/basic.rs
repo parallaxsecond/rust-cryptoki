@@ -826,3 +826,46 @@ fn aes_cbc_pad_encrypt() -> TestResult {
     assert_eq!(expected_cipher[..], cipher[..]);
     Ok(())
 }
+
+#[test]
+#[serial]
+fn update_attributes_key() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(USER_PIN))?;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
+        Attribute::ModulusBits(1024.into()),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Extractable(true)];
+
+    let (_public_key, private_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    let updated_attributes = vec![Attribute::Extractable(false)];
+
+    session.update_attributes(private_key, &updated_attributes)?;
+
+    let mut attributes_result =
+        session.get_attributes(private_key, &[AttributeType::Extractable])?;
+
+    if let Some(Attribute::Extractable(ext)) = attributes_result.pop() {
+        assert!(!ext);
+    } else {
+        panic!("Last attribute was not extractable");
+    }
+
+    Ok(())
+}
