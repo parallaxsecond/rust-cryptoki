@@ -59,6 +59,14 @@ pub mod session;
 pub mod slot;
 pub mod types;
 
+#[cfg(any(test, feature = "macros"))]
+#[allow(missing_docs)]
+#[doc(hidden)]
+pub mod tests_support;
+
+#[cfg(any(test, feature = "macros"))]
+pub use cryptoki_derive::hsm_test;
+
 use cryptoki_sys::CK_UTF8CHAR;
 
 fn string_from_blank_padded(field: &[CK_UTF8CHAR]) -> String {

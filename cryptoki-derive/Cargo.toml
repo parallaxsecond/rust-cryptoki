@@ -1,0 +1,19 @@
+[package]
+name = "cryptoki-derive"
+version = "0.1.0"
+edition = "2018"
+authors = ["Contributors to the Parsec project"]
+description = "Derive macros around the PKCS #11 API"
+readme = "README.md"
+keywords = ["pkcs11", "cryptoki", "hsm"]
+categories = ["cryptography", "hardware-support"]
+license = "Apache-2.0"
+repository = "https://github.com/parallaxsecond/rust-cryptoki"
+documentation = "https://docs.rs/crate/cryptoki"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.23"
+syn = { version = "1.0.107", features = ["full"] }

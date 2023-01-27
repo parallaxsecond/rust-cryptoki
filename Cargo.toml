@@ -1,2 +1,2 @@
 [workspace]
-members = ["cryptoki", "cryptoki-sys"]
+members = ["cryptoki", "cryptoki-derive", "cryptoki-sys"]
