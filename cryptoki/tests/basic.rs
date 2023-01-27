@@ -4,21 +4,21 @@ mod common;
 
 use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
+use cryptoki::context::Pkcs11;
 use cryptoki::error::{Error, RvError};
+use cryptoki::hsm_test;
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
+use cryptoki::slot::Slot;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
 
 use testresult::TestResult;
 
-#[test]
-#[serial]
-fn sign_verify() -> TestResult {
-    let (pkcs11, slot) = init_pins();
-
+#[hsm_test]
+fn sign_verify(pkcs11: Pkcs11, slot: Slot) -> TestResult {
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 

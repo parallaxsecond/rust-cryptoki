@@ -9,7 +9,7 @@ use nix::{
     },
     unistd::{fork, mkdir, ForkResult},
 };
-use std::{env, fs};
+use std::{env, fs, panic::UnwindSafe};
 use tempfile::TempDir;
 
 // The default user pin
@@ -17,9 +17,40 @@ pub static USER_PIN: &str = "fedcba";
 // The default SO pin
 pub static SO_PIN: &str = "abcdef";
 
+trait TestFn: UnwindSafe {
+    fn call(self, ctx: Pkcs11, slot: Slot);
+}
+
+impl TestFn for fn(Pkcs11, Slot) {
+    fn call(self, ctx: Pkcs11, slot: Slot) {
+        self(ctx, slot)
+    }
+}
+
+impl TestFn for fn(Pkcs11, Slot) -> TestResult {
+    fn call(self, ctx: Pkcs11, slot: Slot) {
+        if let Err(e) = self(ctx, slot) {
+            panic!("error: {:?}", e);
+        }
+    }
+}
+
+use testresult::TestResult;
+
+#[allow(missing_docs)]
+#[doc(hidden)]
+pub fn test_with_hsm_result(test: fn(Pkcs11, Slot) -> TestResult) {
+    test_in_subprocess(test);
+}
+
 #[allow(missing_docs)]
 #[doc(hidden)]
 pub fn test_with_hsm(test: fn(Pkcs11, Slot)) {
+    test_in_subprocess(test);
+}
+
+#[allow(unused)]
+fn test_in_subprocess<F: TestFn>(test: F) {
     // For isolation, every test is ran in their subprocess.
     // This is because we rely on softhsm2 and its configuration is passed via
     // the environment variable SOFTHSM2_CONF which is a global variable.
@@ -42,7 +73,9 @@ pub fn test_with_hsm(test: fn(Pkcs11, Slot)) {
             match std::panic::catch_unwind(|| {
                 child_main(test);
             }) {
-                Ok(()) => {}
+                Ok(()) => {
+                    std::process::exit(0);
+                }
                 Err(_) => {
                     std::process::exit(1);
                 }
@@ -52,7 +85,7 @@ pub fn test_with_hsm(test: fn(Pkcs11, Slot)) {
     }
 }
 
-fn child_main(test: fn(Pkcs11, Slot)) {
+fn child_main<F: TestFn>(test: F) {
     let tmp_dir = TempDir::new().expect("create a tempdir");
 
     let conf_path = tmp_dir.path().join("softhsm2.conf");
@@ -112,5 +145,5 @@ fn child_main(test: fn(Pkcs11, Slot)) {
     }
 
     // Run the test
-    test(pkcs11, slot);
+    test.call(pkcs11, slot);
 }

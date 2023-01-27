@@ -1,8 +1,8 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 use proc_macro::TokenStream;
-use quote::quote;
-use syn::{AttributeArgs, ItemFn};
+use quote::{quote, ToTokens};
+use syn::{AttributeArgs, ItemFn, ReturnType};
 
 #[proc_macro_attribute]
 pub fn hsm_test(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -23,17 +23,39 @@ fn test_impl(mut input: ItemFn, _args: AttributeArgs) -> Result<TokenStream, syn
     let parameters = input.sig.inputs.clone();
     input.sig.inputs = Default::default();
 
+    // Support the return of Result<()> for tests
+    let (tester, test_impl_sig) = match input.sig.output {
+        ReturnType::Default => (
+            quote! {
+                ::cryptoki::tests_support::test_with_hsm
+            },
+            quote! {
+                fn test_impl(#parameters)
+            },
+        ),
+        ReturnType::Type(_, ref t) => {
+            let ret = t.to_token_stream();
+            (
+                quote! {
+                    ::cryptoki::tests_support::test_with_hsm_result
+                },
+                quote! {
+                    fn test_impl(#parameters) -> #ret
+                },
+            )
+        }
+    };
+    input.sig.output = ReturnType::Default;
+
     // Then we'll grab the test body block, put that in the inner function
     // and replace the outer function with a wrapper
     let body = input.block;
 
     input.block = syn::parse_quote! {
         {
-            use ::cryptoki::{context::Pkcs11, slot::Slot};
+            #test_impl_sig #body
 
-            fn test_impl(#parameters) #body
-
-            ::cryptoki::tests_support::test_with_hsm(test_impl)
+            #tester(test_impl)
         }
     };
 
