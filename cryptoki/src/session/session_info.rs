@@ -111,7 +111,7 @@ mod test {
     fn debug_flags_all() {
         let expected = "RW_SESSION | SERIAL_SESSION";
         let all = SessionInfoFlags::all();
-        let observed = format!("{:#?}", all);
+        let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
     }
 
@@ -131,7 +131,7 @@ mod test {
     flags: (empty),
     device_error: 0,
 }"#;
-        let observed = format!("{:#?}", info);
+        let observed = format!("{info:#?}");
         assert_eq!(observed, expected);
     }
 }

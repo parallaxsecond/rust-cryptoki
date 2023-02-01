@@ -253,7 +253,7 @@ impl AttributeType {
             CKA_UNWRAP_TEMPLATE => String::from(stringify!(CKA_UNWRAP_TEMPLATE)),
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
-            _ => format!("unknown ({:08x})", val),
+            _ => format!("unknown ({val:08x})"),
         }
     }
 }
@@ -1017,7 +1017,7 @@ impl ObjectClass {
             CKO_DOMAIN_PARAMETERS => String::from(stringify!(CKO_DOMAIN_PARAMETERS)),
             CKO_MECHANISM => String::from(stringify!(CKO_MECHANISM)),
             CKO_OTP_KEY => String::from(stringify!(CKO_OTP_KEY)),
-            _ => format!("unknown ({:08x})", class),
+            _ => format!("unknown ({class:08x})"),
         }
     }
 }
@@ -1235,7 +1235,7 @@ impl KeyType {
             CKK_GOSTR3411 => String::from(stringify!(CKK_GOSTR3411)),
             CKK_GOST28147 => String::from(stringify!(CKK_GOST28147)),
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
-            _ => format!("unknown ({:08x})", key_type),
+            _ => format!("unknown ({key_type:08x})"),
         }
     }
 }
@@ -1349,7 +1349,7 @@ impl CertificateType {
             CKC_X_509 => String::from(stringify!(CKC_X_509)),
             CKC_X_509_ATTR_CERT => String::from(stringify!(CKC_X_509_ATTR_CERT)),
             CKC_WTLS => String::from(stringify!(CKC_WTLS)),
-            _ => format!("unknown ({:08x})", cert_type),
+            _ => format!("unknown ({cert_type:08x})"),
         }
     }
 }

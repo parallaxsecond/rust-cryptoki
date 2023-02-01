@@ -54,14 +54,14 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::LibraryLoading(e) => write!(f, "libloading error ({})", e),
-            Error::Pkcs11(e) => write!(f, "PKCS11 error: {}", e),
+            Error::LibraryLoading(e) => write!(f, "libloading error ({e})"),
+            Error::Pkcs11(e) => write!(f, "PKCS11 error: {e}"),
             Error::NotSupported => write!(f, "Feature not supported"),
-            Error::TryFromInt(e) => write!(f, "Conversion between integers failed ({})", e),
-            Error::TryFromSlice(e) => write!(f, "Error converting slice to array ({})", e),
-            Error::ParseInt(e) => write!(f, "Error parsing string as integer ({})", e),
-            Error::Utf8(e) => write!(f, "Invalid UTF-8 ({})", e),
-            Error::NulError(e) => write!(f, "An interior nul byte was found ({})", e),
+            Error::TryFromInt(e) => write!(f, "Conversion between integers failed ({e})"),
+            Error::TryFromSlice(e) => write!(f, "Error converting slice to array ({e})"),
+            Error::ParseInt(e) => write!(f, "Error parsing string as integer ({e})"),
+            Error::Utf8(e) => write!(f, "Invalid UTF-8 ({e})"),
+            Error::NulError(e) => write!(f, "An interior nul byte was found ({e})"),
             Error::NullFunctionPointer => write!(f, "Calling a NULL function pointer"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
             Error::PinNotSet => write!(f, "Pin has not been set before trying to log in"),
