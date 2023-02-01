@@ -109,6 +109,16 @@ impl std::fmt::Display for Date {
     }
 }
 
+impl PartialEq for Date {
+    fn eq(&self, other: &Self) -> bool {
+        self.date.year == other.date.year
+            && self.date.month == other.date.month
+            && self.date.day == other.date.day
+    }
+}
+
+impl Eq for Date {}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 /// Unsigned value, at least 32 bits long
