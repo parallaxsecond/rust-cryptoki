@@ -105,7 +105,7 @@ impl std::fmt::Display for Date {
             .trim_end()
             .to_string();
 
-        write!(f, "Month: {}\nDay: {}\nYear: {}", month, day, year)
+        write!(f, "Month: {month}\nDay: {day}\nYear: {year}")
     }
 }
 
@@ -310,7 +310,7 @@ mod test {
     minute: 0,
     second: 0,
 }"#;
-        let observed = format!("{:#?}", UTC_TIME);
+        let observed = format!("{UTC_TIME:#?}");
         assert_eq!(observed, expected);
     }
     #[test]

@@ -242,8 +242,8 @@ VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
 EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
 EC_UNCOMPRESS | EC_COMPRESS";
         let all = MechanismInfoFlags::all();
-        let observed = format!("{:#?}", all);
-        println!("{}", observed);
+        let observed = format!("{all:#?}");
+        println!("{observed}");
         assert_eq!(observed, expected);
     }
 
@@ -259,7 +259,7 @@ EC_UNCOMPRESS | EC_COMPRESS";
     max_key_size: 4096,
     flags: (empty),
 }"#;
-        let observed = format!("{:#?}", info);
+        let observed = format!("{info:#?}");
         assert_eq!(observed, expected);
     }
 }
