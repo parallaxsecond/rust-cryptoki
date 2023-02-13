@@ -587,7 +587,7 @@ impl MechanismType {
             CKM_EC_MONTGOMERY_KEY_PAIR_GEN => {
                 String::from(stringify!(CKM_EC_MONTGOMERY_KEY_PAIR_GEN))
             }
-            _ => format!("unknown {:08x}", mech),
+            _ => format!("unknown {mech:08x}"),
         }
     }
 }
