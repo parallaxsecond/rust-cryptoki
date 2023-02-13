@@ -403,7 +403,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 /// Attribute value
 pub enum Attribute {
