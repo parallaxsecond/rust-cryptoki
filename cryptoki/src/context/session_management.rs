@@ -9,27 +9,45 @@ use crate::error::{Result, Rv};
 use crate::session::Session;
 use crate::slot::Slot;
 use std::convert::TryInto;
-// See public docs on stub in parent mod.rs
-#[inline(always)]
-pub(super) fn open_session(ctx: &Pkcs11, slot_id: Slot, read_write: bool) -> Result<Session> {
-    let mut session_handle = 0;
 
-    let flags = if read_write {
-        CKF_SERIAL_SESSION | CKF_RW_SESSION
-    } else {
-        CKF_SERIAL_SESSION
-    };
-    unsafe {
-        Rv::from(get_pkcs11!(ctx, C_OpenSession)(
-            slot_id.try_into()?,
-            flags,
-            // TODO: abstract those types or create new functions for callbacks
-            std::ptr::null_mut(),
-            None,
-            &mut session_handle,
-        ))
-        .into_result()?;
+impl Pkcs11 {
+    #[inline(always)]
+    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
+        let mut session_handle = 0;
+
+        let flags = if read_write {
+            CKF_SERIAL_SESSION | CKF_RW_SESSION
+        } else {
+            CKF_SERIAL_SESSION
+        };
+        unsafe {
+            Rv::from(get_pkcs11!(self, C_OpenSession)(
+                slot_id.try_into()?,
+                flags,
+                // TODO: abstract those types or create new functions for callbacks
+                std::ptr::null_mut(),
+                None,
+                &mut session_handle,
+            ))
+            .into_result()?;
+        }
+
+        Ok(Session::new(session_handle, self.clone()))
     }
 
-    Ok(Session::new(session_handle, ctx.clone()))
+    /// Open a new Read-Only session
+    ///
+    /// For a Read-Write session, use `open_rw_session`
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
+        self.open_session(slot_id, false)
+    }
+
+    /// Open a new Read/Write session
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session> {
+        self.open_session(slot_id, true)
+    }
 }
