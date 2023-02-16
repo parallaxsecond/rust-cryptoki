@@ -1,5 +1,5 @@
 [package]
-name = "cryptoki-derive"
+name = "cryptoki-tests-derive"
 version = "0.1.0"
 edition = "2018"
 authors = ["Contributors to the Parsec project"]

@@ -27,7 +27,7 @@ fn test_impl(mut input: ItemFn, _args: AttributeArgs) -> Result<TokenStream, syn
     let (tester, test_impl_sig) = match input.sig.output {
         ReturnType::Default => (
             quote! {
-                ::cryptoki::tests_support::test_with_hsm
+                ::cryptoki_tests::test_with_hsm
             },
             quote! {
                 fn test_impl(#parameters)
@@ -37,7 +37,7 @@ fn test_impl(mut input: ItemFn, _args: AttributeArgs) -> Result<TokenStream, syn
             let ret = t.to_token_stream();
             (
                 quote! {
-                    ::cryptoki::tests_support::test_with_hsm_result
+                    ::cryptoki_tests::test_with_hsm_result
                 },
                 quote! {
                     fn test_impl(#parameters) -> #ret

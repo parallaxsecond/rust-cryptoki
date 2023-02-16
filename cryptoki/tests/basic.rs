@@ -6,15 +6,14 @@ use crate::common::{SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Pkcs11;
 use cryptoki::error::{Error, RvError};
-use cryptoki::hsm_test;
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
 use cryptoki::slot::Slot;
+use cryptoki_tests::hsm_test;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
-
 use testresult::TestResult;
 
 #[hsm_test]

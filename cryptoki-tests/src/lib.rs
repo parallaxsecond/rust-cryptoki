@@ -1,7 +1,10 @@
 // Copyright 2022 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{context::CInitializeArgs, context::Pkcs11, session::UserType, slot::Slot};
+pub use cryptoki_tests_derive::hsm_test;
+pub use testresult;
+
+use cryptoki::{context::CInitializeArgs, context::Pkcs11, session::UserType, slot::Slot};
 use nix::{
     sys::{
         stat,
