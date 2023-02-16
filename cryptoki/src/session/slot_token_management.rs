@@ -4,16 +4,18 @@
 
 use crate::error::{Result, Rv};
 use crate::session::Session;
+use crate::types::Pin;
+use secrecy::ExposeSecret;
 use std::convert::TryInto;
 
 impl Session {
     /// Initialize the normal user's pin for a token
-    pub fn init_pin(&self, pin: &str) -> Result<()> {
+    pub fn init_pin(&self, pin: &Pin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_InitPIN)(
                 self.handle(),
-                pin.as_ptr() as *mut u8,
-                pin.len().try_into()?,
+                pin.expose_secret().as_ptr() as *mut u8,
+                pin.expose_secret().len().try_into()?,
             ))
             .into_result()
         }
@@ -21,14 +23,14 @@ impl Session {
 
     /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
     /// logged in.
-    pub fn set_pin(&self, old_pin: &str, new_pin: &str) -> Result<()> {
+    pub fn set_pin(&self, old_pin: &Pin, new_pin: &Pin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
                 self.handle(),
-                old_pin.as_ptr() as *mut u8,
-                old_pin.len().try_into()?,
-                new_pin.as_ptr() as *mut u8,
-                new_pin.len().try_into()?,
+                old_pin.expose_secret().as_ptr() as *mut u8,
+                old_pin.expose_secret().len().try_into()?,
+                new_pin.expose_secret().as_ptr() as *mut u8,
+                new_pin.expose_secret().len().try_into()?,
             ))
             .into_result()
         }

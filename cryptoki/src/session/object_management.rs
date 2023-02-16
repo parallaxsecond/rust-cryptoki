@@ -117,6 +117,7 @@ impl Session {
     /// use cryptoki::context::CInitializeArgs;
     /// use cryptoki::object::AttributeType;
     /// use cryptoki::session::UserType;
+    /// use cryptoki::types::Pin;
     /// use std::collections::HashMap;
     /// use std::env;
     ///
@@ -130,7 +131,7 @@ impl Session {
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
     ///
     /// let session = pkcs11.open_ro_session(slot).unwrap();
-    /// session.login(UserType::User, Some("fedcba"));
+    /// session.login(UserType::User, Some(&Pin::new("fedcba".into())));
     ///
     /// let empty_attrib= vec![];
     /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().get(0) {
