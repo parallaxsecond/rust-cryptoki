@@ -7,7 +7,7 @@ use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
-use crate::types::Pin;
+use crate::types::AuthPin;
 use cryptoki_sys::{CK_BBOOL, CK_FALSE, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO, CK_TRUE};
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
@@ -77,7 +77,7 @@ impl Pkcs11 {
     /// Initialize a token
     ///
     /// Currently will use an empty label for all tokens.
-    pub fn init_token(&self, slot: Slot, pin: &Pin, label: &str) -> Result<()> {
+    pub fn init_token(&self, slot: Slot, pin: &AuthPin, label: &str) -> Result<()> {
         let label = label_from_str(label);
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(

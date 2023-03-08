@@ -4,13 +4,13 @@
 
 use crate::error::{Result, Rv};
 use crate::session::Session;
-use crate::types::Pin;
+use crate::types::AuthPin;
 use secrecy::ExposeSecret;
 use std::convert::TryInto;
 
 impl Session {
     /// Initialize the normal user's pin for a token
-    pub fn init_pin(&self, pin: &Pin) -> Result<()> {
+    pub fn init_pin(&self, pin: &AuthPin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_InitPIN)(
                 self.handle(),
@@ -23,7 +23,7 @@ impl Session {
 
     /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
     /// logged in.
-    pub fn set_pin(&self, old_pin: &Pin, new_pin: &Pin) -> Result<()> {
+    pub fn set_pin(&self, old_pin: &AuthPin, new_pin: &AuthPin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
                 self.handle(),

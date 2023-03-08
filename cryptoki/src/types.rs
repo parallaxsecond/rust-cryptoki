@@ -276,12 +276,12 @@ pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<UtcTime> {
 /// Secret wrapper for a Pin
 ///
 /// Enable the `serde` feature to add support for Deserialize
-pub type Pin = SecretString;
+pub type AuthPin = SecretString;
 
 /// Secret wrapper for a raw non UTF-8 Pin
 ///
 /// Enable the `serde` feature to add support for Deserialize
-pub type RawPin = SecretVec<u8>;
+pub type RawAuthPin = SecretVec<u8>;
 
 #[cfg(test)]
 mod test {

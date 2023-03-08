@@ -3,7 +3,7 @@
 use cryptoki::context::{CInitializeArgs, Pkcs11};
 use cryptoki::session::UserType;
 use cryptoki::slot::Slot;
-use cryptoki::types::Pin;
+use cryptoki::types::AuthPin;
 use std::env;
 
 // The default user pin
@@ -24,7 +24,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     // find a slot, get the first one
     let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
-    let so_pin = Pin::new(SO_PIN.into());
+    let so_pin = AuthPin::new(SO_PIN.into());
     pkcs11.init_token(slot, &so_pin, "Test Token").unwrap();
 
     {
@@ -32,7 +32,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
         let session = pkcs11.open_rw_session(slot).unwrap();
         // log in the session
         session.login(UserType::So, Some(&so_pin)).unwrap();
-        session.init_pin(&Pin::new(USER_PIN.into())).unwrap();
+        session.init_pin(&AuthPin::new(USER_PIN.into())).unwrap();
     }
 
     (pkcs11, slot)

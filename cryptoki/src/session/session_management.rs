@@ -4,7 +4,7 @@
 
 use crate::error::{Result, Rv};
 use crate::session::{Session, SessionInfo, UserType};
-use crate::types::{Pin, RawPin};
+use crate::types::{AuthPin, RawAuthPin};
 
 #[cfg(doc)]
 use cryptoki_sys::CKF_PROTECTED_AUTHENTICATION_PATH;
@@ -41,7 +41,7 @@ impl Session {
     ///
     /// _NOTE: By passing `None` into `login`, you must ensure that the
     /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
-    pub fn login(&self, user_type: UserType, pin: Option<&Pin>) -> Result<()> {
+    pub fn login(&self, user_type: UserType, pin: Option<&AuthPin>) -> Result<()> {
         let (pin, pin_len) = match pin {
             Some(pin) => (
                 pin.expose_secret().as_ptr() as *mut u8,
@@ -72,7 +72,7 @@ impl Session {
     ///
     /// _NOTE: By passing `None` into `login`, you must ensure that the
     /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
-    pub fn login_with_raw(&self, user_type: UserType, pin: &RawPin) -> Result<()> {
+    pub fn login_with_raw(&self, user_type: UserType, pin: &RawAuthPin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_Login)(
                 self.handle(),
