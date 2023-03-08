@@ -4,11 +4,13 @@
 
 use crate::error::{Result, Rv};
 use crate::session::{Session, SessionInfo, UserType};
+use crate::types::{AuthPin, RawAuthPin};
 
 #[cfg(doc)]
 use cryptoki_sys::CKF_PROTECTED_AUTHENTICATION_PATH;
 use cryptoki_sys::CK_SESSION_INFO;
 use log::error;
+use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session {
@@ -39,9 +41,12 @@ impl Session {
     ///
     /// _NOTE: By passing `None` into `login`, you must ensure that the
     /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
-    pub fn login(&self, user_type: UserType, pin: Option<&str>) -> Result<()> {
+    pub fn login(&self, user_type: UserType, pin: Option<&AuthPin>) -> Result<()> {
         let (pin, pin_len) = match pin {
-            Some(pin) => (pin.as_ptr() as *mut u8, pin.len()),
+            Some(pin) => (
+                pin.expose_secret().as_ptr() as *mut u8,
+                pin.expose_secret().len(),
+            ),
             None => (std::ptr::null_mut(), 0),
         };
         unsafe {
@@ -67,13 +72,13 @@ impl Session {
     ///
     /// _NOTE: By passing `None` into `login`, you must ensure that the
     /// [CKF_PROTECTED_AUTHENTICATION_PATH] flag is set in the `TokenFlags`._
-    pub fn login_with_raw(&self, user_type: UserType, pin: &[u8]) -> Result<()> {
+    pub fn login_with_raw(&self, user_type: UserType, pin: &RawAuthPin) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_Login)(
                 self.handle(),
                 user_type.into(),
-                pin.as_ptr() as *mut u8,
-                pin.len().try_into()?,
+                pin.expose_secret().as_ptr() as *mut u8,
+                pin.expose_secret().len().try_into()?,
             ))
             .into_result()
         }

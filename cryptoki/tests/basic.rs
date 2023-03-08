@@ -8,6 +8,7 @@ use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
+use cryptoki::types::AuthPin;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
@@ -23,7 +24,7 @@ fn sign_verify() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -71,7 +72,7 @@ fn encrypt_decrypt() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -123,7 +124,7 @@ fn derive_key() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::EccKeyPairGen;
@@ -207,7 +208,7 @@ fn import_export() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let modulus = vec![0xFF; 1024];
@@ -273,7 +274,9 @@ fn wrap_and_unwrap_key() {
     let session = pkcs11.open_rw_session(slot).unwrap();
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN)).unwrap();
+    session
+        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
+        .unwrap();
 
     let key_to_be_wrapped_template = vec![
         Attribute::Token(true),
@@ -360,15 +363,15 @@ fn login_feast() {
         let pkcs11 = pkcs11.clone();
         threads.push(thread::spawn(move || {
             let session = pkcs11.open_rw_session(slot).unwrap();
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
@@ -430,14 +433,14 @@ fn get_session_info_test() -> TestResult {
             SessionState::RoPublic
         ));
 
-        session.login(UserType::User, Some(USER_PIN))?;
+        session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
         assert!(matches!(session_info.session_state(), SessionState::RoUser));
         session.logout()?;
         if let Err(cryptoki::error::Error::Pkcs11(rv_error)) =
-            session.login(UserType::So, Some(SO_PIN))
+            session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))
         {
             assert_eq!(rv_error, RvError::SessionReadOnlyExists)
         } else {
@@ -454,13 +457,13 @@ fn get_session_info_test() -> TestResult {
         SessionState::RwPublic
     ));
 
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
     assert!(matches!(session_info.session_state(), SessionState::RwUser,));
     session.logout()?;
-    session.login(UserType::So, Some(SO_PIN))?;
+    session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
@@ -502,11 +505,13 @@ fn set_pin_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_rw_session(slot)?;
+    let user_pin = AuthPin::new(USER_PIN.into());
+    let new_user_pin = AuthPin::new(new_user_pin.into());
 
-    session.login(UserType::User, Some(USER_PIN))?;
-    session.set_pin(USER_PIN, new_user_pin)?;
+    session.login(UserType::User, Some(&user_pin))?;
+    session.set_pin(&user_pin, &new_user_pin)?;
     session.logout()?;
-    session.login(UserType::User, Some(new_user_pin))?;
+    session.login(UserType::User, Some(&new_user_pin))?;
 
     Ok(())
 }
@@ -520,7 +525,7 @@ fn get_attribute_info_test() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -671,7 +676,7 @@ fn aes_key_attributes_test() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::AesKeyGen;
@@ -732,7 +737,7 @@ fn ro_rw_session_test() -> TestResult {
         let ro_session = pkcs11.open_ro_session(slot)?;
 
         // log in the session
-        ro_session.login(UserType::User, Some(USER_PIN))?;
+        ro_session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
         // generate a key pair
         // This should NOT work using the Read-Only session
@@ -752,7 +757,7 @@ fn ro_rw_session_test() -> TestResult {
         let rw_session = pkcs11.open_rw_session(slot)?;
 
         // log in the session
-        rw_session.login(UserType::User, Some(USER_PIN))?;
+        rw_session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
         // generate a key pair
         // This should work using the Read/Write session
@@ -781,7 +786,7 @@ fn aes_cbc_encrypt() -> TestResult {
 
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let template = [
         Attribute::Class(ObjectClass::SECRET_KEY),
@@ -812,7 +817,7 @@ fn aes_cbc_pad_encrypt() -> TestResult {
 
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let template = [
         Attribute::Class(ObjectClass::SECRET_KEY),
@@ -835,7 +840,7 @@ fn update_attributes_key() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // pub key template
     let pub_key_template = vec![

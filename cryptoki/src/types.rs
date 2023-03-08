@@ -4,6 +4,8 @@
 
 use crate::error::{Error, Result};
 use cryptoki_sys::*;
+use secrecy::SecretString;
+use secrecy::SecretVec;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fmt::Formatter;
@@ -270,6 +272,16 @@ pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<UtcTime> {
         second: std::str::from_utf8(&orig[12..14])?.parse()?,
     })
 }
+
+/// Secret wrapper for a Pin
+///
+/// Enable the `serde` feature to add support for Deserialize
+pub type AuthPin = SecretString;
+
+/// Secret wrapper for a raw non UTF-8 Pin
+///
+/// Enable the `serde` feature to add support for Deserialize
+pub type RawAuthPin = SecretVec<u8>;
 
 #[cfg(test)]
 mod test {
