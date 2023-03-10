@@ -91,7 +91,7 @@ include!(concat!(
 ))]
 include!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/src/bindings/x86_64-windows.rs"
+    "/src/bindings/x86_64-pc-windows-msvc.rs"
 ));
 
 #[cfg(all(
