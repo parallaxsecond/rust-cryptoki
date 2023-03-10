@@ -17,7 +17,7 @@ for target in $targets; do
     fi
 
     cargo build --target "$target" --features generate-bindings
-    find ../target/"$target"/ -print0 -name "pkcs11_bindings.rs" | xargs -I '{}' cp '{}' src/bindings/"$target".rs
+    find ../target/"$target"/ -name "pkcs11_bindings.rs" | xargs -I '{}' cp '{}' src/bindings/"$target".rs
 
     if [ "$TARGET_INSTALLED" == "$target" ]; then
         rustup target remove "$target"
