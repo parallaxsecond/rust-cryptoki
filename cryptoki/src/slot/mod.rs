@@ -45,7 +45,7 @@ impl Slot {
 
     /// Underlying ID used for a slot
     pub fn id(&self) -> u64 {
-        self.slot_id as u64
+        self.slot_id.into()
     }
 }
 

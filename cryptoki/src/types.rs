@@ -113,7 +113,7 @@ impl std::fmt::Display for Date {
             .trim_end()
             .to_string();
 
-        write!(f, "Month: {}\nDay: {}\nYear: {}", month, day, year)
+        write!(f, "Month: {month}\nDay: {day}\nYear: {year}")
     }
 }
 
