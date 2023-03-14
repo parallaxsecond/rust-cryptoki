@@ -15,7 +15,7 @@ documentation = "https://docs.rs/crate/cryptoki"
 libloading = "0.7.0"
 log = "0.4.14"
 derivative = "2.2.0"
-psa-crypto = { version = "0.9.0", default-features = false, optional = true }
+psa-crypto = { version = "0.10.0", default-features = false, optional = true }
 cryptoki-sys = { path = "../cryptoki-sys", version = "0.1.3" }
 
 [dev-dependencies]
