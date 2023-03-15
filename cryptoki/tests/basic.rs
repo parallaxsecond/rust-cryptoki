@@ -874,3 +874,28 @@ fn update_attributes_key() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn sha256_digest() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // data to digest
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let want = vec![
+        0x17, 0x22, 0x6b, 0x1f, 0x68, 0xae, 0xba, 0xcd, 0xef, 0x07, 0x46, 0x45, 0x0f, 0x64, 0x28,
+        0x74, 0x63, 0x8b, 0x29, 0x57, 0x07, 0xef, 0x73, 0xfb, 0x2c, 0x6b, 0xb7, 0xf8, 0x8e, 0x89,
+        0x92, 0x9f,
+    ];
+    let have = session.digest(&Mechanism::Sha256, &data)?;
+    assert_eq!(want[..], have[..]);
+
+    Ok(())
+}
