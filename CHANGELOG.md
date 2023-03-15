@@ -1,8 +1,24 @@
 # Changelog
 
-## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2021-11-22)
+## [cryptoki-sys-0.1.5](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.5) (2023-03-13)
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-0.4.0)
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.1...cryptoki-sys-0.1.5)
+
+## [cryptoki-0.3.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.1) (2023-03-13)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.4.1...cryptoki-0.3.1)
+
+**Merged pull requests:**
+
+- Backport bindgen 0.63.0 changes to crypotki-0.3.x branch  [\#131](https://github.com/parallaxsecond/rust-cryptoki/pull/131) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
+## [cryptoki-0.3.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.0) (2022-01-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.3...cryptoki-0.3.0)
+
+## [cryptoki-sys-0.1.3](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.3) (2022-01-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.0...cryptoki-sys-0.1.3)
 
 **Implemented enhancements:**
 
@@ -21,6 +37,7 @@
 
 **Merged pull requests:**
 
+- Version bump [\#79](https://github.com/parallaxsecond/rust-cryptoki/pull/79) ([ionut-arm](https://github.com/ionut-arm))
 - Suppress null pointer deref warnings [\#62](https://github.com/parallaxsecond/rust-cryptoki/pull/62) ([vkkoskie](https://github.com/vkkoskie))
 - Use rust's own bool type in abstraction crate [\#61](https://github.com/parallaxsecond/rust-cryptoki/pull/61) ([vkkoskie](https://github.com/vkkoskie))
 - Switch to inclusive bindgen naming [\#60](https://github.com/parallaxsecond/rust-cryptoki/pull/60) ([vkkoskie](https://github.com/vkkoskie))
