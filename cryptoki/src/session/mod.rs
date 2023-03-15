@@ -9,6 +9,7 @@ use std::fmt::Formatter;
 use std::marker::PhantomData;
 
 mod decryption;
+mod digesting;
 mod encryption;
 mod key_management;
 mod object_management;
