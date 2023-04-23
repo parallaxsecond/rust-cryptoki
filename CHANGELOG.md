@@ -1,5 +1,13 @@
 # Changelog
 
+## [cryptoki-sys-0.1.6](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.6) (2023-04-22)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.1...cryptoki-sys-0.1.6)
+
+**Merged pull requests:**
+
+- Bump bindgen version [\#130](https://github.com/parallaxsecond/rust-cryptoki/pull/130) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
 ## [cryptoki-0.4.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.1) (2022-09-29)
 
 **Implemented enhancements:**
