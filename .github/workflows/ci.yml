@@ -24,6 +24,14 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+  docs:
+    name: Check documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check documentation
+        run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items --no-deps
+
   build:
     name: Execute CI script
     runs-on: ubuntu-latest
