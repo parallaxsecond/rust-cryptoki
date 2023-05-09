@@ -25,7 +25,7 @@ impl Session {
         Ok(())
     }
 
-    /// Generates random data and returns it as a Vec<u8>.  The length of the returned Vector will
+    /// Generates random data and returns it as a `Vec<u8>`.  The length of the returned Vector will
     /// be the amount of random requested, which is `random_len`.
     pub fn generate_random_vec(&self, random_len: u32) -> Result<Vec<u8>> {
         let mut result: Vec<u8> = vec![0; random_len as usize];

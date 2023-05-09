@@ -759,7 +759,7 @@ impl From<&Attribute> for CK_ATTRIBUTE {
     }
 }
 
-/// Private function standing in for TryInto<bool> for &[u8]
+/// Private function standing in for `TryInto<bool>` for `&[u8]`
 /// which can't be implemented through the actual trait because
 /// it and both types are external to this crate.
 /// NB from the specification: "In Cryptoki, the CK_BBOOL data type
