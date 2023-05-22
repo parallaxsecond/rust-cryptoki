@@ -25,7 +25,7 @@ secrecy = "0.8.0"
 num-traits = "0.2.14"
 hex = "0.4.3"
 serial_test = "0.5.1"
-testresult = "0.2.0"
+testresult = "0.4.1"
 
 [features]
 psa-crypto-conversions = ["psa-crypto"]
