@@ -25,10 +25,10 @@ pushd cryptoki-sys
 RUST_BACKTRACE=1 cargo build --features generate-bindings
 popd
 
-if cargo fmt -h; then
+if cargo fmt --version; then
 	cargo fmt --all -- --check
 fi
-if cargo clippy -h; then
+if cargo clippy --version; then
 	cargo clippy --all-targets -- -D clippy::all -D clippy::cargo
 fi
 

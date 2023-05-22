@@ -9,31 +9,23 @@ use cryptoki::mechanism::aead::GcmParams;
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
+use cryptoki::types::AuthPin;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
 
-#[derive(Debug)]
-struct ErrorWithStacktrace;
-
-impl<T: std::error::Error> From<T> for ErrorWithStacktrace {
-    fn from(p: T) -> Self {
-        panic!("Error: {:#?}", p);
-    }
-}
-
-type Result<T> = std::result::Result<T, ErrorWithStacktrace>;
+use testresult::TestResult;
 
 #[test]
 #[serial]
-fn sign_verify() -> Result<()> {
+fn sign_verify() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -74,14 +66,53 @@ fn sign_verify() -> Result<()> {
 
 #[test]
 #[serial]
-fn encrypt_decrypt() -> Result<()> {
+fn sign_verify_ed25519() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    let session = pkcs11.open_rw_session(slot)?;
+
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let mechanism = Mechanism::EccEdwardsKeyPairGen;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Verify(true),
+        // Ed25519 OID
+        // See: https://github.com/opendnssec/SoftHSMv2/blob/ac70dc398b236e4522101930e790008936489e2d/src/lib/test/SignVerifyTests.cpp#L173
+        Attribute::EcParams(vec![
+            0x13, 0x0c, 0x65, 0x64, 0x77, 0x61, 0x72, 0x64, 0x73, 0x32, 0x35, 0x35, 0x31, 0x39,
+        ]),
+    ];
+
+    let priv_key_template = vec![Attribute::Token(true)];
+
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let data = [0xFF, 0x55, 0xDD];
+
+    let signature = session.sign(&Mechanism::Eddsa, private, &data)?;
+
+    session.verify(&Mechanism::Eddsa, public, &data, &signature)?;
+
+    session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -126,14 +157,14 @@ fn encrypt_decrypt() -> Result<()> {
 
 #[test]
 #[serial]
-fn derive_key() -> Result<()> {
+fn derive_key() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::EccKeyPairGen;
@@ -210,14 +241,14 @@ fn derive_key() -> Result<()> {
 
 #[test]
 #[serial]
-fn import_export() -> Result<()> {
+fn import_export() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let modulus = vec![0xFF; 1024];
@@ -267,7 +298,7 @@ fn import_export() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_token_info() -> Result<()> {
+fn get_token_info() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
     assert_eq!("SoftHSM project", info.manufacturer_id());
@@ -283,7 +314,9 @@ fn wrap_and_unwrap_key() {
     let session = pkcs11.open_rw_session(slot).unwrap();
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN)).unwrap();
+    session
+        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
+        .unwrap();
 
     let key_to_be_wrapped_template = vec![
         Attribute::Token(true),
@@ -370,15 +403,15 @@ fn login_feast() {
         let pkcs11 = pkcs11.clone();
         threads.push(thread::spawn(move || {
             let session = pkcs11.open_rw_session(slot).unwrap();
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
-            match session.login(UserType::User, Some(USER_PIN)) {
+            match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
@@ -404,7 +437,7 @@ fn login_feast() {
 
 #[test]
 #[serial]
-fn get_info_test() -> Result<()> {
+fn get_info_test() -> TestResult {
     let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
@@ -416,7 +449,7 @@ fn get_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_slot_info_test() -> Result<()> {
+fn get_slot_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let slot_info = pkcs11.get_slot_info(slot)?;
     assert!(slot_info.token_present());
@@ -428,7 +461,7 @@ fn get_slot_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn get_session_info_test() -> Result<()> {
+fn get_session_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
     {
         let session = pkcs11.open_ro_session(slot)?;
@@ -440,14 +473,14 @@ fn get_session_info_test() -> Result<()> {
             SessionState::RoPublic
         ));
 
-        session.login(UserType::User, Some(USER_PIN))?;
+        session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
         let session_info = session.get_session_info()?;
         assert!(!session_info.read_write());
         assert_eq!(session_info.slot_id(), slot);
         assert!(matches!(session_info.session_state(), SessionState::RoUser));
         session.logout()?;
         if let Err(cryptoki::error::Error::Pkcs11(rv_error)) =
-            session.login(UserType::So, Some(SO_PIN))
+            session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))
         {
             assert_eq!(rv_error, RvError::SessionReadOnlyExists)
         } else {
@@ -464,13 +497,13 @@ fn get_session_info_test() -> Result<()> {
         SessionState::RwPublic
     ));
 
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
     assert!(matches!(session_info.session_state(), SessionState::RwUser,));
     session.logout()?;
-    session.login(UserType::So, Some(SO_PIN))?;
+    session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
@@ -484,7 +517,7 @@ fn get_session_info_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn generate_random_test() -> Result<()> {
+fn generate_random_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_ro_session(slot)?;
@@ -507,30 +540,32 @@ fn generate_random_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn set_pin_test() -> Result<()> {
+fn set_pin_test() -> TestResult {
     let new_user_pin = "123456";
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_rw_session(slot)?;
+    let user_pin = AuthPin::new(USER_PIN.into());
+    let new_user_pin = AuthPin::new(new_user_pin.into());
 
-    session.login(UserType::User, Some(USER_PIN))?;
-    session.set_pin(USER_PIN, new_user_pin)?;
+    session.login(UserType::User, Some(&user_pin))?;
+    session.set_pin(&user_pin, &new_user_pin)?;
     session.logout()?;
-    session.login(UserType::User, Some(new_user_pin))?;
+    session.login(UserType::User, Some(&new_user_pin))?;
 
     Ok(())
 }
 
 #[test]
 #[serial]
-fn get_attribute_info_test() -> Result<()> {
+fn get_attribute_info_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
@@ -674,14 +709,14 @@ fn is_initialized_test() {
 
 #[test]
 #[serial]
-fn aes_key_attributes_test() -> Result<()> {
+fn aes_key_attributes_test() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // get mechanism
     let mechanism = Mechanism::AesKeyGen;
@@ -720,7 +755,7 @@ fn aes_key_attributes_test() -> Result<()> {
 
 #[test]
 #[serial]
-fn ro_rw_session_test() -> Result<()> {
+fn ro_rw_session_test() -> TestResult {
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let modulus = vec![0xFF; 1024];
 
@@ -742,7 +777,7 @@ fn ro_rw_session_test() -> Result<()> {
         let ro_session = pkcs11.open_ro_session(slot)?;
 
         // log in the session
-        ro_session.login(UserType::User, Some(USER_PIN))?;
+        ro_session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
         // generate a key pair
         // This should NOT work using the Read-Only session
@@ -762,7 +797,7 @@ fn ro_rw_session_test() -> Result<()> {
         let rw_session = pkcs11.open_rw_session(slot)?;
 
         // log in the session
-        rw_session.login(UserType::User, Some(USER_PIN))?;
+        rw_session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
         // generate a key pair
         // This should work using the Read/Write session
@@ -788,11 +823,12 @@ fn aes_gcm_no_aad() -> Result<()> {
         0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
         0x78, 0xf7, 0x95, 0xaa, 0xab, 0x49, 0x4b, 0x59, 0x23, 0xf7, 0xfd, 0x89, 0xff, 0x94, 0x8b,
         0xc1, 0xe0, 0x40, 0x49, 0x0a, 0xf4, 0x80, 0x56, 0x06, 0xb2, 0xa3, 0xa2, 0xe7, 0x93,
+
     ];
 
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let template = [
         Attribute::Class(ObjectClass::SECRET_KEY),
@@ -806,24 +842,24 @@ fn aes_gcm_no_aad() -> Result<()> {
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
 }
+      
 
 #[test]
 #[serial]
-fn aes_gcm_with_aad() -> Result<()> {
-    // Encrypt a block of zeros with AES-128-GCM.
-    // Use another block of zeros for AAD.
+fn aes_cbc_encrypt() -> TestResult {
+    // Encrypt two blocks of zeros with AES-128-CBC, and zero IV
     let key = vec![0; 16];
-    let iv = [0; 12];
-    let aad = [0; 16];
-    let plain = [0; 16];
-    let expected_cipher_and_tag = [
-        0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
-        0x78, 0xd2, 0x4e, 0x50, 0x3a, 0x1b, 0xb0, 0x37, 0x07, 0x1c, 0x71, 0xb3, 0x5d,
+    let iv = [0; 16];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b,
+        0x2e, 0xf7, 0x95, 0xbd, 0x4a, 0x52, 0xe2, 0x9e, 0xd7, 0x13, 0xd3, 0x13, 0xfa, 0x20, 0xe9,
+        0x8d, 0xbc,
     ];
 
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
-    session.login(UserType::User, Some(USER_PIN))?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     let template = [
         Attribute::Class(ObjectClass::SECRET_KEY),
@@ -832,8 +868,108 @@ fn aes_gcm_with_aad() -> Result<()> {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
-    let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
-    assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    let mechanism = Mechanism::AesCbc(iv);
+    let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    Ok(())
+}      
+     
+#[test]
+#[serial]
+
+fn aes_cbc_pad_encrypt() -> TestResult {
+    // Encrypt two blocks of zeros with AES-128-CBC and PKCS#7 padding, and zero IV
+    let key = vec![0; 16];
+    let iv = [0; 16];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b,
+        0x2e, 0xf7, 0x95, 0xbd, 0x4a, 0x52, 0xe2, 0x9e, 0xd7, 0x13, 0xd3, 0x13, 0xfa, 0x20, 0xe9,
+        0x8d, 0xbc, 0x5c, 0x04, 0x76, 0x16, 0x75, 0x6f, 0xdc, 0x1c, 0x32, 0xe0, 0xdf, 0x6e, 0x8c,
+        0x59, 0xbb, 0x2a,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesCbcPad(iv);
+    let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn update_attributes_key() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
+        Attribute::ModulusBits(1024.into()),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Extractable(true)];
+
+    let (_public_key, private_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    let updated_attributes = vec![Attribute::Extractable(false)];
+
+    session.update_attributes(private_key, &updated_attributes)?;
+
+    let mut attributes_result =
+        session.get_attributes(private_key, &[AttributeType::Extractable])?;
+
+    if let Some(Attribute::Extractable(ext)) = attributes_result.pop() {
+        assert!(!ext);
+    } else {
+        panic!("Last attribute was not extractable");
+    }
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // data to digest
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let want = vec![
+        0x17, 0x22, 0x6b, 0x1f, 0x68, 0xae, 0xba, 0xcd, 0xef, 0x07, 0x46, 0x45, 0x0f, 0x64, 0x28,
+        0x74, 0x63, 0x8b, 0x29, 0x57, 0x07, 0xef, 0x73, 0xfb, 0x2c, 0x6b, 0xb7, 0xf8, 0x8e, 0x89,
+        0x92, 0x9f,
+    ];
+    let have = session.digest(&Mechanism::Sha256, &data)?;
+    assert_eq!(want[..], have[..]);
+
     Ok(())
 }

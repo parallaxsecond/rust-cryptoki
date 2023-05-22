@@ -4,32 +4,35 @@
 
 use crate::error::{Result, Rv};
 use crate::session::Session;
+use crate::types::AuthPin;
+use secrecy::ExposeSecret;
 use std::convert::TryInto;
 
-// See public docs on stub in parent mod.rs
-#[inline(always)]
-pub(super) fn init_pin(session: &Session, pin: &str) -> Result<()> {
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_InitPIN)(
-            session.handle(),
-            pin.as_ptr() as *mut u8,
-            pin.len().try_into()?,
-        ))
-        .into_result()
+impl Session {
+    /// Initialize the normal user's pin for a token
+    pub fn init_pin(&self, pin: &AuthPin) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_InitPIN)(
+                self.handle(),
+                pin.expose_secret().as_ptr() as *mut u8,
+                pin.expose_secret().len().try_into()?,
+            ))
+            .into_result()
+        }
     }
-}
 
-// See public docs on stub in parent mod.rs
-#[inline(always)]
-pub(super) fn set_pin(session: &Session, old_pin: &str, new_pin: &str) -> Result<()> {
-    unsafe {
-        Rv::from(get_pkcs11!(session.client(), C_SetPIN)(
-            session.handle(),
-            old_pin.as_ptr() as *mut u8,
-            old_pin.len().try_into()?,
-            new_pin.as_ptr() as *mut u8,
-            new_pin.len().try_into()?,
-        ))
-        .into_result()
+    /// Changes the PIN of either the currently logged in user or of the `CKU_USER` if no user is
+    /// logged in.
+    pub fn set_pin(&self, old_pin: &AuthPin, new_pin: &AuthPin) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_SetPIN)(
+                self.handle(),
+                old_pin.expose_secret().as_ptr() as *mut u8,
+                old_pin.expose_secret().len().try_into()?,
+                new_pin.expose_secret().as_ptr() as *mut u8,
+                new_pin.expose_secret().len().try_into()?,
+            ))
+            .into_result()
+        }
     }
 }

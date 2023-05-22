@@ -100,7 +100,7 @@ mod test {
     fn debug_flags_all() {
         let expected = "TOKEN_PRESENT | REMOVABLE_DEVICE | HW_SLOT";
         let all = SlotInfoFlags::all();
-        let observed = format!("{:#?}", all);
+        let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
     }
 
@@ -126,7 +126,7 @@ mod test {
         minor: 0,
     },
 }"#;
-        let observed = format!("{:#?}", info);
+        let observed = format!("{info:#?}");
         assert_eq!(observed, expected);
     }
 }

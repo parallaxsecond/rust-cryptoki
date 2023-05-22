@@ -54,8 +54,8 @@ impl SessionInfo {
 impl TryFrom<CK_SESSION_INFO> for SessionInfo {
     type Error = Error;
     fn try_from(val: CK_SESSION_INFO) -> Result<Self> {
-        #[allow(trivial_numeric_casts)]
-        let device_error = val.ulDeviceError as u64;
+        #[allow(clippy::useless_conversion)]
+        let device_error = val.ulDeviceError.into();
         Ok(Self {
             slot_id: Slot::new(val.slotID),
             state: val.state.try_into()?,
@@ -111,7 +111,7 @@ mod test {
     fn debug_flags_all() {
         let expected = "RW_SESSION | SERIAL_SESSION";
         let all = SessionInfoFlags::all();
-        let observed = format!("{:#?}", all);
+        let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
     }
 
@@ -131,7 +131,7 @@ mod test {
     flags: (empty),
     device_error: 0,
 }"#;
-        let observed = format!("{:#?}", info);
+        let observed = format!("{info:#?}");
         assert_eq!(observed, expected);
     }
 }

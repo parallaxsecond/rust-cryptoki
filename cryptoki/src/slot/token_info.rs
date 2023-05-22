@@ -93,9 +93,7 @@ impl MaybeUnavailable for u64 {
             None
         } else {
             // Must have cast for when ulong is 32 bits
-            // Must have lint suppression when ulong is 64 bits
-            #[allow(trivial_numeric_casts)]
-            Some(value as u64)
+            Some(value.into())
         }
     }
 }
@@ -115,9 +113,7 @@ fn maybe_unlimited(value: CK_ULONG) -> Limit {
         CK_UNAVAILABLE_INFORMATION => Limit::Unavailable,
         CK_EFFECTIVELY_INFINITE => Limit::Infinite,
         // Must have cast for when ulong is 32 bits
-        // Must have lint suppression when ulong is 64 bits
-        #[allow(trivial_numeric_casts)]
-        _ => Limit::Max(value as u64),
+        _ => Limit::Max(value.into()),
     }
 }
 
@@ -475,7 +471,7 @@ USER_PIN_COUNT_LOW | USER_PIN_FINAL_TRY | USER_PIN_LOCKED | \
 USER_PIN_TO_BE_CHANGED | SO_PIN_COUNT_LOW | SO_PIN_FINAL_TRY | SO_PIN_LOCKED | \
 SO_PIN_TO_BE_CHANGED | ERROR_STATE";
         let all = TokenInfoFlags::all();
-        let observed = format!("{:#?}", all);
+        let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
     }
 
@@ -551,7 +547,7 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
         },
     ),
 }"#;
-        let observed = format!("{:#?}", info);
+        let observed = format!("{info:#?}");
         assert_eq!(observed, expected);
     }
 }

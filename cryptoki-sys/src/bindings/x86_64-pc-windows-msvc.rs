@@ -728,7 +728,7 @@ fn bindgen_test_layout__CK_VERSION() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct _CK_INFO {
     pub cryptokiVersion: _CK_VERSION,
@@ -743,12 +743,12 @@ fn bindgen_test_layout__CK_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_INFO>(),
-        88usize,
+        72usize,
         concat!("Size of: ", stringify!(_CK_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_INFO))
     );
     assert_eq!(
@@ -773,7 +773,7 @@ fn bindgen_test_layout__CK_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
-        40usize,
+        34usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_INFO),
@@ -783,7 +783,7 @@ fn bindgen_test_layout__CK_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).libraryDescription) as usize - ptr as usize },
-        48usize,
+        38usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_INFO),
@@ -793,7 +793,7 @@ fn bindgen_test_layout__CK_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).libraryVersion) as usize - ptr as usize },
-        80usize,
+        70usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_INFO),
@@ -805,7 +805,7 @@ fn bindgen_test_layout__CK_INFO() {
 pub type CK_NOTIFICATION = ::std::os::raw::c_ulong;
 pub const CKN_SURRENDER: ::std::os::raw::c_ulong = 0;
 pub type CK_SLOT_ID = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct _CK_SLOT_INFO {
     pub slotDescription: [::std::os::raw::c_uchar; 64usize],
@@ -820,12 +820,12 @@ fn bindgen_test_layout__CK_SLOT_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_SLOT_INFO>(),
-        112usize,
+        104usize,
         concat!("Size of: ", stringify!(_CK_SLOT_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_SLOT_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_SLOT_INFO))
     );
     assert_eq!(
@@ -860,7 +860,7 @@ fn bindgen_test_layout__CK_SLOT_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).hardwareVersion) as usize - ptr as usize },
-        104usize,
+        100usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_SLOT_INFO),
@@ -870,7 +870,7 @@ fn bindgen_test_layout__CK_SLOT_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).firmwareVersion) as usize - ptr as usize },
-        106usize,
+        102usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_SLOT_INFO),
@@ -892,7 +892,7 @@ pub const CKF_TOKEN_PRESENT: ::std::os::raw::c_ulong = 1;
 pub const CKF_REMOVABLE_DEVICE: ::std::os::raw::c_ulong = 2;
 pub const CKF_HW_SLOT: ::std::os::raw::c_ulong = 4;
 pub const CKF_ARRAY_ATTRIBUTE: ::std::os::raw::c_ulong = 1073741824;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct _CK_TOKEN_INFO {
     pub label: [::std::os::raw::c_uchar; 32usize],
@@ -920,12 +920,12 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_TOKEN_INFO>(),
-        208usize,
+        160usize,
         concat!("Size of: ", stringify!(_CK_TOKEN_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_TOKEN_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_TOKEN_INFO))
     );
     assert_eq!(
@@ -980,7 +980,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulMaxSessionCount) as usize - ptr as usize },
-        104usize,
+        100usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -990,7 +990,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulSessionCount) as usize - ptr as usize },
-        112usize,
+        104usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1000,7 +1000,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulMaxRwSessionCount) as usize - ptr as usize },
-        120usize,
+        108usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1010,7 +1010,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulRwSessionCount) as usize - ptr as usize },
-        128usize,
+        112usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1020,7 +1020,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulMaxPinLen) as usize - ptr as usize },
-        136usize,
+        116usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1030,7 +1030,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulMinPinLen) as usize - ptr as usize },
-        144usize,
+        120usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1040,7 +1040,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulTotalPublicMemory) as usize - ptr as usize },
-        152usize,
+        124usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1050,7 +1050,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulFreePublicMemory) as usize - ptr as usize },
-        160usize,
+        128usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1060,7 +1060,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulTotalPrivateMemory) as usize - ptr as usize },
-        168usize,
+        132usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1070,7 +1070,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulFreePrivateMemory) as usize - ptr as usize },
-        176usize,
+        136usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1080,7 +1080,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).hardwareVersion) as usize - ptr as usize },
-        184usize,
+        140usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1090,7 +1090,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).firmwareVersion) as usize - ptr as usize },
-        186usize,
+        142usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1100,7 +1100,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).utcTime) as usize - ptr as usize },
-        188usize,
+        144usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_TOKEN_INFO),
@@ -1112,7 +1112,7 @@ fn bindgen_test_layout__CK_TOKEN_INFO() {
 pub type CK_SESSION_HANDLE = ::std::os::raw::c_ulong;
 pub type CK_USER_TYPE = ::std::os::raw::c_ulong;
 pub type CK_STATE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct _CK_SESSION_INFO {
     pub slotID: CK_SLOT_ID,
@@ -1126,12 +1126,12 @@ fn bindgen_test_layout__CK_SESSION_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_SESSION_INFO>(),
-        32usize,
+        16usize,
         concat!("Size of: ", stringify!(_CK_SESSION_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_SESSION_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_SESSION_INFO))
     );
     assert_eq!(
@@ -1146,7 +1146,7 @@ fn bindgen_test_layout__CK_SESSION_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).state) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_SESSION_INFO),
@@ -1156,7 +1156,7 @@ fn bindgen_test_layout__CK_SESSION_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_SESSION_INFO),
@@ -1166,7 +1166,7 @@ fn bindgen_test_layout__CK_SESSION_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulDeviceError) as usize - ptr as usize },
-        24usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_SESSION_INFO),
@@ -1181,7 +1181,7 @@ pub type CK_HW_FEATURE_TYPE = ::std::os::raw::c_ulong;
 pub type CK_KEY_TYPE = ::std::os::raw::c_ulong;
 pub type CK_CERTIFICATE_TYPE = ::std::os::raw::c_ulong;
 pub type CK_ATTRIBUTE_TYPE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct _CK_ATTRIBUTE {
     pub type_: CK_ATTRIBUTE_TYPE,
@@ -1194,12 +1194,12 @@ fn bindgen_test_layout__CK_ATTRIBUTE() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_ATTRIBUTE>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(_CK_ATTRIBUTE))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_ATTRIBUTE>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_ATTRIBUTE))
     );
     assert_eq!(
@@ -1214,7 +1214,7 @@ fn bindgen_test_layout__CK_ATTRIBUTE() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pValue) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_ATTRIBUTE),
@@ -1224,7 +1224,7 @@ fn bindgen_test_layout__CK_ATTRIBUTE() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulValueLen) as usize - ptr as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_ATTRIBUTE),
@@ -1295,7 +1295,7 @@ fn bindgen_test_layout__CK_DATE() {
     );
 }
 pub type CK_MECHANISM_TYPE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct _CK_MECHANISM {
     pub mechanism: CK_MECHANISM_TYPE,
@@ -1308,12 +1308,12 @@ fn bindgen_test_layout__CK_MECHANISM() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_MECHANISM>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(_CK_MECHANISM))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_MECHANISM>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_MECHANISM))
     );
     assert_eq!(
@@ -1328,7 +1328,7 @@ fn bindgen_test_layout__CK_MECHANISM() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pParameter) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_MECHANISM),
@@ -1338,7 +1338,7 @@ fn bindgen_test_layout__CK_MECHANISM() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulParameterLen) as usize - ptr as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_MECHANISM),
@@ -1356,7 +1356,7 @@ impl Default for _CK_MECHANISM {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct _CK_MECHANISM_INFO {
     pub ulMinKeySize: ::std::os::raw::c_ulong,
@@ -1369,12 +1369,12 @@ fn bindgen_test_layout__CK_MECHANISM_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_MECHANISM_INFO>(),
-        24usize,
+        12usize,
         concat!("Size of: ", stringify!(_CK_MECHANISM_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_MECHANISM_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_MECHANISM_INFO))
     );
     assert_eq!(
@@ -1389,7 +1389,7 @@ fn bindgen_test_layout__CK_MECHANISM_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulMaxKeySize) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_MECHANISM_INFO),
@@ -1399,7 +1399,7 @@ fn bindgen_test_layout__CK_MECHANISM_INFO() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).flags) as usize - ptr as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_MECHANISM_INFO),
@@ -1409,7 +1409,7 @@ fn bindgen_test_layout__CK_MECHANISM_INFO() {
     );
 }
 pub type CK_PARAM_TYPE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_PARAM {
     pub type_: CK_PARAM_TYPE,
@@ -1422,12 +1422,12 @@ fn bindgen_test_layout_CK_OTP_PARAM() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<CK_OTP_PARAM>(),
-        24usize,
+        16usize,
         concat!("Size of: ", stringify!(CK_OTP_PARAM))
     );
     assert_eq!(
         ::std::mem::align_of::<CK_OTP_PARAM>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(CK_OTP_PARAM))
     );
     assert_eq!(
@@ -1442,7 +1442,7 @@ fn bindgen_test_layout_CK_OTP_PARAM() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pValue) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(CK_OTP_PARAM),
@@ -1452,7 +1452,7 @@ fn bindgen_test_layout_CK_OTP_PARAM() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulValueLen) as usize - ptr as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(CK_OTP_PARAM),
@@ -1470,7 +1470,7 @@ impl Default for CK_OTP_PARAM {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_PARAMS {
     pub pParams: *mut CK_OTP_PARAM,
@@ -1482,12 +1482,12 @@ fn bindgen_test_layout_CK_OTP_PARAMS() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<CK_OTP_PARAMS>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(CK_OTP_PARAMS))
     );
     assert_eq!(
         ::std::mem::align_of::<CK_OTP_PARAMS>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(CK_OTP_PARAMS))
     );
     assert_eq!(
@@ -1520,7 +1520,7 @@ impl Default for CK_OTP_PARAMS {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_SIGNATURE_INFO {
     pub pParams: *mut CK_OTP_PARAM,
@@ -1533,12 +1533,12 @@ fn bindgen_test_layout_CK_OTP_SIGNATURE_INFO() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<CK_OTP_SIGNATURE_INFO>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(CK_OTP_SIGNATURE_INFO))
     );
     assert_eq!(
         ::std::mem::align_of::<CK_OTP_SIGNATURE_INFO>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(CK_OTP_SIGNATURE_INFO))
     );
     assert_eq!(
@@ -1572,7 +1572,7 @@ impl Default for CK_OTP_SIGNATURE_INFO {
     }
 }
 pub type CK_RSA_PKCS_MGF_TYPE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct ck_rsa_pkcs_pss_params {
     pub hashAlg: CK_MECHANISM_TYPE,
@@ -1586,12 +1586,12 @@ fn bindgen_test_layout_ck_rsa_pkcs_pss_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_rsa_pkcs_pss_params>(),
-        24usize,
+        12usize,
         concat!("Size of: ", stringify!(ck_rsa_pkcs_pss_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_rsa_pkcs_pss_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_rsa_pkcs_pss_params))
     );
     assert_eq!(
@@ -1606,7 +1606,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_pss_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).mgf) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_pss_params),
@@ -1616,7 +1616,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_pss_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).sLen) as usize - ptr as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_pss_params),
@@ -1626,7 +1626,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_pss_params() {
     );
 }
 pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_rsa_pkcs_oaep_params {
     pub hashAlg: CK_MECHANISM_TYPE,
@@ -1642,12 +1642,12 @@ fn bindgen_test_layout_ck_rsa_pkcs_oaep_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_rsa_pkcs_oaep_params>(),
-        40usize,
+        24usize,
         concat!("Size of: ", stringify!(ck_rsa_pkcs_oaep_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_rsa_pkcs_oaep_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_rsa_pkcs_oaep_params))
     );
     assert_eq!(
@@ -1662,7 +1662,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_oaep_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).mgf) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_oaep_params),
@@ -1672,7 +1672,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_oaep_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).source) as usize - ptr as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_oaep_params),
@@ -1682,7 +1682,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_oaep_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pSourceData) as usize - ptr as usize },
-        24usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_oaep_params),
@@ -1692,7 +1692,7 @@ fn bindgen_test_layout_ck_rsa_pkcs_oaep_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulSourceDataLen) as usize - ptr as usize },
-        32usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_rsa_pkcs_oaep_params),
@@ -1710,7 +1710,7 @@ impl Default for ck_rsa_pkcs_oaep_params {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct ck_aes_ctr_params {
     pub ulCounterBits: ::std::os::raw::c_ulong,
@@ -1722,12 +1722,12 @@ fn bindgen_test_layout_ck_aes_ctr_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_aes_ctr_params>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(ck_aes_ctr_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_aes_ctr_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_aes_ctr_params))
     );
     assert_eq!(
@@ -1742,7 +1742,7 @@ fn bindgen_test_layout_ck_aes_ctr_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).cb) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_aes_ctr_params),
@@ -1751,7 +1751,7 @@ fn bindgen_test_layout_ck_aes_ctr_params() {
         )
     );
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_gcm_params {
     pub pIv: *mut ::std::os::raw::c_uchar,
@@ -1767,12 +1767,12 @@ fn bindgen_test_layout_ck_gcm_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_gcm_params>(),
-        48usize,
+        32usize,
         concat!("Size of: ", stringify!(ck_gcm_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_gcm_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_gcm_params))
     );
     assert_eq!(
@@ -1797,7 +1797,7 @@ fn bindgen_test_layout_ck_gcm_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulIvBits) as usize - ptr as usize },
-        16usize,
+        12usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_gcm_params),
@@ -1807,7 +1807,7 @@ fn bindgen_test_layout_ck_gcm_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pAAD) as usize - ptr as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_gcm_params),
@@ -1817,7 +1817,7 @@ fn bindgen_test_layout_ck_gcm_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulAADLen) as usize - ptr as usize },
-        32usize,
+        24usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_gcm_params),
@@ -1827,7 +1827,7 @@ fn bindgen_test_layout_ck_gcm_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulTagBits) as usize - ptr as usize },
-        40usize,
+        28usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_gcm_params),
@@ -1845,100 +1845,8 @@ impl Default for ck_gcm_params {
         }
     }
 }
-#[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct ck_ccm_params {
-    pub ulDataLen: ::std::os::raw::c_ulong,
-    pub pNonce: *mut ::std::os::raw::c_uchar,
-    pub ulNonceLen: ::std::os::raw::c_ulong,
-    pub pAAD: *mut ::std::os::raw::c_uchar,
-    pub ulAADLen: ::std::os::raw::c_ulong,
-    pub ulMACLen: ::std::os::raw::c_ulong,
-}
-#[test]
-fn bindgen_test_layout_ck_ccm_params() {
-    assert_eq!(
-        ::std::mem::size_of::<ck_ccm_params>(),
-        48usize,
-        concat!("Size of: ", stringify!(ck_ccm_params))
-    );
-    assert_eq!(
-        ::std::mem::align_of::<ck_ccm_params>(),
-        8usize,
-        concat!("Alignment of ", stringify!(ck_ccm_params))
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulDataLen as *const _ as usize },
-        0usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(ulDataLen)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).pNonce as *const _ as usize },
-        8usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(pNonce)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulNonceLen as *const _ as usize },
-        16usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(ulNonceLen)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).pAAD as *const _ as usize },
-        24usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(pAAD)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulAADLen as *const _ as usize },
-        32usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(ulAADLen)
-        )
-    );
-    assert_eq!(
-        unsafe { &(*(::std::ptr::null::<ck_ccm_params>())).ulMACLen as *const _ as usize },
-        40usize,
-        concat!(
-            "Offset of field: ",
-            stringify!(ck_ccm_params),
-            "::",
-            stringify!(ulMACLen)
-        )
-    );
-}
-impl Default for ck_ccm_params {
-    fn default() -> Self {
-        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
-        unsafe {
-            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
-            s.assume_init()
-        }
-    }
-}
 pub type ck_ec_kdf_t = ::std::os::raw::c_ulong;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_ecdh1_derive_params {
     pub kdf: ck_ec_kdf_t,
@@ -1954,12 +1862,12 @@ fn bindgen_test_layout_ck_ecdh1_derive_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_ecdh1_derive_params>(),
-        40usize,
+        28usize,
         concat!("Size of: ", stringify!(ck_ecdh1_derive_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_ecdh1_derive_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_ecdh1_derive_params))
     );
     assert_eq!(
@@ -1974,7 +1882,7 @@ fn bindgen_test_layout_ck_ecdh1_derive_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulSharedDataLen) as usize - ptr as usize },
-        8usize,
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_ecdh1_derive_params),
@@ -1984,7 +1892,7 @@ fn bindgen_test_layout_ck_ecdh1_derive_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pSharedData) as usize - ptr as usize },
-        16usize,
+        8usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_ecdh1_derive_params),
@@ -1994,7 +1902,7 @@ fn bindgen_test_layout_ck_ecdh1_derive_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).ulPublicDataLen) as usize - ptr as usize },
-        24usize,
+        16usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_ecdh1_derive_params),
@@ -2004,7 +1912,7 @@ fn bindgen_test_layout_ck_ecdh1_derive_params() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pPublicData) as usize - ptr as usize },
-        32usize,
+        20usize,
         concat!(
             "Offset of field: ",
             stringify!(ck_ecdh1_derive_params),
@@ -2022,7 +1930,7 @@ impl Default for ck_ecdh1_derive_params {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_key_derivation_string_data {
     pub pData: *mut ::std::os::raw::c_uchar,
@@ -2035,12 +1943,12 @@ fn bindgen_test_layout_ck_key_derivation_string_data() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_key_derivation_string_data>(),
-        16usize,
+        12usize,
         concat!("Size of: ", stringify!(ck_key_derivation_string_data))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_key_derivation_string_data>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_key_derivation_string_data))
     );
     assert_eq!(
@@ -2073,7 +1981,7 @@ impl Default for ck_key_derivation_string_data {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_des_cbc_encrypt_data_params {
     pub iv: [::std::os::raw::c_uchar; 8usize],
@@ -2087,12 +1995,12 @@ fn bindgen_test_layout_ck_des_cbc_encrypt_data_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_des_cbc_encrypt_data_params>(),
-        24usize,
+        20usize,
         concat!("Size of: ", stringify!(ck_des_cbc_encrypt_data_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_des_cbc_encrypt_data_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_des_cbc_encrypt_data_params))
     );
     assert_eq!(
@@ -2135,7 +2043,7 @@ impl Default for ck_des_cbc_encrypt_data_params {
         }
     }
 }
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct ck_aes_cbc_encrypt_data_params {
     pub iv: [::std::os::raw::c_uchar; 16usize],
@@ -2149,12 +2057,12 @@ fn bindgen_test_layout_ck_aes_cbc_encrypt_data_params() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<ck_aes_cbc_encrypt_data_params>(),
-        32usize,
+        28usize,
         concat!("Size of: ", stringify!(ck_aes_cbc_encrypt_data_params))
     );
     assert_eq!(
         ::std::mem::align_of::<ck_aes_cbc_encrypt_data_params>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(ck_aes_cbc_encrypt_data_params))
     );
     assert_eq!(
@@ -2384,7 +2292,7 @@ pub type CK_C_Encrypt = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: ::std::os::raw::c_ulong,
+        data_len: ::std::os::raw::c_ulong,
         encrypted_data: *mut ::std::os::raw::c_uchar,
         encrypted_data_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -2418,7 +2326,7 @@ pub type CK_C_Decrypt = ::std::option::Option<
         encrypted_data: *mut ::std::os::raw::c_uchar,
         encrypted_data_len: ::std::os::raw::c_ulong,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: *mut ::std::os::raw::c_ulong,
+        data_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
 >;
 pub type CK_C_DecryptUpdate = ::std::option::Option<
@@ -2444,7 +2352,7 @@ pub type CK_C_Digest = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: ::std::os::raw::c_ulong,
+        data_len: ::std::os::raw::c_ulong,
         digest: *mut ::std::os::raw::c_uchar,
         digest_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -2477,7 +2385,7 @@ pub type CK_C_Sign = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: ::std::os::raw::c_ulong,
+        data_len: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -2507,7 +2415,7 @@ pub type CK_C_SignRecover = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: ::std::os::raw::c_ulong,
+        data_len: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -2523,7 +2431,7 @@ pub type CK_C_Verify = ::std::option::Option<
     unsafe extern "C" fn(
         session: CK_SESSION_HANDLE,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: ::std::os::raw::c_ulong,
+        data_len: ::std::os::raw::c_ulong,
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: ::std::os::raw::c_ulong,
     ) -> CK_RV,
@@ -2555,7 +2463,7 @@ pub type CK_C_VerifyRecover = ::std::option::Option<
         signature: *mut ::std::os::raw::c_uchar,
         signature_len: ::std::os::raw::c_ulong,
         data: *mut ::std::os::raw::c_uchar,
-        ulDataLen: *mut ::std::os::raw::c_ulong,
+        data_len: *mut ::std::os::raw::c_ulong,
     ) -> CK_RV,
 >;
 pub type CK_C_DigestEncryptUpdate = ::std::option::Option<
@@ -2665,7 +2573,7 @@ pub type CK_C_GetFunctionStatus =
     ::std::option::Option<unsafe extern "C" fn(session: CK_SESSION_HANDLE) -> CK_RV>;
 pub type CK_C_CancelFunction =
     ::std::option::Option<unsafe extern "C" fn(session: CK_SESSION_HANDLE) -> CK_RV>;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct _CK_FUNCTION_LIST {
     pub version: _CK_VERSION,
@@ -2744,12 +2652,12 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_FUNCTION_LIST>(),
-        552usize,
+        546usize,
         concat!("Size of: ", stringify!(_CK_FUNCTION_LIST))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_FUNCTION_LIST>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_FUNCTION_LIST))
     );
     assert_eq!(
@@ -2764,7 +2672,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Initialize) as usize - ptr as usize },
-        8usize,
+        2usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2774,7 +2682,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Finalize) as usize - ptr as usize },
-        16usize,
+        10usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2784,7 +2692,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetInfo) as usize - ptr as usize },
-        24usize,
+        18usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2794,7 +2702,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetFunctionList) as usize - ptr as usize },
-        32usize,
+        26usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2804,7 +2712,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetSlotList) as usize - ptr as usize },
-        40usize,
+        34usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2814,7 +2722,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetSlotInfo) as usize - ptr as usize },
-        48usize,
+        42usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2824,7 +2732,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetTokenInfo) as usize - ptr as usize },
-        56usize,
+        50usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2834,7 +2742,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetMechanismList) as usize - ptr as usize },
-        64usize,
+        58usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2844,7 +2752,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetMechanismInfo) as usize - ptr as usize },
-        72usize,
+        66usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2854,7 +2762,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_InitToken) as usize - ptr as usize },
-        80usize,
+        74usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2864,7 +2772,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_InitPIN) as usize - ptr as usize },
-        88usize,
+        82usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2874,7 +2782,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SetPIN) as usize - ptr as usize },
-        96usize,
+        90usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2884,7 +2792,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_OpenSession) as usize - ptr as usize },
-        104usize,
+        98usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2894,7 +2802,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_CloseSession) as usize - ptr as usize },
-        112usize,
+        106usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2904,7 +2812,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_CloseAllSessions) as usize - ptr as usize },
-        120usize,
+        114usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2914,7 +2822,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetSessionInfo) as usize - ptr as usize },
-        128usize,
+        122usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2924,7 +2832,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetOperationState) as usize - ptr as usize },
-        136usize,
+        130usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2934,7 +2842,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SetOperationState) as usize - ptr as usize },
-        144usize,
+        138usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2944,7 +2852,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Login) as usize - ptr as usize },
-        152usize,
+        146usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2954,7 +2862,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Logout) as usize - ptr as usize },
-        160usize,
+        154usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2964,7 +2872,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_CreateObject) as usize - ptr as usize },
-        168usize,
+        162usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2974,7 +2882,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_CopyObject) as usize - ptr as usize },
-        176usize,
+        170usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2984,7 +2892,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DestroyObject) as usize - ptr as usize },
-        184usize,
+        178usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -2994,7 +2902,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetObjectSize) as usize - ptr as usize },
-        192usize,
+        186usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3004,7 +2912,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetAttributeValue) as usize - ptr as usize },
-        200usize,
+        194usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3014,7 +2922,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SetAttributeValue) as usize - ptr as usize },
-        208usize,
+        202usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3024,7 +2932,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_FindObjectsInit) as usize - ptr as usize },
-        216usize,
+        210usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3034,7 +2942,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_FindObjects) as usize - ptr as usize },
-        224usize,
+        218usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3044,7 +2952,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_FindObjectsFinal) as usize - ptr as usize },
-        232usize,
+        226usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3054,7 +2962,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_EncryptInit) as usize - ptr as usize },
-        240usize,
+        234usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3064,7 +2972,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Encrypt) as usize - ptr as usize },
-        248usize,
+        242usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3074,7 +2982,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_EncryptUpdate) as usize - ptr as usize },
-        256usize,
+        250usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3084,7 +2992,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_EncryptFinal) as usize - ptr as usize },
-        264usize,
+        258usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3094,7 +3002,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DecryptInit) as usize - ptr as usize },
-        272usize,
+        266usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3104,7 +3012,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Decrypt) as usize - ptr as usize },
-        280usize,
+        274usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3114,7 +3022,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DecryptUpdate) as usize - ptr as usize },
-        288usize,
+        282usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3124,7 +3032,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DecryptFinal) as usize - ptr as usize },
-        296usize,
+        290usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3134,7 +3042,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DigestInit) as usize - ptr as usize },
-        304usize,
+        298usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3144,7 +3052,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Digest) as usize - ptr as usize },
-        312usize,
+        306usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3154,7 +3062,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DigestUpdate) as usize - ptr as usize },
-        320usize,
+        314usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3164,7 +3072,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DigestKey) as usize - ptr as usize },
-        328usize,
+        322usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3174,7 +3082,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DigestFinal) as usize - ptr as usize },
-        336usize,
+        330usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3184,7 +3092,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignInit) as usize - ptr as usize },
-        344usize,
+        338usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3194,7 +3102,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Sign) as usize - ptr as usize },
-        352usize,
+        346usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3204,7 +3112,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignUpdate) as usize - ptr as usize },
-        360usize,
+        354usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3214,7 +3122,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignFinal) as usize - ptr as usize },
-        368usize,
+        362usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3224,7 +3132,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignRecoverInit) as usize - ptr as usize },
-        376usize,
+        370usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3234,7 +3142,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignRecover) as usize - ptr as usize },
-        384usize,
+        378usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3244,7 +3152,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_VerifyInit) as usize - ptr as usize },
-        392usize,
+        386usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3254,7 +3162,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_Verify) as usize - ptr as usize },
-        400usize,
+        394usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3264,7 +3172,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_VerifyUpdate) as usize - ptr as usize },
-        408usize,
+        402usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3274,7 +3182,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_VerifyFinal) as usize - ptr as usize },
-        416usize,
+        410usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3284,7 +3192,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_VerifyRecoverInit) as usize - ptr as usize },
-        424usize,
+        418usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3294,7 +3202,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_VerifyRecover) as usize - ptr as usize },
-        432usize,
+        426usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3304,7 +3212,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DigestEncryptUpdate) as usize - ptr as usize },
-        440usize,
+        434usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3314,7 +3222,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DecryptDigestUpdate) as usize - ptr as usize },
-        448usize,
+        442usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3324,7 +3232,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SignEncryptUpdate) as usize - ptr as usize },
-        456usize,
+        450usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3334,7 +3242,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DecryptVerifyUpdate) as usize - ptr as usize },
-        464usize,
+        458usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3344,7 +3252,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GenerateKey) as usize - ptr as usize },
-        472usize,
+        466usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3354,7 +3262,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GenerateKeyPair) as usize - ptr as usize },
-        480usize,
+        474usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3364,7 +3272,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_WrapKey) as usize - ptr as usize },
-        488usize,
+        482usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3374,7 +3282,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_UnwrapKey) as usize - ptr as usize },
-        496usize,
+        490usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3384,7 +3292,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_DeriveKey) as usize - ptr as usize },
-        504usize,
+        498usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3394,7 +3302,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_SeedRandom) as usize - ptr as usize },
-        512usize,
+        506usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3404,7 +3312,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GenerateRandom) as usize - ptr as usize },
-        520usize,
+        514usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3414,7 +3322,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_GetFunctionStatus) as usize - ptr as usize },
-        528usize,
+        522usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3424,7 +3332,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_CancelFunction) as usize - ptr as usize },
-        536usize,
+        530usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3434,7 +3342,7 @@ fn bindgen_test_layout__CK_FUNCTION_LIST() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).C_WaitForSlotEvent) as usize - ptr as usize },
-        544usize,
+        538usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_FUNCTION_LIST),
@@ -3451,7 +3359,7 @@ pub type CK_LOCKMUTEX =
     ::std::option::Option<unsafe extern "C" fn(mutex: *mut ::std::os::raw::c_void) -> CK_RV>;
 pub type CK_UNLOCKMUTEX =
     ::std::option::Option<unsafe extern "C" fn(mutex: *mut ::std::os::raw::c_void) -> CK_RV>;
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct _CK_C_INITIALIZE_ARGS {
     pub CreateMutex: CK_CREATEMUTEX,
@@ -3468,12 +3376,12 @@ fn bindgen_test_layout__CK_C_INITIALIZE_ARGS() {
     let ptr = UNINIT.as_ptr();
     assert_eq!(
         ::std::mem::size_of::<_CK_C_INITIALIZE_ARGS>(),
-        48usize,
+        44usize,
         concat!("Size of: ", stringify!(_CK_C_INITIALIZE_ARGS))
     );
     assert_eq!(
         ::std::mem::align_of::<_CK_C_INITIALIZE_ARGS>(),
-        8usize,
+        1usize,
         concat!("Alignment of ", stringify!(_CK_C_INITIALIZE_ARGS))
     );
     assert_eq!(
@@ -3528,7 +3436,7 @@ fn bindgen_test_layout__CK_C_INITIALIZE_ARGS() {
     );
     assert_eq!(
         unsafe { ::std::ptr::addr_of!((*ptr).pReserved) as usize - ptr as usize },
-        40usize,
+        36usize,
         concat!(
             "Offset of field: ",
             stringify!(_CK_C_INITIALIZE_ARGS),
@@ -3601,8 +3509,6 @@ pub type CK_AES_CTR_PARAMS = ck_aes_ctr_params;
 pub type CK_AES_CTR_PARAMS_PTR = *mut ck_aes_ctr_params;
 pub type CK_GCM_PARAMS = ck_gcm_params;
 pub type CK_GCM_PARAMS_PTR = *mut ck_gcm_params;
-pub type CK_CCM_PARAMS = ck_ccm_params;
-pub type CK_CCM_PARAMS_PTR = *mut ck_ccm_params;
 pub type CK_ECDH1_DERIVE_PARAMS = ck_ecdh1_derive_params;
 pub type CK_ECDH1_DERIVE_PARAMS_PTR = *mut ck_ecdh1_derive_params;
 pub type CK_KEY_DERIVATION_STRING_DATA = ck_key_derivation_string_data;

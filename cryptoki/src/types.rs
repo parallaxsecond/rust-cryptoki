@@ -4,6 +4,8 @@
 
 use crate::error::{Error, Result};
 use cryptoki_sys::*;
+use secrecy::SecretString;
+use secrecy::SecretVec;
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fmt::Formatter;
@@ -105,9 +107,19 @@ impl std::fmt::Display for Date {
             .trim_end()
             .to_string();
 
-        write!(f, "Month: {}\nDay: {}\nYear: {}", month, day, year)
+        write!(f, "Month: {month}\nDay: {day}\nYear: {year}")
     }
 }
+
+impl PartialEq for Date {
+    fn eq(&self, other: &Self) -> bool {
+        self.date.year == other.date.year
+            && self.date.month == other.date.month
+            && self.date.day == other.date.day
+    }
+}
+
+impl Eq for Date {}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 #[repr(transparent)]
@@ -261,6 +273,16 @@ pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<UtcTime> {
     })
 }
 
+/// Secret wrapper for a Pin
+///
+/// Enable the `serde` feature to add support for Deserialize
+pub type AuthPin = SecretString;
+
+/// Secret wrapper for a raw non UTF-8 Pin
+///
+/// Enable the `serde` feature to add support for Deserialize
+pub type RawAuthPin = SecretVec<u8>;
+
 #[cfg(test)]
 mod test {
 
@@ -310,7 +332,7 @@ mod test {
     minute: 0,
     second: 0,
 }"#;
-        let observed = format!("{:#?}", UTC_TIME);
+        let observed = format!("{UTC_TIME:#?}");
         assert_eq!(observed, expected);
     }
     #[test]
