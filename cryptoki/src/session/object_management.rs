@@ -15,6 +15,41 @@ const MAX_OBJECT_COUNT: usize = 10;
 
 impl Session {
     /// Search for session objects matching a template
+    ///
+    /// # Arguments
+    /// * `template` - A [Attribute] of search parameters that will be used
+    ///                 to find objects.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # fn main() -> testresult::TestResult {
+    /// # use cryptoki::session::Session;
+    /// # use cryptoki::context::Pkcs11;
+    /// # use cryptoki::object::{Attribute, AttributeType, CertificateType, ObjectClass, ObjectHandle};
+    /// #
+    /// # let mut client = Pkcs11::new(
+    /// #    std::env::var("PKCS11_SOFTHSM2_MODULE")
+    /// #       .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
+    /// # )?;
+    /// # client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
+    /// #
+    /// # // Use the first slot
+    /// # let slot = client.get_all_slots()?[0];
+    /// # let session = client.open_ro_session(slot)?;
+    /// #
+    /// // Get handles to all of the x509 certificates on the card
+    /// let search = vec![Attribute::Class(ObjectClass::CERTIFICATE), Attribute::CertificateType(CertificateType::X_509)];
+    /// for handle in session.find_objects(&search)? {
+    ///     // each cert: get the "value" which will be the raw certificate data
+    ///     for value in session.get_attributes(handle, &[AttributeType::Value])? {
+    ///        if let Attribute::Value(value) = value {
+    ///            println!("Certificate value: {value:?}");
+    ///        }
+    ///     }
+    /// }
+    /// # Ok(()) }
+    /// ```
     pub fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
         let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
 

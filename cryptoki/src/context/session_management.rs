@@ -41,6 +41,25 @@ impl Pkcs11 {
     /// For a Read-Write session, use `open_rw_session`
     ///
     /// Note: No callback is set when opening the session.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # fn main() -> testresult::TestResult {
+    /// use cryptoki::session::Session;
+    /// use cryptoki::context::Pkcs11;
+    ///
+    /// let mut client = Pkcs11::new(
+    ///     std::env::var("PKCS11_SOFTHSM2_MODULE")
+    ///        .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
+    /// )?;
+    /// client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
+    ///
+    /// // Use the first slot
+    /// let slot = client.get_all_slots()?[0];
+    /// let session = client.open_ro_session(slot)?;
+    /// # let _ = session; Ok(()) }
+    /// ```
     pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
         self.open_session(slot_id, false)
     }
