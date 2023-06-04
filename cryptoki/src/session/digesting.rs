@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Digesting functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::mechanism::Mechanism;
 use crate::session::Session;
@@ -19,7 +20,7 @@ impl Session {
                 self.handle(),
                 &mut mechanism as CK_MECHANISM_PTR,
             ))
-            .into_result()?;
+            .into_result(Function::DigestInit)?;
         }
 
         // Get the output buffer length
@@ -31,7 +32,7 @@ impl Session {
                 std::ptr::null_mut(),
                 &mut digest_len,
             ))
-            .into_result()?;
+            .into_result(Function::Digest)?;
         }
 
         let mut digest = vec![0; digest_len.try_into()?];
@@ -44,7 +45,7 @@ impl Session {
                 digest.as_mut_ptr(),
                 &mut digest_len,
             ))
-            .into_result()?;
+            .into_result(Function::Digest)?;
         }
 
         digest.resize(digest_len.try_into()?, 0);

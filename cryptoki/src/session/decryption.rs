@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Decrypting data
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::mechanism::Mechanism;
 use crate::object::ObjectHandle;
@@ -26,7 +27,7 @@ impl Session {
                 &mut mechanism as CK_MECHANISM_PTR,
                 key.handle(),
             ))
-            .into_result()?;
+            .into_result(Function::DecryptInit)?;
         }
 
         // Get the output buffer length
@@ -39,7 +40,7 @@ impl Session {
                 std::ptr::null_mut(),
                 &mut data_len,
             ))
-            .into_result()?;
+            .into_result(Function::Decrypt)?;
         }
 
         let mut data = vec![0; data_len.try_into()?];
@@ -52,7 +53,7 @@ impl Session {
                 data.as_mut_ptr(),
                 &mut data_len,
             ))
-            .into_result()?;
+            .into_result(Function::Decrypt)?;
         }
 
         data.resize(data_len.try_into()?, 0);

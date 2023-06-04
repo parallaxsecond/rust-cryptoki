@@ -10,6 +10,8 @@ pub use rv_error::*;
 
 use std::fmt;
 
+use crate::context::Function;
+
 #[derive(Debug)]
 /// Main error type
 pub enum Error {
@@ -18,7 +20,7 @@ pub enum Error {
     LibraryLoading(libloading::Error),
 
     /// All PKCS#11 functions that return non-zero translate to this error.
-    Pkcs11(RvError),
+    Pkcs11(RvError, Function),
 
     /// This error marks a feature that is not yet supported by the PKCS11 Rust abstraction layer.
     NotSupported,
@@ -55,7 +57,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::LibraryLoading(e) => write!(f, "libloading error ({e})"),
-            Error::Pkcs11(e) => write!(f, "PKCS11 error: {e}"),
+            Error::Pkcs11(e, funct) => write!(f, "{funct}: PKCS11 error: {e}"),
             Error::NotSupported => write!(f, "Feature not supported"),
             Error::TryFromInt(e) => write!(f, "Conversion between integers failed ({e})"),
             Error::TryFromSlice(e) => write!(f, "Error converting slice to array ({e})"),
@@ -79,7 +81,7 @@ impl std::error::Error for Error {
             Error::ParseInt(e) => Some(e),
             Error::Utf8(e) => Some(e),
             Error::NulError(e) => Some(e),
-            Error::Pkcs11(_)
+            Error::Pkcs11(_, _)
             | Error::NotSupported
             | Error::NullFunctionPointer
             | Error::PinNotSet
@@ -128,12 +130,6 @@ impl From<std::ffi::NulError> for Error {
 impl From<std::convert::Infallible> for Error {
     fn from(_err: std::convert::Infallible) -> Error {
         unreachable!()
-    }
-}
-
-impl From<RvError> for Error {
-    fn from(rv_error: RvError) -> Self {
-        Error::Pkcs11(rv_error)
     }
 }
 

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Function types
 
+use crate::context::Function;
+
 use super::{Error, Result, RvError};
 use cryptoki_sys::*;
 use log::error;
@@ -128,10 +130,10 @@ impl From<CK_RV> for Rv {
 
 impl Rv {
     /// Convert the return value into a standard Result type
-    pub fn into_result(self) -> Result<()> {
+    pub fn into_result(self, function: Function) -> Result<()> {
         match self {
             Rv::Ok => Ok(()),
-            Rv::Error(rv_error) => Err(Error::Pkcs11(rv_error)),
+            Rv::Error(rv_error) => Err(Error::Pkcs11(rv_error, function)),
         }
     }
 }

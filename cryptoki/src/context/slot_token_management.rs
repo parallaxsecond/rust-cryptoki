@@ -20,6 +20,8 @@ use std::convert::{TryFrom, TryInto};
 
 use crate::error::RvError::BufferTooSmall;
 
+use super::Function;
+
 impl Pkcs11 {
     #[inline(always)]
     fn get_slots(&self, with_token: CK_BBOOL) -> Result<Vec<Slot>> {
@@ -27,7 +29,7 @@ impl Pkcs11 {
         let rval = unsafe {
             get_pkcs11!(self, C_GetSlotList)(with_token, std::ptr::null_mut(), &mut slot_count)
         };
-        Rv::from(rval).into_result()?;
+        Rv::from(rval).into_result(Function::GetSlotList)?;
 
         let mut slots;
         loop {
@@ -41,7 +43,7 @@ impl Pkcs11 {
             // and we want to loop again with a resized buffer.
             if !matches!(Rv::from(rval), Rv::Error(BufferTooSmall)) {
                 // Account for other possible error types
-                Rv::from(rval).into_result()?;
+                Rv::from(rval).into_result(Function::GetSlotList)?;
                 // Otherwise, we have a valid list to process
                 break;
             }
@@ -92,7 +94,7 @@ impl Pkcs11 {
                 pin.expose_secret().len().try_into()?,
                 label.as_ptr() as *mut u8,
             ))
-            .into_result()
+            .into_result(Function::InitToken)
         }
     }
 
@@ -104,7 +106,7 @@ impl Pkcs11 {
                 slot.try_into()?,
                 &mut slot_info,
             ))
-            .into_result()?;
+            .into_result(Function::GetSlotInfo)?;
             Ok(SlotInfo::from(slot_info))
         }
     }
@@ -117,7 +119,7 @@ impl Pkcs11 {
                 slot.try_into()?,
                 &mut token_info,
             ))
-            .into_result()?;
+            .into_result(Function::GetTokenInfo)?;
             TokenInfo::try_from(token_info)
         }
     }
@@ -132,7 +134,7 @@ impl Pkcs11 {
                 std::ptr::null_mut(),
                 &mut mechanism_count,
             ))
-            .into_result()?;
+            .into_result(Function::GetMechanismList)?;
         }
 
         let mut mechanisms = vec![0; mechanism_count.try_into()?];
@@ -143,7 +145,7 @@ impl Pkcs11 {
                 mechanisms.as_mut_ptr(),
                 &mut mechanism_count,
             ))
-            .into_result()?;
+            .into_result(Function::GetMechanismList)?;
         }
 
         // Truncate mechanisms if count decreased.
@@ -164,7 +166,7 @@ impl Pkcs11 {
                 type_.into(),
                 &mut mechanism_info,
             ))
-            .into_result()?;
+            .into_result(Function::GetMechanismInfo)?;
             Ok(MechanismInfo::from(mechanism_info))
         }
     }
@@ -174,7 +176,7 @@ impl Pkcs11 {
             let mut slot: CK_SLOT_ID = 0;
             let wait_for_slot_event = get_pkcs11!(self, C_WaitForSlotEvent);
             let rv = wait_for_slot_event(flags, &mut slot, std::ptr::null_mut());
-            Rv::from(rv).into_result()?;
+            Rv::from(rv).into_result(Function::WaitForSlotEvent)?;
             Ok(Slot::new(slot))
         }
     }
@@ -187,7 +189,7 @@ impl Pkcs11 {
     /// Get the latest slot event (insertion or removal of a token)
     pub fn get_slot_event(&self) -> Result<Option<Slot>> {
         match self.wait_for_slot_event_impl(CKF_DONT_BLOCK) {
-            Err(Error::Pkcs11(RvError::NoEvent)) => Ok(None),
+            Err(Error::Pkcs11(RvError::NoEvent, Function::WaitForSlotEvent)) => Ok(None),
             Ok(slot) => Ok(Some(slot)),
             Err(x) => Err(x),
         }

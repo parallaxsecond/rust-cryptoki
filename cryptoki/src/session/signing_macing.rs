@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Signing and authentication functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::mechanism::Mechanism;
 use crate::object::ObjectHandle;
@@ -21,7 +22,7 @@ impl Session {
                 &mut mechanism as CK_MECHANISM_PTR,
                 key.handle(),
             ))
-            .into_result()?;
+            .into_result(Function::SignInit)?;
         }
 
         // Get the output buffer length
@@ -33,7 +34,7 @@ impl Session {
                 std::ptr::null_mut(),
                 &mut signature_len,
             ))
-            .into_result()?;
+            .into_result(Function::Sign)?;
         }
 
         let mut signature = vec![0; signature_len.try_into()?];
@@ -47,7 +48,7 @@ impl Session {
                 signature.as_mut_ptr(),
                 &mut signature_len,
             ))
-            .into_result()?;
+            .into_result(Function::Sign)?;
         }
 
         signature.resize(signature_len.try_into()?, 0);
@@ -71,7 +72,7 @@ impl Session {
                 &mut mechanism as CK_MECHANISM_PTR,
                 key.handle(),
             ))
-            .into_result()?;
+            .into_result(Function::VerifyInit)?;
         }
 
         unsafe {
@@ -82,7 +83,7 @@ impl Session {
                 signature.as_ptr() as *mut u8,
                 signature.len().try_into()?,
             ))
-            .into_result()
+            .into_result(Function::Verify)
         }
     }
 }

@@ -60,7 +60,7 @@ impl Pkcs11Impl {
                 .ok_or(Error::NullFunctionPointer)?(
                 ptr::null_mut()
             ))
-            .into_result()
+            .into_result(Function::Finalize)
         }
     }
 }
@@ -91,7 +91,8 @@ impl Pkcs11 {
                 cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?;
             let mut list = mem::MaybeUninit::uninit();
 
-            Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr())).into_result()?;
+            Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
+                .into_result(Function::GetFunctionList)?;
 
             let list_ptr = *list.as_ptr();
 

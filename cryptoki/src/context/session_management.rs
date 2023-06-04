@@ -10,6 +10,8 @@ use crate::session::Session;
 use crate::slot::Slot;
 use std::convert::TryInto;
 
+use super::Function;
+
 impl Pkcs11 {
     #[inline(always)]
     fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
@@ -29,7 +31,7 @@ impl Pkcs11 {
                 None,
                 &mut session_handle,
             ))
-            .into_result()?;
+            .into_result(Function::OpenSession)?;
         }
 
         Ok(Session::new(session_handle, self.clone()))

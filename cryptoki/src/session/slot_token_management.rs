@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Slot and token management functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::session::Session;
 use crate::types::AuthPin;
@@ -17,7 +18,7 @@ impl Session {
                 pin.expose_secret().as_ptr() as *mut u8,
                 pin.expose_secret().len().try_into()?,
             ))
-            .into_result()
+            .into_result(Function::InitPIN)
         }
     }
 
@@ -32,7 +33,7 @@ impl Session {
                 new_pin.expose_secret().as_ptr() as *mut u8,
                 new_pin.expose_secret().len().try_into()?,
             ))
-            .into_result()
+            .into_result(Function::SetPIN)
         }
     }
 }
