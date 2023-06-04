@@ -7,6 +7,7 @@ use crate::error::{Result, Rv};
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use paste::paste;
 use std::convert::TryFrom;
+use std::fmt::Display;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
@@ -18,7 +19,7 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
         Rv::from(get_pkcs11!(ctx, C_Initialize)(
             init_args_ptr as *mut CK_C_INITIALIZE_ARGS as *mut ::std::ffi::c_void,
         ))
-        .into_result()
+        .into_result(Function::Initialize)
     }
 }
 
@@ -27,7 +28,7 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
 pub(super) fn get_library_info(ctx: &Pkcs11) -> Result<Info> {
     let mut info = CK_INFO::default();
     unsafe {
-        Rv::from(get_pkcs11!(ctx, C_GetInfo)(&mut info)).into_result()?;
+        Rv::from(get_pkcs11!(ctx, C_GetInfo)(&mut info)).into_result(Function::GetInfo)?;
         Info::try_from(info)
     }
 }
@@ -115,6 +116,12 @@ pub enum Function {
     GetFunctionStatus,
     CancelFunction,
     WaitForSlotEvent,
+}
+
+impl Display for Function {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Function::{:?}", self)
+    }
 }
 
 #[inline(always)]

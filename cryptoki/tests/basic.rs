@@ -4,6 +4,7 @@ mod common;
 
 use crate::common::{get_pkcs11, SO_PIN, USER_PIN};
 use common::init_pins;
+use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::GcmParams;
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
@@ -406,27 +407,27 @@ fn login_feast() {
         threads.push(thread::spawn(move || {
             let session = pkcs11.open_rw_session(slot).unwrap();
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
             match session.logout() {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
             match session.logout() {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
             match session.logout() {
-                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn)) => {}
+                Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
                 Err(e) => panic!("Bad error response: {}", e),
             }
         }));
@@ -481,7 +482,7 @@ fn get_session_info_test() -> TestResult {
         assert_eq!(session_info.slot_id(), slot);
         assert!(matches!(session_info.session_state(), SessionState::RoUser));
         session.logout()?;
-        if let Err(cryptoki::error::Error::Pkcs11(rv_error)) =
+        if let Err(cryptoki::error::Error::Pkcs11(rv_error, _)) =
             session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))
         {
             assert_eq!(rv_error, RvError::SessionReadOnlyExists)
@@ -809,7 +810,7 @@ fn ro_rw_session_test() -> TestResult {
         // This should NOT work using the Read-Only session
         let e = ro_session.create_object(&template).unwrap_err();
 
-        if let Error::Pkcs11(RvError::SessionReadOnly) = e {
+        if let Error::Pkcs11(RvError::SessionReadOnly, _f) = e {
             // as expected
         } else {
             panic!("Got wrong error code (expecting SessionReadOnly): {}", e);
@@ -1101,7 +1102,13 @@ fn wait_for_slot_event() {
     let res = pkcs11.wait_for_slot_event();
 
     assert!(
-        matches!(res, Err(Error::Pkcs11(RvError::FunctionNotSupported))),
+        matches!(
+            res,
+            Err(Error::Pkcs11(
+                RvError::FunctionNotSupported,
+                Function::WaitForSlotEvent
+            ))
+        ),
         "res = {:?}",
         res
     );

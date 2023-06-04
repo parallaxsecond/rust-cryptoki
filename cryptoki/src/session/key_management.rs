@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Key management functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::mechanism::Mechanism;
 use crate::object::{Attribute, ObjectHandle};
@@ -27,7 +28,7 @@ impl Session {
                 template.len().try_into()?,
                 &mut handle,
             ))
-            .into_result()?;
+            .into_result(Function::GenerateKey)?;
         }
 
         Ok(ObjectHandle::new(handle))
@@ -58,7 +59,7 @@ impl Session {
                 &mut pub_handle,
                 &mut priv_handle,
             ))
-            .into_result()?;
+            .into_result(Function::GenerateKeyPair)?;
         }
 
         Ok((
@@ -86,7 +87,7 @@ impl Session {
                 template.len().try_into()?,
                 &mut handle,
             ))
-            .into_result()?;
+            .into_result(Function::DeriveKey)?;
         }
 
         Ok(ObjectHandle::new(handle))
@@ -111,7 +112,7 @@ impl Session {
                 std::ptr::null_mut(),
                 &mut wrapped_key_len,
             ))
-            .into_result()?;
+            .into_result(Function::WrapKey)?;
 
             let mut wrapped_key = vec![0; wrapped_key_len.try_into()?];
 
@@ -123,7 +124,7 @@ impl Session {
                 wrapped_key.as_mut_ptr(),
                 &mut wrapped_key_len,
             ))
-            .into_result()?;
+            .into_result(Function::WrapKey)?;
 
             Ok(wrapped_key)
         }
@@ -151,7 +152,7 @@ impl Session {
                 template.len().try_into()?,
                 &mut handle,
             ))
-            .into_result()?;
+            .into_result(Function::UnwrapKey)?;
         }
 
         Ok(ObjectHandle::new(handle))

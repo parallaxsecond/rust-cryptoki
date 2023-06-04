@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Object management functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv, RvError};
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
 use crate::session::Session;
@@ -23,7 +24,7 @@ impl Session {
                 template.as_mut_ptr(),
                 template.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result(Function::FindObjectsInit)?;
         }
 
         let mut object_handles = [0; MAX_OBJECT_COUNT];
@@ -37,7 +38,7 @@ impl Session {
                 MAX_OBJECT_COUNT.try_into()?,
                 &mut object_count,
             ))
-            .into_result()?;
+            .into_result(Function::FindObjects)?;
         }
 
         while object_count > 0 {
@@ -50,7 +51,7 @@ impl Session {
                     MAX_OBJECT_COUNT.try_into()?,
                     &mut object_count,
                 ))
-                .into_result()?;
+                .into_result(Function::FindObjects)?;
             }
         }
 
@@ -58,7 +59,7 @@ impl Session {
             Rv::from(get_pkcs11!(self.client(), C_FindObjectsFinal)(
                 self.handle(),
             ))
-            .into_result()?;
+            .into_result(Function::FindObjectsFinal)?;
         }
 
         let objects = objects.into_iter().map(ObjectHandle::new).collect();
@@ -78,7 +79,7 @@ impl Session {
                 template.len().try_into()?,
                 &mut object_handle as CK_OBJECT_HANDLE_PTR,
             ))
-            .into_result()?;
+            .into_result(Function::CreateObject)?;
         }
 
         Ok(ObjectHandle::new(object_handle))
@@ -91,7 +92,7 @@ impl Session {
                 self.handle(),
                 object.handle(),
             ))
-            .into_result()
+            .into_result(Function::DestroyObject)
         }
     }
 
@@ -181,7 +182,7 @@ impl Session {
                 Rv::Error(RvError::AttributeTypeInvalid) => {
                     results.push(AttributeInfo::TypeInvalid)
                 }
-                rv => rv.into_result()?,
+                rv => rv.into_result(Function::GetAttributeValue)?,
             }
         }
         Ok(results)
@@ -257,7 +258,7 @@ impl Session {
                 template.as_mut_ptr(),
                 template.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result(Function::GetAttributeValue)?;
         }
 
         // Convert from CK_ATTRIBUTE to Attribute
@@ -275,7 +276,7 @@ impl Session {
                 template.as_mut_ptr(),
                 template.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result(Function::SetAttributeValue)?;
         }
 
         Ok(())

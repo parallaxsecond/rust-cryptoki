@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Session management functions
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::session::{Session, SessionInfo, UserType};
 use crate::types::{AuthPin, RawAuthPin};
@@ -21,7 +22,7 @@ impl Drop for Session {
                 Rv::from(get_pkcs11!(session.client(), C_CloseSession)(
                     session.handle(),
                 ))
-                .into_result()
+                .into_result(Function::CloseSession)
             }
         }
 
@@ -56,7 +57,7 @@ impl Session {
                 pin,
                 pin_len.try_into()?,
             ))
-            .into_result()
+            .into_result(Function::Login)
         }
     }
 
@@ -80,13 +81,16 @@ impl Session {
                 pin.expose_secret().as_ptr() as *mut u8,
                 pin.expose_secret().len().try_into()?,
             ))
-            .into_result()
+            .into_result(Function::Login)
         }
     }
 
     /// Log a session out
     pub fn logout(&self) -> Result<()> {
-        unsafe { Rv::from(get_pkcs11!(self.client(), C_Logout)(self.handle())).into_result() }
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_Logout)(self.handle()))
+                .into_result(Function::Logout)
+        }
     }
 
     /// Returns the information about a session
@@ -97,7 +101,7 @@ impl Session {
                 self.handle(),
                 &mut session_info,
             ))
-            .into_result()?;
+            .into_result(Function::GetSessionInfo)?;
             SessionInfo::try_from(session_info)
         }
     }

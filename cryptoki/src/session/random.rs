@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Functions used to generate random numbers
 
+use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::session::Session;
 use std::convert::TryInto;
@@ -20,7 +21,7 @@ impl Session {
                 random_data.as_ptr() as *mut u8,
                 random_data.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result(Function::GenerateRandom)?;
         }
         Ok(())
     }
@@ -35,7 +36,7 @@ impl Session {
                 result.as_mut_ptr(),
                 random_len.into(),
             ))
-            .into_result()?;
+            .into_result(Function::GenerateRandom)?;
         }
         Ok(result)
     }
@@ -48,7 +49,7 @@ impl Session {
                 seed.as_ptr() as *mut u8,
                 seed.len().try_into()?,
             ))
-            .into_result()?;
+            .into_result(Function::SeedRandom)?;
         }
         Ok(())
     }
