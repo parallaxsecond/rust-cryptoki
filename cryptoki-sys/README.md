@@ -9,7 +9,7 @@ This is the low-level wrapper crate for PKCS #11 exposing the bindgen types.
 
 ## Generating bindings
 
-The FFI bindings presented by this crate can be either those commited in the
+The FFI bindings presented by this crate can be either those committed in the
 crate under `src/bindings` or generated on the fly from the `pkcs11.h` file
 at build time. For generating the bindings at build time
 please enable the `generate-bindings` feature, as it is not enabled by default.
