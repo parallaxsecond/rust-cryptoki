@@ -3,6 +3,7 @@
 //! Data types for mechanisms
 
 pub mod aead;
+pub mod aes;
 pub mod elliptic_curve;
 mod mechanism_info;
 pub mod rsa;
@@ -32,6 +33,10 @@ impl MechanismType {
     /// AES key generation mechanism
     pub const AES_KEY_GEN: MechanismType = MechanismType {
         val: CKM_AES_KEY_GEN,
+    };
+    /// AES-CBC key derivation mechanism
+    pub const AES_CBC_ENCRYPT_DATA: MechanismType = MechanismType {
+        val: CKM_AES_CBC_ENCRYPT_DATA,
     };
     /// AES-CBC mechanism
     ///
@@ -629,6 +634,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
     fn try_from(mechanism_type: CK_MECHANISM_TYPE) -> Result<Self, Self::Error> {
         match mechanism_type {
             CKM_AES_KEY_GEN => Ok(MechanismType::AES_KEY_GEN),
+            CKM_AES_CBC_ENCRYPT_DATA => Ok(MechanismType::AES_CBC_ENCRYPT_DATA),
             CKM_RSA_PKCS_KEY_PAIR_GEN => Ok(MechanismType::RSA_PKCS_KEY_PAIR_GEN),
             CKM_RSA_PKCS => Ok(MechanismType::RSA_PKCS),
             CKM_RSA_PKCS_PSS => Ok(MechanismType::RSA_PKCS_PSS),
@@ -687,6 +693,8 @@ pub enum Mechanism<'a> {
     AesKeyWrap,
     /// AES key wrap with padding block
     AesKeyWrapPad,
+    /// AES CBC Key derivation by encryption
+    AesCbcEncryptData(aes::AesCBCEncryptDataParams<'a>),
     /// AES-GCM mechanism
     AesGcm(aead::GcmParams<'a>),
 
@@ -829,6 +837,7 @@ impl Mechanism<'_> {
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
             Mechanism::AesGcm(_) => MechanismType::AES_GCM,
+            Mechanism::AesCbcEncryptData(_) => MechanismType::AES_CBC_ENCRYPT_DATA,
 
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
@@ -886,6 +895,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
                 make_mechanism(mechanism, params)
             }
+            Mechanism::AesCbcEncryptData(params) => make_mechanism(mechanism, params),
             Mechanism::DesCbc(params)
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
