@@ -1003,3 +1003,29 @@ fn aes_gcm_with_aad() -> TestResult {
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
 }
+
+#[test]
+#[serial]
+fn get_slot_event() -> TestResult {
+    // Not implemented in SoftHSMv2
+    // https://github.com/opendnssec/SoftHSMv2/issues/370
+    let (pkcs11, _slot) = init_pins();
+    let event = pkcs11.get_slot_event()?;
+    assert_eq!(None, event);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn wait_for_slot_event() {
+    // Not implemented in SoftHSMv2
+    // https://github.com/opendnssec/SoftHSMv2/issues/370
+    let (pkcs11, _slot) = init_pins();
+    let res = pkcs11.wait_for_slot_event();
+
+    assert!(
+        matches!(res, Err(Error::Pkcs11(RvError::FunctionNotSupported))),
+        "res = {:?}",
+        res
+    );
+}

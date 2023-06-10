@@ -2,13 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Slot and token management functions
 
-use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
 use crate::types::AuthPin;
-use cryptoki_sys::{CK_BBOOL, CK_FALSE, CK_MECHANISM_INFO, CK_SLOT_INFO, CK_TOKEN_INFO, CK_TRUE};
+use crate::{
+    context::Pkcs11,
+    error::{Error, RvError},
+};
+use cryptoki_sys::{
+    CKF_DONT_BLOCK, CK_BBOOL, CK_FALSE, CK_FLAGS, CK_MECHANISM_INFO, CK_SLOT_ID, CK_SLOT_INFO,
+    CK_TOKEN_INFO, CK_TRUE,
+};
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
@@ -160,6 +166,30 @@ impl Pkcs11 {
             ))
             .into_result()?;
             Ok(MechanismInfo::from(mechanism_info))
+        }
+    }
+
+    fn wait_for_slot_event_impl(&self, flags: CK_FLAGS) -> Result<Slot> {
+        unsafe {
+            let mut slot: CK_SLOT_ID = 0;
+            let wait_for_slot_event = get_pkcs11!(self, C_WaitForSlotEvent);
+            let rv = wait_for_slot_event(flags, &mut slot, std::ptr::null_mut());
+            Rv::from(rv).into_result()?;
+            Ok(Slot::new(slot))
+        }
+    }
+
+    /// Wait for slot events (insertion or removal of a token)
+    pub fn wait_for_slot_event(&self) -> Result<Slot> {
+        self.wait_for_slot_event_impl(0)
+    }
+
+    /// Get the latest slot event (insertion or removal of a token)
+    pub fn get_slot_event(&self) -> Result<Option<Slot>> {
+        match self.wait_for_slot_event_impl(CKF_DONT_BLOCK) {
+            Err(Error::Pkcs11(RvError::NoEvent)) => Ok(None),
+            Ok(slot) => Ok(Some(slot)),
+            Err(x) => Err(x),
         }
     }
 }
