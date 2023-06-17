@@ -76,7 +76,6 @@ impl Drop for Pkcs11Impl {
 #[derive(Clone, Debug)]
 pub struct Pkcs11 {
     pub(crate) impl_: Arc<Pkcs11Impl>,
-    initialized: bool,
 }
 
 impl Pkcs11 {
@@ -99,23 +98,19 @@ impl Pkcs11 {
                     _pkcs11_lib: pkcs11_lib,
                     function_list: *list_ptr,
                 }),
-                initialized: false,
             })
         }
     }
 
     /// Initialize the PKCS11 library
-    pub fn initialize(&mut self, init_args: CInitializeArgs) -> Result<()> {
-        if !self.initialized {
-            initialize(self, init_args)
-        } else {
-            Err(Error::AlreadyInitialized)
-        }
+    pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
+        initialize(self, init_args)
     }
 
     /// Check whether the PKCS11 library has been initialized
+    #[deprecated]
     pub fn is_initialized(&self) -> bool {
-        self.initialized
+        get_library_info(self).is_ok()
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.

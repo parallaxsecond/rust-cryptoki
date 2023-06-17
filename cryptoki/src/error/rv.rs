@@ -131,6 +131,7 @@ impl Rv {
     pub fn into_result(self) -> Result<()> {
         match self {
             Rv::Ok => Ok(()),
+            Rv::Error(RvError::CryptokiAlreadyInitialized) => Err(Error::AlreadyInitialized),
             Rv::Error(rv_error) => Err(Error::Pkcs11(rv_error)),
         }
     }

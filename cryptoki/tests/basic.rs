@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{SO_PIN, USER_PIN};
+use crate::common::{get_pkcs11, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::GcmParams;
@@ -677,15 +677,12 @@ fn is_fn_supported_test() {
 }
 
 #[test]
+#[allow(deprecated)]
 #[serial]
 fn is_initialized_test() {
-    use cryptoki::context::{CInitializeArgs, Pkcs11};
+    use cryptoki::context::CInitializeArgs;
 
-    let mut pkcs11 = Pkcs11::new(
-        std::env::var("PKCS11_SOFTHSM2_MODULE")
-            .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
-    )
-    .unwrap();
+    let pkcs11 = get_pkcs11();
 
     assert!(
         !pkcs11.is_initialized(),
@@ -705,6 +702,35 @@ fn is_initialized_test() {
         Err(e) => panic!("Got unexpected error when initializing: {}", e),
         Ok(()) => panic!("Initializing twice should not have been allowed"),
     }
+}
+
+#[test]
+#[serial]
+#[allow(deprecated)]
+#[allow(clippy::redundant_clone)]
+fn test_clone_initialize() {
+    use cryptoki::context::CInitializeArgs;
+
+    let pkcs11 = get_pkcs11();
+
+    let clone = pkcs11.clone();
+    assert!(
+        !pkcs11.is_initialized(),
+        "Before initialize() it should not be initialized"
+    );
+    assert!(
+        !clone.is_initialized(),
+        "Before initialize() the clone should not be initialized"
+    );
+    pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+    assert!(
+        pkcs11.is_initialized(),
+        "After initialize() it should be initialized"
+    );
+    assert!(
+        clone.is_initialized(),
+        "After initialize() the clone should be initialized"
+    );
 }
 
 #[test]

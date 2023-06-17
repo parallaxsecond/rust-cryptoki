@@ -10,7 +10,7 @@ use std::convert::TryFrom;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn initialize(ctx: &mut Pkcs11, init_args: CInitializeArgs) -> Result<()> {
+pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()> {
     // if no args are specified, library expects NULL
     let mut init_args = CK_C_INITIALIZE_ARGS::from(init_args);
     let init_args_ptr = &mut init_args;
@@ -19,9 +19,6 @@ pub(super) fn initialize(ctx: &mut Pkcs11, init_args: CInitializeArgs) -> Result
             init_args_ptr as *mut CK_C_INITIALIZE_ARGS as *mut ::std::ffi::c_void,
         ))
         .into_result()
-        .map(|_| {
-            ctx.initialized = true;
-        })
     }
 }
 
