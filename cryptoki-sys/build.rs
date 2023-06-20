@@ -5,30 +5,6 @@ fn main() {
     {
         generate::generate_bindings();
     }
-
-    #[cfg(not(feature = "generate-bindings"))]
-    {
-        use std::str::FromStr;
-        use target_lexicon::{Architecture, OperatingSystem, Triple};
-
-        let target = Triple::from_str(&std::env::var("TARGET").unwrap())
-            .expect("Failed to parse target triple");
-        match (target.architecture, target.operating_system) {
-            (Architecture::Arm(_), OperatingSystem::Linux) => {}
-            (Architecture::Aarch64(_), OperatingSystem::Linux) => {}
-            (Architecture::X86_64, OperatingSystem::Linux) => {}
-            (Architecture::X86_32(_), OperatingSystem::Linux) => {}
-            (Architecture::Powerpc64, OperatingSystem::Linux) => {}
-            (Architecture::Powerpc64le, OperatingSystem::Linux) => {}
-            (Architecture::X86_64, OperatingSystem::Darwin) => {}
-            (Architecture::Aarch64(_), OperatingSystem::Darwin) => {}
-            (Architecture::X86_64, OperatingSystem::Windows) => {}
-            (Architecture::X86_64, OperatingSystem::Freebsd) => {}
-            (arch, os) => {
-                panic!("Compilation target (architecture, OS) tuple ({}, {}) is not part of the supported tuples. Please compile with the \"generate-bindings\" feature or add support for your platform :)", arch, os);
-            }
-        }
-    }
 }
 
 // Only on a specific feature
@@ -81,7 +57,19 @@ mod generate {
     }
 
     pub fn generate_bindings() {
-        let bindings = bindgen::Builder::default()
+        let make_generic: bool = std::env::var_os("MAKE_GENERIC_BINDINGS").is_some();
+        let mut builder = bindgen::Builder::default();
+        if make_generic {
+            // only WIN32 bindings are "packed". It's easier to "unpack" for other architectures
+            // __declspec is not needed and causes problems
+            const GENERIC_PRELUDE: &str = "#define _WIN32 1\n#define __declspec(x)\n";
+            builder = builder
+                // layout tests are not generic
+                .layout_tests(false)
+                .header_contents("generic-prelude.h", GENERIC_PRELUDE)
+        }
+
+        builder = builder
             .header("pkcs11.h")
             .dynamic_library_name("Pkcs11")
             // The PKCS11 library works in a slightly different way to most shared libraries. We have
@@ -98,14 +86,20 @@ mod generate {
             .derive_debug(true)
             // Derive the `Default` trait for the generated structs where possible.
             .derive_default(true)
-            .parse_callbacks(Box::new(CargoCallbacks))
-            .generate()
-            .expect("Unable to generate bindings");
+            .parse_callbacks(Box::new(CargoCallbacks));
+
+        let bindings = builder.generate().expect("Unable to generate bindings");
+
+        let mut data = bindings.to_string();
+        if make_generic {
+            const PACK_ALWAYS: &str = "#[repr(C, packed)]";
+            const PACK_WINDOWS: &str = "#[repr(C)]\n#[cfg_attr(windows, repr(packed))]";
+            data = data.replace(PACK_ALWAYS, PACK_WINDOWS);
+        }
 
         // Write the bindings to the $OUT_DIR/pkcs11_bindings.rs file.
         let out_path = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap());
-        bindings
-            .write_to_file(out_path.join("pkcs11_bindings.rs"))
+        std::fs::write(out_path.join("pkcs11_bindings.rs"), data)
             .expect("Couldn't write bindings!");
     }
 }
