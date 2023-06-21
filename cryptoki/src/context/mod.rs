@@ -37,7 +37,7 @@ pub(crate) struct Pkcs11Impl {
     // Even if this field is never read, it is needed for the pointers in function_list to remain
     // valid.
     _pkcs11_lib: cryptoki_sys::Pkcs11,
-    pub(crate) function_list: cryptoki_sys::_CK_FUNCTION_LIST,
+    pub(crate) function_list: cryptoki_sys::CK_FUNCTION_LIST,
 }
 
 impl fmt::Debug for Pkcs11Impl {

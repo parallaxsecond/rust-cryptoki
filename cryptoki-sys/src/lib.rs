@@ -127,22 +127,45 @@ include!(concat!(
 #[cfg(feature = "generate-bindings")]
 include!(concat!(env!("OUT_DIR"), "/pkcs11_bindings.rs"));
 
-/// Typedefs and defines for the CKM_X9_42_DH_KEY_PAIR_GEN and the
-/// CKM_X9_42_DH_PARAMETER_GEN mechanisms
-pub type CK_X9_42_DH_KDF_TYPE = CK_ULONG;
-pub type CK_X9_42_DH_KDF_TYPE_PTR = *mut CK_X9_42_DH_KDF_TYPE;
-
-pub type CK_EC_KDF_TYPE = CK_ULONG;
-
-// The values below are defined in pkcs11.h with `#define` macros. As a result, bindgen cannot
-// generate bindings for them. They are included here for completeness.
-pub const CKA_WRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000211;
-pub const CKA_UNWRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000212;
-pub const CKA_DERIVE_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000213;
-pub const CKA_ALLOWED_MECHANISMS: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000600;
+// this value is defined in pkcs11t.h as ~0
+// bindgen converts that into a platform specific numeric value
 pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = !0;
-pub const CKF_EXTENSION: CK_FLAGS = 0x80000000;
-pub const CKK_EC_MONTGOMERY: CK_KEY_TYPE = 0x00000041;
-pub const CKR_VENDOR_DEFINED: CK_RV = 0x80000000;
-pub const CKR_CURVE_NOT_SUPPORTED: CK_RV = 0x00000140;
-pub const CKM_VENDOR_DEFINED: CK_MECHANISM_TYPE = 0x80000000;
+
+#[deprecated = "Use CK_ATTRIBUTE"]
+pub type _CK_ATTRIBUTE = CK_ATTRIBUTE;
+#[deprecated = "Use CK_C_INITIALIZE_ARGS"]
+pub type _CK_C_INITIALIZE_ARGS = CK_C_INITIALIZE_ARGS;
+#[deprecated = "Use CK_DATE"]
+pub type _CK_DATE = CK_DATE;
+#[deprecated = "Use CK_FUNCTION_LIST"]
+pub type _CK_FUNCTION_LIST = CK_FUNCTION_LIST;
+#[deprecated = "Use CK_INFO"]
+pub type _CK_INFO = CK_INFO;
+#[deprecated = "Use CK_MECHANISM"]
+pub type _CK_MECHANISM = CK_MECHANISM;
+#[deprecated = "Use CK_MECHANISM_INFO"]
+pub type _CK_MECHANISM_INFO = CK_MECHANISM_INFO;
+#[deprecated = "Use CK_SESSION_INFO"]
+pub type _CK_SESSION_INFO = CK_SESSION_INFO;
+#[deprecated = "Use CK_SLOT_INFO"]
+pub type _CK_SLOT_INFO = CK_SLOT_INFO;
+#[deprecated = "Use CK_TOKEN_INFO"]
+pub type _CK_TOKEN_INFO = CK_TOKEN_INFO;
+#[deprecated = "Use CK_VERSION"]
+pub type _CK_VERSION = CK_VERSION;
+#[deprecated = "Use CK_AES_CBC_ENCRYPT_DATA_PARAMS"]
+pub type ck_aes_cbc_encrypt_data_params = CK_AES_CBC_ENCRYPT_DATA_PARAMS;
+#[deprecated = "Use CK_AES_CTR_PARAMS"]
+pub type ck_aes_ctr_params = CK_AES_CTR_PARAMS;
+#[deprecated = "Use CK_DES_CBC_ENCRYPT_DATA_PARAMS"]
+pub type ck_des_cbc_encrypt_data_params = CK_DES_CBC_ENCRYPT_DATA_PARAMS;
+#[deprecated = "Use CK_ECDH1_DERIVE_PARAMS"]
+pub type ck_ecdh1_derive_params = CK_ECDH1_DERIVE_PARAMS;
+#[deprecated = "Use CK_GCM_PARAMS"]
+pub type ck_gcm_params = CK_GCM_PARAMS;
+#[deprecated = "Use CK_KEY_DERIVATION_STRING_DATA"]
+pub type ck_key_derivation_string_data = CK_KEY_DERIVATION_STRING_DATA;
+#[deprecated = "Use CK_RSA_PKCS_OAEP_PARAMS"]
+pub type ck_rsa_pkcs_oaep_params = CK_RSA_PKCS_OAEP_PARAMS;
+#[deprecated = "Use CK_RSA_PKCS_PSS_PARAMS"]
+pub type ck_rsa_pkcs_pss_params = CK_RSA_PKCS_PSS_PARAMS;

@@ -61,8 +61,7 @@ mod generate {
         let mut builder = bindgen::Builder::default();
         if make_generic {
             // only WIN32 bindings are "packed". It's easier to "unpack" for other architectures
-            // __declspec is not needed and causes problems
-            const GENERIC_PRELUDE: &str = "#define _WIN32 1\n#define __declspec(x)\n";
+            const GENERIC_PRELUDE: &str = "#define CRYPTOKI_FORCE_WIN32 1\n";
             builder = builder
                 // layout tests are not generic
                 .layout_tests(false)
@@ -70,18 +69,10 @@ mod generate {
         }
 
         builder = builder
-            .header("pkcs11.h")
+            .header("platform.h")
             .dynamic_library_name("Pkcs11")
-            // The PKCS11 library works in a slightly different way to most shared libraries. We have
-            // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
-            // functions. This is the only function we need to create a binding for.
-            .allowlist_function("C_GetFunctionList")
-            // This is needed because no types will be generated if `allowlist_function` is used.
-            // Unsure if this is a bug.
-            .allowlist_type("*")
-            .allowlist_file("pkcs11.h")
-            // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
-            .blocklist_type("max_align_t")
+            // ~1 is not converted properly
+            .blocklist_item("CK_UNAVAILABLE_INFORMATION")
             // Derive the `Debug` trait for the generated structs where possible.
             .derive_debug(true)
             // Derive the `Default` trait for the generated structs where possible.
