@@ -9,7 +9,16 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
+#[cfg(feature = "signature-traits")]
+use signature::Signer;
+
 impl Session {
+    #[cfg(feature = "signature-traits")]
+    /// Prepare a signature request which implements the signature::Signer trait.
+    pub fn prepare_signature<'a>(&'a self, mechanism: &'a Mechanism<'a>, key: ObjectHandle) -> SignatureRequest {
+        SignatureRequest::new(mechanism, key, self)
+    }
+
     /// Sign data in single-part
     pub fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
@@ -84,5 +93,32 @@ impl Session {
             ))
             .into_result()
         }
+    }
+}
+
+#[cfg(feature = "signature-traits")]
+#[derive(Debug)]
+pub struct SignatureRequest<'sess: 'a, 'a, 'b> {
+    mechanism: &'a Mechanism<'b>,
+    key: ObjectHandle,
+    session: &'sess Session
+}
+
+#[cfg(feature = "signature-traits")]
+impl<'sess, 'a, 'b> SignatureRequest<'sess, 'a, 'b> {
+    pub fn new(mechanism: &'a Mechanism<'b>, key: ObjectHandle, session: &'sess Session) -> Self {
+        SignatureRequest {
+            mechanism,
+            key,
+            session
+        }
+    }
+}
+
+
+#[cfg(feature = "signature-traits")]
+impl<'sess, 'a, 'b> Signer<Vec<u8>> for SignatureRequest<'sess, 'a, 'b> {
+    fn try_sign(&self, msg: &[u8]) -> core::result::Result<Vec<u8>, signature::Error> {
+        self.session.sign(self.mechanism, self.key, msg).map_err(signature::Error::from_source)
     }
 }
