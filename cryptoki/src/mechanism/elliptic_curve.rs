@@ -14,7 +14,7 @@ use std::ptr;
 /// ANSI X9.63, where each party contributes one key pair all using
 /// the same EC domain parameters.
 ///
-/// This structure wraps a CK_ECDH1_DERIVE_PARAMS structure.
+/// This structure wraps a `CK_ECDH1_DERIVE_PARAMS` structure.
 #[derive(Copy, Debug, Clone)]
 #[repr(C)]
 pub struct Ecdh1DeriveParams<'a> {
@@ -43,9 +43,9 @@ impl<'a> Ecdh1DeriveParams<'a> {
     ///
     /// * `public_data` - The other party's public key.  A token MUST be able
     /// to accept this value encoded as a raw octet string (as per section
-    /// A.5.2 of [ANSI X9.62]).  A token MAY, in addition, support accepting
-    /// this value as a DER-encoded ECPoint (as per section E.6 of [ANSI
-    /// X9.62]) i.e. the same as a CKA_EC_POINT encoding.  The calling
+    /// A.5.2 of ANSI X9.62).  A token MAY, in addition, support accepting
+    /// this value as a DER-encoded `ECPoint` (as per section E.6 of ANSI
+    /// X9.62) i.e. the same as a `CKA_EC_POINT` encoding.  The calling
     /// application is responsible for converting the offered public key to the
     /// compressed or uncompressed forms of these encodings if the token does
     /// not support the offered form.
