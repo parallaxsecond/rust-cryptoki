@@ -32,7 +32,7 @@ impl Session {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_GenerateRandom)(
                 self.handle(),
-                result.as_mut_ptr() as *mut u8,
+                result.as_mut_ptr(),
                 random_len.try_into()?,
             ))
             .into_result()?;
