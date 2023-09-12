@@ -79,27 +79,32 @@ impl TryFrom<CK_RSA_PKCS_MGF_TYPE> for PkcsMgfType {
 #[derive(Debug, Clone, Copy)]
 /// Source of the encoding parameter when formatting a message block for the PKCS #1 OAEP
 /// encryption scheme
-pub struct PkcsOaepSource<'a>(&'a [u8]);
+pub struct PkcsOaepSource<'a>(Option<&'a [u8]>);
 
 impl<'a> PkcsOaepSource<'a> {
     /// Construct an empty encoding parameter.
     ///
     /// This is equivalent to `data_specified(&[])`.
     pub fn empty() -> Self {
-        Self(&[])
+        Self(None)
     }
 
     /// Construct an encoding parameter from an array of bytes.
     pub fn data_specified(source_data: &'a [u8]) -> Self {
-        Self(source_data)
+        Self(Some(source_data))
     }
 
     pub(crate) fn source_ptr(&self) -> *const c_void {
-        self.0.as_ptr() as _
+        if let Some(source_data) = self.0 {
+            source_data.as_ptr() as _
+        } else {
+            std::ptr::null()
+        }
     }
 
     pub(crate) fn source_len(&self) -> Ulong {
         self.0
+            .unwrap_or_default()
             .len()
             .try_into()
             .expect("usize can not fit in CK_ULONG")
