@@ -1,0 +1,149 @@
+SOFTHSM2-UTIL(1)	    General Commands Manual	      SOFTHSM2-UTIL(1)
+
+NAME
+       softhsm2-util - support tool for libsofthsm2
+
+SYNOPSIS
+       softhsm2-util --show-slots
+
+       softhsm2-util --init-token --free --label text \
+	      [--so-pin PIN --pin PIN]
+
+       softhsm2-util --import path [--file-pin PIN] --token label \
+	      [--pin PIN --no-public-key] --label text --id hex
+
+       softhsm2-util --import path --aes --token label \
+	      [--pin PIN] --label text --id hex
+
+       softhsm2-util --delete-token --token text
+
+DESCRIPTION
+       softhsm2-util  is a support tool mainly for libsofthsm2. It can also be
+       used with other PKCS#11 libraries by using the option --module
+
+       Read the sections below to get more information on the libsofthsm2  and
+       PKCS#11.   Most applications assumes that the token they want to use is
+       already initialized.  It is then up  to	the  user  to  initialize  the
+       PKCS#11	token.	 This  is  done  by  using  the PKCS#11 interface, but
+       instead of writing your own tool you can use the softhsm2-util tool.
+
+       Keys are usually created directly in the token, but the user  may  want
+       to  use an existing key pair.  Keys can be imported to a token by using
+       the PKCS#11 interface, but this tool can also be used if the  user  has
+       the  key  pair in a PKCS#8 file.  If you need to convert keys from BIND
+       .private-key format over to PKCS#8, one can use softhsm2-keyconv.
+
+       The libary libsofthsm2, known as SoftHSM, provides cryptographic  func‐
+       tionality  by using the PKCS#11 API.  It was developed as a part of the
+       OpenDNSSEC  project,  thus  designed  to  meet  the   requirements   of
+       OpenDNSSEC, but can also work together with other software that want to
+       use the functionality of the PKCS#11 API.
+
+       SoftHSM is a software implementation of a generic cryptographic	device
+       with a PKCS#11 interface.  These devices are often called tokens.  Read
+       in the manual softhsm2.conf(5) on how to create these  tokens  and  how
+       they are added to a slot in SoftHSM.
+
+       The  PKCS#11  API  can  be used to handle and store cryptographic keys.
+       This interface specifies how to communicate with cryptographic  devices
+       such  as HSMs (Hardware Security Modules) and smart cards.  The purpose
+       of these devices is, among others, to generate cryptographic  keys  and
+       sign  information without revealing private-key material to the outside
+       world.  They are often designed to perform well on these specific tasks
+       compared to ordinary processes in a normal computer.
+
+ACTIONS
+       --delete-token
+	      Delete the token at a given slot.  Use with --token or --serial.
+	      Any content in token will be erased.
+
+       --help, -h
+	      Show the help information.
+
+       --import path
+	      Import a key pair from the given path.   The  file  must	be  in
+	      PKCS#8-format.
+	      Use  with  --slot  or  --token  or  --serial, --file-pin, --pin,
+	      --no-public-key, --label, and --id.
+	      Can also be used with --aes to use file as is and import	it  as
+	      AES.
+
+       --init-token
+	      Initialize  the  token  at  a  given  slot, token label or token
+	      serial.  If the token is already initialized then  this  command
+	      will reinitialize it, thus erasing all the objects in the token.
+	      The matching Security Officer (SO) PIN  must  also  be  provided
+	      when  doing  reinitialization.  Initialized tokens will be reas‐
+	      signed to another slot (based on the token serial number).
+	      Use with --slot or --token or --serial or --free, --label, --so-
+	      pin, and --pin.
+
+       --show-slots
+	      Display all the available slots and their current status.
+
+       --version, -v
+	      Show the version info.
+
+OPTIONS
+       --aes  Used to tell import to use file as is and import it as AES.
+
+       --file-pin PIN
+	      The  PIN	will be used to decrypt the PKCS#8 file.  If not given
+	      then the PKCS#8 file is assumed to be unencrypted.
+
+       --force
+	      Use this option to override the warnings	and  force  the  given
+	      action.
+
+       --free Use the first free/uninitialized token.
+
+       --id hex
+	      Choose  an  ID of the key pair.  The ID is in hexadecimal with a
+	      variable length.	Use with --force when importing a key pair  if
+	      the ID already exists.
+
+       --label text
+	      Defines the label of the object or the token that will be set.
+
+       --module path
+	      Use another PKCS#11 library than SoftHSM.
+
+       --no-public-key
+	      Do not import the public key.
+
+       --pin PIN
+	      The PIN for the normal user.
+
+       --serial number
+	      Will use the token with a matching serial number.
+
+       --slot number
+	      The slot where the token is located.
+
+       --so-pin PIN
+	      The PIN for the Security Officer (SO).
+
+       --token label
+	      Will use the token with a matching token label.
+
+EXAMPLES
+       The token can be initialized using this command:
+
+	      softhsm2-util --init-token --slot 1 --label "mytoken"
+
+       A key pair can be imported using the softhsm tool where you specify the
+       path to the key file, slot number, label and ID of the new objects, and
+       the user PIN.  The file must be in PKCS#8 format.
+
+	      softhsm2-util --import key1.pem --token "mytoken" --label "My key" \
+		     --id A1B2 --pin 123456
+	      (Add, --file-pin PIN, if the key file is encrypted.)
+
+AUTHORS
+       Written	by Rickard Bellgrim, Francis Dupont, René Post, and Roland van
+       Rijswijk.
+
+SEE ALSO
+       softhsm2-keyconv(1), softhsm2-migrate(1), softhsm2.conf(5)
+
+SoftHSM 		       22 September 2017	      SOFTHSM2-UTIL(1)

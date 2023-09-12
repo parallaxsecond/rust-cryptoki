@@ -1,0 +1,76 @@
+softhsm2.conf(5)	      File Formats Manual	      softhsm2.conf(5)
+
+NAME
+       softhsm2.conf - SoftHSM configuration file
+
+SYNOPSIS
+       softhsm2.conf
+
+DESCRIPTION
+       This  is  the  configuration  file  for	SoftHSM.  It can be found on a
+       default location, but can also be relocated by  using  the  environment
+       variable.  Any  configuration must be done according to the file format
+       found in this document.
+
+FILE FORMAT
+       Each configuration option is a pair of name and value  separated  by  a
+       equality  sign.	The  configuration  option must be located on a single
+       line.
+
+	      <name> = <value>
+
+       It is also possible to add comments in the file by using the hash sign.
+       Anything after the hash sign will be ignored.
+
+	      # A comment
+
+       Any empty lines or lines that does not have the correct format will be ignored.
+
+DIRECTORIES.TOKENDIR
+       The location where SoftHSM can store the tokens.
+
+	      directories.tokendir = c:\SoftHSM2\var\softhsm2\tokens\
+
+OBJECTSTORE.BACKEND
+       The  backend to use by SoftHSM to store token objects. Either "file" or
+       "db" is supported.  In order to use the "db" backend, the SoftHSM build
+       needs to be configured with "configure --with-objectstore-backend-db"
+
+	      objectstore.backend = file
+
+LOG.LEVEL
+       The log level which can be set to ERROR, WARNING, INFO or DEBUG.
+
+	      log.level = INFO
+
+SLOTS.REMOVABLE
+       If  set	to  true  CKF_REMOVABLE_DEVICE is set in the flags returned by
+       C_GetSlotInfo. Default is false.
+
+	      slots.removable = true
+
+ENVIRONMENT
+       SOFTHSM2_CONF
+	      When defined, the value will be used as path to  the  configura‐
+	      tion file.
+
+FILES
+       %HOMEDRIVE%%HOMEPATH%\softhsm2.conf
+	      default  user-specific  location	of  the  SoftHSM configuration
+	      file; if it exists it will override the system  wide  configura‐
+	      tion
+
+       .\softhsm2.conf
+	      default system-wide location of the SoftHSM configuration file
+
+       softhsm2.conf.sample
+	      an example of a SoftHSM configuration file
+
+AUTHOR
+       Written	by Rickard Bellgrim, Francis Dupont, René Post, and Roland van
+       Rijswijk.
+
+SEE ALSO
+       softhsm2-keyconv(1), softhsm2-migrate(1), softhsm2-util(1)
+
+SoftHSM 			30 October 2014 	      softhsm2.conf(5)

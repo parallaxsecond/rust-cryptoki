@@ -1,0 +1,321 @@
+NEWS for SoftHSM -- History of user visible changes
+
+SoftHSM 2.5.0 - 2018-09-24
+
+* Issue #323: Support for EDDSA with vendor defined mechanisms.
+  (Patch from Francis Dupont)
+* Issue #362: CMake Build System Support for SoftHSM.
+  (Patch from Constantine Grantcharov)
+* Issue #368: Support migrating 32-bit SoftHSMv1 DB on 64-bit system (LP64).
+* Issue #385: Default is not to build EDDSA since it has not been released in
+  OpenSSL.
+* Issue #387: Windows: Add VS2017 detection to Configure.py.
+  (Patch from Jaroslav Imrich)
+* Issue #412: Replace PKCS11 headers with a version from p11-kit.
+  (Patch from Alexander Bokovoy)
+
+Bugfixes:
+* Issue #366: Support cross-compilation.
+  (Patch from Michael Weiser)
+* Issue #377: Duplicate symbol error with custom p11test.
+* Issue #386: Use RDRAND in OpenSSL if that engine is available.
+* Issue #388: Update DBTests.cpp to fix x86 test failure.
+  (Patch from tcely)
+* Issue #393: Not setting CKA_PUBLIC_KEY_INFO correctly.
+  (Patch from pkalapat)
+* Issue #401: Wrong key and keyserver mentioned in installation documentation.
+  (Patch from Berry A.W. van Halderen)
+* Issue #408: Remove mutex callbacks after C_Finalize().
+  (Patch from Alexander Bokovoy)
+
+
+SoftHSM 2.4.0 - 2018-02-27
+
+* Issue #135: Support PKCS#8 for GOST.
+* Issue #140: Support for CKA_ALLOWED_MECHANISMS.
+  (Patch from Brad Hess)
+* Issue #141: Support CKA_ALWAYS_AUTHENTICATE for private key objects.
+* Issue #220: Support for CKM_DES3_CMAC and CKM_AES_CMAC.
+* Issue #226: Configuration option for Windows build to enable build with
+  static CRT (/MT).
+* Issue #325: Support for CKM_AES_GCM.
+* Issue #334: Document that initialized tokens will be reassigned to another
+  slot (based on the token serial number).
+* Issue #335: Support for CKM_RSA_PKCS_PSS.
+  (Patch from Nikos Mavrogiannopoulos)
+* Issue #341: Import AES keys with softhsm2-util.
+  (Patch from Pavel Cherezov)
+* Issue #348: Document that OSX needs pkg-config to detect cppunit.
+* Issue #349: softhsm2-util will check the configuration and report any
+  issues before loading the PKCS#11 library.
+
+Bugfixes:
+* Issue #345: Private objects are presented to security officer in search
+  results.
+* Issue #358: Race condition when multiple applications are creating and
+  reading object files.
+
+
+SoftHSM 2.3.0 - 2017-07-03
+
+* Issue #130: Upgraded to PKCS#11 v2.40.
+  * Minor changes to some return values.
+  * Added CKA_DESTROYABLE to all objects. Used by C_DestroyObject().
+  * Added CKA_PUBLIC_KEY_INFO to certificates, private, and public key
+    objects. Will be accepted from application, but SoftHSM will
+    currently not calculate it.
+* Issue #142: Support for CKM_AES_CTR.
+* Issue #155: Add unit tests for SessionManager.
+* Issue #189: C_DigestKey returns CKR_KEY_INDIGESTIBLE when key
+  attribute CKA_EXTRACTABLE = false. Whitelist SHA algorithms to allow
+  C_DigestKey in this case.
+* Issue #225: Show slot id after initialization.
+* Issue #247: Run AppVeyor (Windows CI) for each PR and merge.
+* Issue #257: Set CKA_DECRYPT/CKA_ENCRYPT flags on key import to true.
+  (Patch from Martin Domke)
+* Issue #261: Add support for libeaycompat lib for FIPS on Windows.
+  (Patch from Matt Hauck)
+* Issue #262: Support importing ECDSA P-521 in softhsm-util.
+* Issue #276: Support for Botan 2.0.
+* Issue #279: Editorial changes from Mountain Lion to Sierra.
+  (Patch from Mike Neumann)
+* Issue #283: More detailed error messages when initializing SoftHSM.
+* Issue #285: Support for LibreSSL.
+  (Patch from Alon Bar-Lev)
+* Issue #286: Update .gitignore.
+  (Patch from Alon Bar-Lev)
+* Issue #291: Change to enable builds and reports on new Jenkinks
+  environment.
+* Issue #293: Detect cppunit in autoconf.
+  (Patch from Alon Bar-Lev)
+* Issue #309: CKO_CERTIFICATE and CKO_PUBLIC_KEY now defaults to
+  CKA_PRIVATE=false.
+* Issue #314: Update README with information about logging.
+* Issue #330: Adjust log levels for failing to enumerate object store.
+  (Patch from Nikos Mavrogiannopoulos)
+
+Bugfixes:
+* Issue #216: Better handling of CRYPTO_set_locking_callback() for OpenSSL.
+* Issue #265: Fix deriving shared secret with ECC.
+* Issue #280: HMAC with sizes less than L bytes is strongly discouraged.
+  Set a lower bound equal to L bytes in ulMinKeySize and check it when
+  initializing the operation.
+* Issue #281: Fix test of p11 shared library.
+  (Patch from Lars Silvén)
+* Issue #289: Minor fix of 'EVP_CipherFinal_ex'.
+  (Patch from Viktor Tarasov)
+* Issue #297: Fix build with cppunit.
+  (Patch from Ludovic Rousseau)
+* Issue #302: Export PKCS#11 symbols from the library.
+  (Patch from Ludovic Rousseau)
+* Issue #305: Zero pad key to fit the block in CKM_AES_KEY_WRAP.
+* Issue #313: Detecting CppUnit when using Macports.
+  (Patch from mouse07410)
+
+
+SoftHSM 2.2.0 - 2016-12-05
+
+* Issue #143: Delete a token using softhsm2-util.
+* Issue #185: Change access mode bits for /var/lib/softhsm/tokens/
+  to 1777. All users can now create tokens, but only access their own.
+  (Patch from Rick van Rein)
+* Issue #186: Reinitializing a token will now keep the token, but all
+  token objects are deleted, the user PIN is removed and the token
+  label is updated.
+* Issue #190: Support for OpenSSL 1.1.0.
+* Issue #198: Calling C_GetSlotList with NULL_PTR will make sure that
+  there is always a slot with an uninitialized token available.
+* Issue #199: The token serial number will be used when setting the slot
+  number. The serial number is set after the token has been initialized.
+  (Patch from Lars Silvén)
+* Issue #203: Update the command utils to use the token label or serial
+  to find the token and its slot number.
+* Issue #209: Possibility to test other PKCS#11 implementations with the
+  CppUnit test.
+  (Patch from Lars Silvén)
+* Issue #223: Mark public key as non private by default.
+  (Patch from Nikos Mavrogiannopoulos)
+* Issue #230: Install p11-kit module, to disable use --disable-p11-kit.
+  (Patch from David Woodhouse)
+* Issue #237: Add windows continuous integration build.
+  (Patch from Peter Polačko)
+
+Bugfixes:
+* Issue #201: Missing new source file and test configuration in the
+  Windows build project.
+* Issue #205: ECDSA P-521 support for OpenSSL and better test coverage.
+* Issue #207: Fix segmentation faults in loadLibrary function.
+  (Patch from Jaroslav Imrich)
+* Issue #215: Update the Homebrew install notes for OSX.
+* Issue #218: Fix build warnings.
+* Issue #235: Add the libtool install command for OSX.
+  (Patch from Mark Wylde)
+* Issue #236: Use GetEnvironmentVariable instead of getenv on Windows.
+  (Patch from Jaroslav Imrich)
+* Issue #239: Crash on module unload with OpenSSL.
+  (Patch from David Woodhouse)
+* Issue #241: Added EXTRALIBS to Windows utils project.
+  (Patch from Peter Polačko)
+* Issue #250: C++11 not detected.
+* Issue #255: API changes in Botan 1.11.27.
+* Issue #260: Fix include guard to check WITH_FIPS.
+  (Patch from Matt Hauck)
+* Issue #268: p11test fails on 32-bit systems.
+* Issue #270: Build warning about "converting a string constant".
+* Issue #272: Fix C++11 check to look for unique_ptr.
+  (Patch from Matt Hauck)
+
+
+SoftHSM 2.1.0 - 2016-03-14
+
+* Issue #136: Improved guide and build scripts for Windows.
+  (Thanks to Jaroslav Imrich)
+* Issue #144: The password prompt in softhsm2-util can now be
+  interrupted (ctrl-c).
+* Issue #166: Add slots.removable config option.
+  (Patch from Sumit Bose)
+* Issue #180: Windows configure script improvements.
+  (Patch from Arnaud Grandville)
+
+Bugfixes:
+* Issue #128: Prioritize the return values in C_GetAttributeValue.
+  (Patch from Nicholas Wilson)
+* Issue #129: Fix errors reported by Visual Studio 2015.
+  (Patch from Jaroslav Imrich)
+* Issue #132: Handle the CKA_CHECK_VALUE correctly for certificates
+  and symmetric key objects.
+* Issue #154: Fix the Windows build and destruction order of objects.
+  (Patch from Arnaud Grandville)
+* Issue #162: Not possible to create certificate objects containing
+  CKA_CERTIFICATE_CATEGORY, CKA_NAME_HASH_ALGORITHM, or
+  CKA_JAVA_MIDP_SECURITY_DOMAIN.
+* Issue #163: Do not attempt decryption of empty byte strings.
+  (Patch from Michal Kepien)
+* Issue #165: Minor changes after a PVS-Studio code analysis, and
+  C_EncryptUpdate crash if no ciphered data is produced.
+  (Patch from Arnaud Grandville)
+* Issue #169: One-byte buffer overflow in call to EVP_DecryptUpdate.
+* Issue #171: Problem while closing library that is initialized but
+  improperly finalized.
+* Issue #173: Adjust return values for the template parsing.
+* Issue #174: C_DeriveKey() error with leading zero bytes.
+* Issue #177: CKA_NEVER_EXTRACTABLE set to CK_FALSE on objects
+  created with C_CreateObject.
+* Issue #182: Resolve compiler warning.
+  (Patch from Josh Datko)
+* Issue #184: Stop discarding the global OpenSSL libcrypto state.
+  (Patch from Michal Trojnara)
+* SOFTHSM-123: Fix library cleanup on BSD.
+
+
+SoftHSM 2.0.0 - 2015-07-17
+
+* SOFTHSM-121: Test cases for C_DecryptUpdate/C_DecryptFinal.
+* Support C_DecryptUpdate/C_DecryptFinal for symmetric algorithms.
+  (Patch from Thomas Calderon)
+
+Bugfixes:
+* SOFTHSM-120: Segfault after renaming variables.
+
+
+SoftHSM 2.0.0b3 - 2015-04-17
+
+* SOFTHSM-113: Support for Botan 1.11.15
+* SOFTHSM-119: softhsm2-util: Support ECDSA key import
+  (Patch from Magnus Ahltorp)
+* SUPPORT-139: Support deriving generic secrets, DES, DES2, DES3, and AES.
+  Using DH, ECDH or symmetric encryption.
+
+Bugfixes:
+* SOFTHSM-108: A marked as trusted certificate cannot be imported.
+* SOFTHSM-109: Unused parameter and variable warnings.
+* SOFTHSM-110: subdir-objects warnings from autoreconf.
+* SOFTHSM-111: Include FIPS-NOTES.md in dist.
+* SOFTHSM-112: CKM_AES_KEY_WRAP* conflict in pkcs11.h.
+* SOFTHSM-114: Fix memory leak in a test script.
+* SOFTHSM-115: Fix static analysis warnings.
+* SUPPORT-154: A marked as non-modifiable object cannot be generated.
+* SUPPORT-155: auto_ptr is deprecated in C++11, use unique_ptr.
+* SUPPORT-157: Derived secrets were truncated after encryption and
+  could thus not be decrypted.
+* Mutex should call MutexFactory wrapper functions.
+  (Patch from Jerry Lundström)
+* Return detailed error message to loadLibrary().
+  (Patch from Petr Spacek)
+
+
+SoftHSM 2.0.0b2 - 2014-12-28
+
+* SOFTHSM-50: OpenSSL FIPS support.
+* SOFTHSM-64: Updated build script for Windows.
+* SOFTHSM-100: Use --free with softhsm2-util to initialize the first
+  free token.
+* SOFTHSM-103: Allow runtime configuration of log level.
+* SOFTHSM-107: Support for CKM_<symcipher>_CBC_PAD.
+* Add support for CKM_RSA_PKCS_OAEP key un/wrapping.
+  (Patch from Petr Spacek)
+* Use OpenSSL EVP interface for AES key wrapping.
+  (Patch from Petr Spacek)
+* Allow reading configuration file from user's home directory.
+  (Patch from Nikos Mavrogiannopoulos)
+
+Bugfixes:
+* SOFTHSM-102: C_DeriveKey() uses OBJECT_OP_GENERATE.
+* Coverity found a number of issues.
+
+
+SoftHSM 2.0.0b1 - 2014-09-10
+
+* SOFTHSM-84: Check that all mandatory attributes are given during
+  the creation process.
+* SOFTHSM-92: Enable -fvisibility=hidden on per default
+* SUPPORT-137: Implement C_EncryptUpdate and C_EncryptFinal
+  (Patch from Martin Paljak)
+* Add support for CKM_RSA_PKCS key un/wrapping
+  (Patch from Petr Spacek)
+
+Bugfixes:
+* SOFTHSM-66: Attribute handling when using multiple threads
+* SOFTHSM-93: Invalid C++ object recycling.
+* SOFTHSM-95: umask affecting the calling application.
+* SOFTHSM-97: Check if Botan has already been initialized.
+* SOFTHSM-98: Handle mandatory attributes for DSA, DH, and ECDSA
+  correctly.
+* SOFTHSM-99: Binary encoding of GOST values.
+* SUPPORT-136: softhsm2-keyconv creates files with sensitive material
+  in insecure way.
+
+
+SoftHSM 2.0.0a2 - 2014-03-25
+
+* SOFTHSM-68: Display a better configure message when there is a 
+  version of Botan with a broken ECC/GOST/OID implementation.
+* SOFTHSM-70: Improved handling of the database backend.
+* SOFTHSM-71: Supporting Botan 1.11.
+* SOFTHSM-76: Do not generate RSA keys smaller than 1024 bit when 
+  using the Botan crypto backend.
+* SOFTHSM-83: Support CKA_VALUE_BITS for CKK_DH private key object.
+* SOFTHSM-85: Rename libsofthsm.so to libsofthsm2.so and prefix the
+  command line utilties with softhsm2-.
+* SOFTHSM-89: Use constants and not strings for signaling algorithms.
+* SUPPORT-129: Possible to use an empty template in C_GenerateKey.
+  The class and key type are inherited from the generation mechanism.
+  Some mechanisms do however require a length attribute. [SOFTHSM-88]
+* SUPPORT-131: Support RSA-PSS using SHA1, SHA224, SHA256, SHA384,
+  or SHA512. [SOFTHSM-87]
+
+Bugfixes:
+* SOFTHSM-39: Fix 64 bit build on sparc sun4v.
+* SOFTHSM-69: GOST did not work when you disabled ECC.
+* SOFTHSM-78: Correct the attribute checks for a number of objects.
+* SOFTHSM-80: Prevent segfault in OpenSSL GOST HMAC code.
+* SOFTHSM-91: Fix a warning from static code analysis.
+* Fixed a number of memory leaks.
+
+
+SoftHSM 2.0.0a1 - 2014-02-10
+
+This is the first alpha release of SoftHSMv2. It focuses on a higher 
+level of security by encrypting sensitive information and using 
+unswappable memory. There is also a more generalized crypto backend,
+where you can use Botan or OpenSSL.

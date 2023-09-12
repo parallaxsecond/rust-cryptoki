@@ -1,0 +1,19 @@
+SOFTHSM2-DUMP-FILE(1)	    General Commands Manual	 SOFTHSM2-DUMP-FILE(1)
+
+NAME
+       softhsm2-dump-file - SoftHSM object file dump
+
+SYNOPSIS
+       softhsm2-dump-file path
+
+DESCRIPTION
+       softhsm2-dump-file  is  a tool that can dump SoftHSM v2 object file for
+       debugging purposes.
+
+OPTIONS
+       path   The SoftHSM v2 object file that is going to be dumped.
+
+       --help, -h
+	      Show the help information.
+
+SoftHSM 			 20 March 2014		 SOFTHSM2-DUMP-FILE(1)

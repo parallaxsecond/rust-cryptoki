@@ -1,0 +1,47 @@
+SOFTHSM2-KEYCONV(1)	    General Commands Manual	   SOFTHSM2-KEYCONV(1)
+
+NAME
+       softhsm2-keyconv - converting from BIND to PKCS#8 key file format
+
+SYNOPSIS
+       softhsm2-keyconv --in path --out path [--pin PIN]
+
+DESCRIPTION
+       softhsm2-keyconv can convert BIND .private-key files to the PKCS#8 file
+       format.	This is so that you can import the PKCS#8 file into libsofthsm
+       using the command softhsm2-util.  If you have another file format, then
+       openssl probably can help you to convert it into the PKCS#8  file  for‐
+       mat.
+
+OPTIONS
+       --help, -h Shows the help screen.
+
+       --in path
+	      The path to the input file.
+
+       --out path
+	      The path to the output file.
+
+       --pin PIN
+	      The  PIN	will be used to encrypt the PKCS#8 file.  If not given
+	      then the PKCS#8 file will be unencrypted.
+
+       --version, -v
+	      Show the version info.
+
+EXAMPLES
+       The following command can be used to convert a BIND  .private-key  file
+       to a PKCS#8 file:
+
+	      softhsm2-keyconv --in Kexample.com.+007+05474.private \
+		     --out rsa.pem
+
+AUTHORS
+       Written	by Rickard Bellgrim, Francis Dupont, René Post, and Roland van
+       Rijswijk.
+
+SEE ALSO
+       softhsm2-migrate(1),  softhsm2-util(1),	softhsm2.conf(5),  openssl(1),
+       named(1), dnssec-keygen(1), dnssec-signzone(1)
+
+SoftHSM 			 20 March 2014		   SOFTHSM2-KEYCONV(1)

@@ -1,0 +1,1 @@
+The Oaep test case is in the src folder. Please make sure to setup softhsm by either downloading it or using the portable version attached in this PR.The code automatically opens a slot at position 0 and sets the default SO and User pin. I have tested the test case and it gives the same issue as the one raised. Thank you
