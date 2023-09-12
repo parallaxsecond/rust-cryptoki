@@ -32,7 +32,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
 
     // find a slot, get the first one
-    let slot = pkcs11.get_slots_with_token().unwrap().remove(5);
+    let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
 
     let so_pin = AuthPin::new(SO_PIN.into());
     pkcs11.init_token(slot, &so_pin, "Test Token").unwrap();
