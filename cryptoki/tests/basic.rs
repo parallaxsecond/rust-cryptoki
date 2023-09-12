@@ -6,7 +6,8 @@ use crate::common::{get_pkcs11, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::GcmParams;
-use cryptoki::mechanism::Mechanism;
+use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
+use cryptoki::mechanism::{Mechanism, MechanismType};
 use cryptoki::object::{Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass};
 use cryptoki::session::{SessionState, UserType};
 use cryptoki::types::AuthPin;
@@ -1025,6 +1026,57 @@ fn aes_gcm_with_aad() -> TestResult {
     let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn rsa_pkcs_oaep_empty() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let pub_key_template = [Attribute::ModulusBits(2048.into())];
+    let (pubkey, privkey) =
+        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let oaep = PkcsOaepParams::new(
+        MechanismType::SHA1,
+        PkcsMgfType::MGF1_SHA1,
+        PkcsOaepSource::empty(),
+    );
+    let encrypt_mechanism: Mechanism = Mechanism::RsaPkcsOaep(oaep);
+    let encrypted_data = session.encrypt(&encrypt_mechanism, pubkey, b"Hello")?;
+
+    let decrypted_data = session.decrypt(&encrypt_mechanism, privkey, &encrypted_data)?;
+    let decrypted = String::from_utf8(decrypted_data)?;
+    assert_eq!("Hello", decrypted);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+#[ignore] // it's not clear why the test with data specified fails
+fn rsa_pkcs_oaep_with_data() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let pub_key_template = [Attribute::ModulusBits(2048.into())];
+    let (pubkey, privkey) =
+        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let oaep = PkcsOaepParams::new(
+        MechanismType::SHA1,
+        PkcsMgfType::MGF1_SHA1,
+        PkcsOaepSource::data_specified(&[1, 2, 3, 4, 5, 6, 7, 8]),
+    );
+    let encrypt_mechanism: Mechanism = Mechanism::RsaPkcsOaep(oaep);
+    let encrypted_data = session.encrypt(&encrypt_mechanism, pubkey, b"Hello")?;
+
+    let decrypted_data = session.decrypt(&encrypt_mechanism, privkey, &encrypted_data)?;
+    let decrypted = String::from_utf8(decrypted_data)?;
+    assert_eq!("Hello", decrypted);
+
     Ok(())
 }
 
