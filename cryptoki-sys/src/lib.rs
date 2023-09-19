@@ -67,6 +67,16 @@ include!(concat!(
 
 #[cfg(all(
     not(feature = "generate-bindings"),
+    target_arch = "loongarch64",
+    target_os = "linux"
+))]
+include!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/src/bindings/loongarch64-unknown-linux-gnu.rs"
+));
+
+#[cfg(all(
+    not(feature = "generate-bindings"),
     target_arch = "x86_64",
     target_os = "macos"
 ))]
@@ -113,6 +123,7 @@ include!(concat!(
     all(target_arch = "powerpc64", target_os = "linux"),
     all(target_arch = "aarch64", target_os = "linux"),
     all(target_arch = "arm", target_os = "linux"),
+    all(target_arch = "loongarch64", target_os = "linux"),
     all(target_arch = "x86_64", target_os = "macos"),
     all(target_arch = "aarch64", target_os = "macos"),
     all(target_arch = "x86_64", target_os = "windows"),
