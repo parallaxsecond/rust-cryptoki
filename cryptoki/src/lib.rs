@@ -20,6 +20,7 @@
 
 // This list comes from
 // https://github.com/rust-unofficial/patterns/blob/master/anti_patterns/deny-warnings.md
+#![allow(renamed_and_removed_lints, unknown_lints)]
 #![deny(bad_style,
        dead_code,
        improper_ctypes,
@@ -28,8 +29,12 @@
        overflowing_literals,
        path_statements ,
        patterns_in_fns_without_body,
+       private_bounds,
        private_in_public,
+       private_interfaces,
+       renamed_and_removed_lints,
        unconditional_recursion,
+       unnameable_types,
        unused,
        unused_allocation,
        unused_comparisons,
