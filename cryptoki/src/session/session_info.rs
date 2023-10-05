@@ -66,7 +66,7 @@ impl TryFrom<CK_SESSION_INFO> for SessionInfo {
 }
 
 /// The current state of the session which describes access to token and session
-/// obects based on user type and login status
+/// objects based on user type and login status
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum SessionState {
     /// The session has read-only access to public token objects and R/W access
