@@ -1,5 +1,25 @@
 # Changelog
 
+## [cryptoki-sys-0.1.7](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.7) (2023-10-05)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.5.0...cryptoki-sys-0.1.7)
+
+**Closed issues:**
+
+- PKCS OAEP padding always returns: Pkcs11\(ArgumentsBad\) [\#163](https://github.com/parallaxsecond/rust-cryptoki/issues/163)
+
+**Merged pull requests:**
+
+- Fix spelling and Update Cargo.lock [\#172](https://github.com/parallaxsecond/rust-cryptoki/pull/172) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Start tracking Cargo.lock file [\#171](https://github.com/parallaxsecond/rust-cryptoki/pull/171) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- ci: Add workflow dispatch [\#170](https://github.com/parallaxsecond/rust-cryptoki/pull/170) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Drop unused target-lexicon crate [\#169](https://github.com/parallaxsecond/rust-cryptoki/pull/169) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Change lints for the library and allow unknown lints [\#168](https://github.com/parallaxsecond/rust-cryptoki/pull/168) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Bump bindgen to 0.66.1 [\#167](https://github.com/parallaxsecond/rust-cryptoki/pull/167) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Fix RSA OKCS OAEP mechanism [\#165](https://github.com/parallaxsecond/rust-cryptoki/pull/165) ([wiktor-k](https://github.com/wiktor-k))
+- elliptic\_curve: Fix broken references [\#161](https://github.com/parallaxsecond/rust-cryptoki/pull/161) ([wiktor-k](https://github.com/wiktor-k))
+- Make generic bindings [\#154](https://github.com/parallaxsecond/rust-cryptoki/pull/154) ([arjennienhuis](https://github.com/arjennienhuis))
+
 ## [cryptoki-sys-0.1.6](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.6) (2023-04-22)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.1...cryptoki-sys-0.1.6)
