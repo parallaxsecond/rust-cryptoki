@@ -4,6 +4,10 @@
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.7...cryptoki-0.6.0)
 
+**Merged pull requests:**
+
+- Bump psa-crypto to 0.11.0 [\#176](https://github.com/parallaxsecond/rust-cryptoki/pull/176) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+
 ## [cryptoki-sys-0.1.7](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.7) (2023-10-05)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.5.0...cryptoki-sys-0.1.7)
