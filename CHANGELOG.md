@@ -1,5 +1,9 @@
 # Changelog
 
+## [cryptoki-0.6.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.0) (2023-10-06)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.7...cryptoki-0.6.0)
+
 ## [cryptoki-sys-0.1.7](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.7) (2023-10-05)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.5.0...cryptoki-sys-0.1.7)
