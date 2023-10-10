@@ -6,6 +6,7 @@ pub mod aead;
 pub mod elliptic_curve;
 mod mechanism_info;
 pub mod rsa;
+pub mod ekdf;
 
 use crate::error::Error;
 use cryptoki_sys::*;
@@ -17,6 +18,7 @@ use std::ops::Deref;
 use std::ptr::null_mut;
 
 pub use mechanism_info::MechanismInfo;
+use crate::mechanism::rsa::{PkcsOaepParams, PkcsOaepSource};
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 // transparent so that a vector of MechanismType should have the same layout than a vector of
@@ -63,6 +65,9 @@ impl MechanismType {
     };
     /// AES-GCM mechanism
     pub const AES_GCM: MechanismType = MechanismType { val: CKM_AES_GCM };
+
+    /// Derivation via encryption
+    pub const AES_CBC_ENCRYPT_DATA: MechanismType = MechanismType { val: CKM_AES_CBC_ENCRYPT_DATA };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -240,6 +245,10 @@ impl MechanismType {
     /// SHA512-RSA-PKCS-PSS mechanism
     pub const SHA512_RSA_PKCS_PSS: MechanismType = MechanismType {
         val: CKM_SHA512_RSA_PKCS_PSS,
+    };
+    /// GENERIC-SECRET-KEY-GEN mechanism
+    pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType{
+        val: CKM_GENERIC_SECRET_KEY_GEN
     };
 
     pub(crate) fn stringify(mech: CK_MECHANISM_TYPE) -> String {
@@ -629,6 +638,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
     fn try_from(mechanism_type: CK_MECHANISM_TYPE) -> Result<Self, Self::Error> {
         match mechanism_type {
             CKM_AES_KEY_GEN => Ok(MechanismType::AES_KEY_GEN),
+            CKM_AES_CBC_ENCRYPT_DATA => Ok(MechanismType::AES_CBC_ENCRYPT_DATA),
             CKM_RSA_PKCS_KEY_PAIR_GEN => Ok(MechanismType::RSA_PKCS_KEY_PAIR_GEN),
             CKM_RSA_PKCS => Ok(MechanismType::RSA_PKCS),
             CKM_RSA_PKCS_PSS => Ok(MechanismType::RSA_PKCS_PSS),
@@ -648,6 +658,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
             CKM_SHA384_RSA_PKCS => Ok(MechanismType::SHA384_RSA_PKCS),
             CKM_SHA512_RSA_PKCS => Ok(MechanismType::SHA512_RSA_PKCS),
+            CKM_GENERIC_SECRET_KEY_GEN => Ok(MechanismType::GENERIC_SECRET_KEY_GEN),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -689,6 +700,14 @@ pub enum Mechanism<'a> {
     AesKeyWrapPad,
     /// AES-GCM mechanism
     AesGcm(aead::GcmParams<'a>),
+    /// AES-CBC-ENCRYPT-DATA mechanism
+    ///
+    /// The parameter to this mechanism is the initialization vector and the message to encrypt. These mechanisms allow
+    /// derivation of keys using the result of an encryption operation as the key value.
+    ///
+    /// For derivation, the message length must be a multiple of the block
+    /// size. See https://www.cryptsoft.com/pkcs11doc/v220/
+    AesCbcEncryptData(ekdf::AesCbcDeriveParams<'a>),
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -701,7 +720,7 @@ pub enum Mechanism<'a> {
     RsaPkcsPss(rsa::PkcsPssParams),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
-    RsaPkcsOaep(rsa::PkcsOaepParams<'a>),
+    RsaPkcsOaep(PkcsOaepParams<'a>),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
     /// RSA, as assumed in X.509.
     RsaX509,
@@ -816,6 +835,9 @@ pub enum Mechanism<'a> {
     Sha384RsaPkcsPss(rsa::PkcsPssParams),
     /// SHA256-RSA-PKCS-PSS mechanism
     Sha512RsaPkcsPss(rsa::PkcsPssParams),
+
+    /// GENERIC-SECRET-KEY-GEN mechanism
+    GenericSecretKeyGen
 }
 
 impl Mechanism<'_> {
@@ -829,7 +851,7 @@ impl Mechanism<'_> {
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
             Mechanism::AesGcm(_) => MechanismType::AES_GCM,
-
+            Mechanism::AesCbcEncryptData(_) =>MechanismType::AES_CBC_ENCRYPT_DATA,
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
@@ -874,6 +896,8 @@ impl Mechanism<'_> {
             Mechanism::Sha256RsaPkcsPss(_) => MechanismType::SHA256_RSA_PKCS_PSS,
             Mechanism::Sha384RsaPkcsPss(_) => MechanismType::SHA384_RSA_PKCS_PSS,
             Mechanism::Sha512RsaPkcsPss(_) => MechanismType::SHA512_RSA_PKCS_PSS,
+
+            Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN
         }
     }
 }
@@ -883,9 +907,13 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
         let mechanism = mech.mechanism_type().into();
         match mech {
             // Mechanisms with parameters
-            Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
+            Mechanism::AesCbc(params)
+            | Mechanism::AesCbcPad(params) => {
                 make_mechanism(mechanism, params)
-            }
+            },
+            Mechanism::AesCbcEncryptData(params) => {
+                make_mechanism(mechanism, params)
+            },
             Mechanism::DesCbc(params)
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
@@ -936,7 +964,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha224RsaPkcs
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs
-            | Mechanism::Sha512RsaPkcs => CK_MECHANISM {
+            | Mechanism::Sha512RsaPkcs
+            | Mechanism::GenericSecretKeyGen => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,
@@ -961,7 +990,7 @@ fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
 
 #[cfg(feature = "psa-crypto-conversions")]
 #[allow(deprecated)]
-impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
+impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism<'_> {
     type Error = Error;
 
     fn try_from(alg: psa_crypto::types::algorithm::Algorithm) -> Result<Self, Self::Error> {
@@ -989,13 +1018,11 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 Ok(Mechanism::Ecdsa)
             }
             Algorithm::AsymmetricEncryption(AsymmetricEncryption::RsaOaep { hash_alg }) => {
-                Ok(Mechanism::RsaPkcsOaep(rsa::PkcsOaepParams {
-                    hash_alg: Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
-                    mgf: rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
-                    source: rsa::PkcsOaepSourceType::DATA_SPECIFIED,
-                    source_data: std::ptr::null(),
-                    source_data_len: 0.into(),
-                }))
+                Ok(Mechanism::RsaPkcsOaep(PkcsOaepParams::new(
+                    Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
+                    rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
+                    PkcsOaepSource::empty(),
+                )))
             }
             alg => {
                 error!("{:?} is not a supported algorithm", alg);

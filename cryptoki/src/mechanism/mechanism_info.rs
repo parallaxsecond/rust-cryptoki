@@ -4,7 +4,7 @@
 
 use bitflags::bitflags;
 use cryptoki_sys::*;
-use std::fmt::Debug;
+use std::fmt::{Debug, Formatter};
 
 bitflags! {
     struct MechanismInfoFlags: CK_FLAGS {
@@ -216,6 +216,23 @@ impl MechanismInfo {
     /// [`ec_compressed`](Self::ec_compressed) must be `true`
     pub fn ec_compressed(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::EC_COMPRESS)
+    }
+}
+
+impl std::fmt::Display for MechanismInfo {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let flags = format!("{0:#?}", self.flags);
+        let key_size_info = match self.min_key_size == 0 && self.max_key_size == 0 {
+            true => String::new(),
+            false => {
+                if self.max_key_size == 0 {
+                    format!(", min_key_size={}", self.min_key_size)
+                } else {
+                    format!(", min_key_size={}, max_key_size={}", self.min_key_size, self.max_key_size)
+                }
+            }
+        };
+        write!(f, "{}{}", flags, key_size_info)
     }
 }
 
