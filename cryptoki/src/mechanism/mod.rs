@@ -3,10 +3,10 @@
 //! Data types for mechanisms
 
 pub mod aead;
+pub mod ekdf;
 pub mod elliptic_curve;
 mod mechanism_info;
 pub mod rsa;
-pub mod ekdf;
 
 use crate::error::Error;
 use cryptoki_sys::*;
@@ -17,8 +17,8 @@ use std::fmt::Formatter;
 use std::ops::Deref;
 use std::ptr::null_mut;
 
+use crate::mechanism::rsa::PkcsOaepParams;
 pub use mechanism_info::MechanismInfo;
-use crate::mechanism::rsa::{PkcsOaepParams, PkcsOaepSource};
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 // transparent so that a vector of MechanismType should have the same layout than a vector of
@@ -67,7 +67,9 @@ impl MechanismType {
     pub const AES_GCM: MechanismType = MechanismType { val: CKM_AES_GCM };
 
     /// Derivation via encryption
-    pub const AES_CBC_ENCRYPT_DATA: MechanismType = MechanismType { val: CKM_AES_CBC_ENCRYPT_DATA };
+    pub const AES_CBC_ENCRYPT_DATA: MechanismType = MechanismType {
+        val: CKM_AES_CBC_ENCRYPT_DATA,
+    };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -247,8 +249,8 @@ impl MechanismType {
         val: CKM_SHA512_RSA_PKCS_PSS,
     };
     /// GENERIC-SECRET-KEY-GEN mechanism
-    pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType{
-        val: CKM_GENERIC_SECRET_KEY_GEN
+    pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_GENERIC_SECRET_KEY_GEN,
     };
 
     pub(crate) fn stringify(mech: CK_MECHANISM_TYPE) -> String {
@@ -706,7 +708,7 @@ pub enum Mechanism<'a> {
     /// derivation of keys using the result of an encryption operation as the key value.
     ///
     /// For derivation, the message length must be a multiple of the block
-    /// size. See https://www.cryptsoft.com/pkcs11doc/v220/
+    /// size. See <https://www.cryptsoft.com/pkcs11doc/v220/>.
     AesCbcEncryptData(ekdf::AesCbcDeriveParams<'a>),
 
     // RSA
@@ -837,7 +839,7 @@ pub enum Mechanism<'a> {
     Sha512RsaPkcsPss(rsa::PkcsPssParams),
 
     /// GENERIC-SECRET-KEY-GEN mechanism
-    GenericSecretKeyGen
+    GenericSecretKeyGen,
 }
 
 impl Mechanism<'_> {
@@ -851,7 +853,7 @@ impl Mechanism<'_> {
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
             Mechanism::AesGcm(_) => MechanismType::AES_GCM,
-            Mechanism::AesCbcEncryptData(_) =>MechanismType::AES_CBC_ENCRYPT_DATA,
+            Mechanism::AesCbcEncryptData(_) => MechanismType::AES_CBC_ENCRYPT_DATA,
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
@@ -897,7 +899,7 @@ impl Mechanism<'_> {
             Mechanism::Sha384RsaPkcsPss(_) => MechanismType::SHA384_RSA_PKCS_PSS,
             Mechanism::Sha512RsaPkcsPss(_) => MechanismType::SHA512_RSA_PKCS_PSS,
 
-            Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN
+            Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN,
         }
     }
 }
@@ -907,13 +909,10 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
         let mechanism = mech.mechanism_type().into();
         match mech {
             // Mechanisms with parameters
-            Mechanism::AesCbc(params)
-            | Mechanism::AesCbcPad(params) => {
+            Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
                 make_mechanism(mechanism, params)
-            },
-            Mechanism::AesCbcEncryptData(params) => {
-                make_mechanism(mechanism, params)
-            },
+            }
+            Mechanism::AesCbcEncryptData(params) => make_mechanism(mechanism, params),
             Mechanism::DesCbc(params)
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
@@ -1021,7 +1020,7 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism<'_> {
                 Ok(Mechanism::RsaPkcsOaep(PkcsOaepParams::new(
                     Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
                     rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
-                    PkcsOaepSource::empty(),
+                    rsa::PkcsOaepSource::empty(),
                 )))
             }
             alg => {

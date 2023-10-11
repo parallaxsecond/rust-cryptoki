@@ -79,7 +79,6 @@ impl MechanismInfo {
     }
 
     /// True if the mechanism can be used to digest a message
-    ///
     // TODO See [`Session::digest`](crate::session::Session::digest)
     pub fn digest(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::DIGEST)
@@ -228,7 +227,10 @@ impl std::fmt::Display for MechanismInfo {
                 if self.max_key_size == 0 {
                     format!(", min_key_size={}", self.min_key_size)
                 } else {
-                    format!(", min_key_size={}, max_key_size={}", self.min_key_size, self.max_key_size)
+                    format!(
+                        ", min_key_size={}, max_key_size={}",
+                        self.min_key_size, self.max_key_size
+                    )
                 }
             }
         };
