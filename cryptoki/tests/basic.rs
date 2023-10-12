@@ -15,6 +15,7 @@ use serial_test::serial;
 use std::collections::HashMap;
 use std::thread;
 
+use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
 #[test]
@@ -1104,4 +1105,85 @@ fn wait_for_slot_event() {
         "res = {:?}",
         res
     );
+}
+
+#[test]
+#[serial]
+fn generate_generic_secret_key() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let key_label = Attribute::Label(b"test_generic_secret_key_gen".to_vec());
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::Private(true),
+        Attribute::ValueLen(512.into()),
+        key_label.clone(),
+    ];
+
+    let key = session.generate_key(&Mechanism::GenericSecretKeyGen, &key_template)?;
+    let attributes_result = session.find_objects(&[key_label])?.remove(0);
+    assert_eq!(key, attributes_result);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn ekdf_aes_cbc_encrypt_data() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // key template
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::Private(true),
+        Attribute::ValueLen(32.into()),
+        Attribute::Derive(true),
+    ];
+
+    // generate master key
+    let master_key_label = Attribute::Label(b"test_aes_cbc_encrypt_data_master_key".to_vec());
+    let mut master_key_template = key_template.clone();
+    master_key_template.insert(0, master_key_label.clone());
+
+    let master_key = session.generate_key(&Mechanism::AesKeyGen, &master_key_template)?;
+    assert_eq!(
+        master_key,
+        session.find_objects(&[master_key_label])?.remove(0)
+    );
+
+    // generate a derived pair
+    let derived_key_label = Attribute::Label(b"test_aes_cbc_encrypt_data_child_key".to_vec());
+    let mut derived_key_template = key_template.clone();
+    derived_key_template.insert(0, derived_key_label.clone());
+
+    // ============================================== IMPORTANT ==============================================
+    // When using this derivation method in production, be aware that it's better to keep first bytes of data
+    // filled with actual data (e.g., derivation path) - this shall cause CBC mode to propagate randomness to
+    // remaining 128 bit-wide AES blocks.
+    // Otherwise, if filling only last bytes, you are risking to keep first N of 128 bit-wide chunks of your
+    // derived private key the same for all child keys. If deriving a key for 256-bit AES, this means half of
+    // the key to be static.
+    // =======================================================================================================
+    let aes_cbc_derive_params = AesCbcDeriveParams::new([0u8; 16], [1u8; 32].as_slice());
+    let derived_key = session.derive_key(
+        &Mechanism::AesCbcEncryptData(aes_cbc_derive_params),
+        master_key,
+        &derived_key_template,
+    )?;
+    assert_eq!(
+        derived_key,
+        session.find_objects(&[derived_key_label])?.remove(0)
+    );
+
+    Ok(())
 }
