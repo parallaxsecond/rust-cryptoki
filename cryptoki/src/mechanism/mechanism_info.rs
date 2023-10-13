@@ -220,21 +220,19 @@ impl MechanismInfo {
 
 impl std::fmt::Display for MechanismInfo {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let flags = format!("{0:#?}", self.flags);
-        let key_size_info = match self.min_key_size == 0 && self.max_key_size == 0 {
-            true => String::new(),
-            false => {
-                if self.max_key_size == 0 {
-                    format!(", min_key_size={}", self.min_key_size)
-                } else {
-                    format!(
-                        ", min_key_size={}, max_key_size={}",
-                        self.min_key_size, self.max_key_size
-                    )
-                }
-            }
-        };
-        write!(f, "{}{}", flags, key_size_info)
+        write!(f, "{:#?}", self.flags)?;
+
+        if self.min_key_size == 0 && self.max_key_size == 0 {
+            return Ok(());
+        }
+
+        write!(f, ", min_key_size={}", self.min_key_size)?;
+
+        if self.max_key_size != 0 {
+            write!(f, ", max_key_size={}", self.max_key_size)?;
+        }
+
+        Ok(())
     }
 }
 
