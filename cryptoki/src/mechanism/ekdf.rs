@@ -1,4 +1,4 @@
-// Copyright 2021 Contributors to the Parsec project.
+// Copyright 2023 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 //! Mechanisms of key derivation by data encryption
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-spec/v3.1/os/pkcs11-spec-v3.1-os.html#_Toc111203514>
