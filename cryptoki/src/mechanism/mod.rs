@@ -71,6 +71,9 @@ impl MechanismType {
         val: CKM_AES_CBC_ENCRYPT_DATA,
     };
 
+    /// AES-CMAC mechanism
+    pub const AES_CMAC: MechanismType = MechanismType { val: CKM_AES_CMAC };
+
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
     pub const RSA_PKCS_KEY_PAIR_GEN: MechanismType = MechanismType {
@@ -710,6 +713,8 @@ pub enum Mechanism<'a> {
     /// For derivation, the message length must be a multiple of the block
     /// size. See <https://www.cryptsoft.com/pkcs11doc/v220/>.
     AesCbcEncryptData(ekdf::AesCbcDeriveParams<'a>),
+    /// AES CMAC
+    AesCMac,
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -854,6 +859,7 @@ impl Mechanism<'_> {
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
             Mechanism::AesGcm(_) => MechanismType::AES_GCM,
             Mechanism::AesCbcEncryptData(_) => MechanismType::AES_CBC_ENCRYPT_DATA,
+            Mechanism::AesCMac => MechanismType::AES_CMAC,
             Mechanism::RsaPkcsKeyPairGen => MechanismType::RSA_PKCS_KEY_PAIR_GEN,
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
@@ -936,6 +942,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::AesEcb
             | Mechanism::AesKeyWrap
             | Mechanism::AesKeyWrapPad
+            | Mechanism::AesCMac
             | Mechanism::RsaPkcsKeyPairGen
             | Mechanism::RsaPkcs
             | Mechanism::RsaX509
