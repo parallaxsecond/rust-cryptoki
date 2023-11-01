@@ -251,6 +251,10 @@ impl MechanismType {
     pub const SHA512_RSA_PKCS_PSS: MechanismType = MechanismType {
         val: CKM_SHA512_RSA_PKCS_PSS,
     };
+    /// SHA256-HMAC mechanism
+    pub const SHA256_HMAC: MechanismType = MechanismType {
+        val: CKM_SHA256_HMAC,
+    };
     /// GENERIC-SECRET-KEY-GEN mechanism
     pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType {
         val: CKM_GENERIC_SECRET_KEY_GEN,
@@ -663,6 +667,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
             CKM_SHA384_RSA_PKCS => Ok(MechanismType::SHA384_RSA_PKCS),
             CKM_SHA512_RSA_PKCS => Ok(MechanismType::SHA512_RSA_PKCS),
+            CKM_SHA256_HMAC => Ok(MechanismType::SHA256_HMAC),
             CKM_GENERIC_SECRET_KEY_GEN => Ok(MechanismType::GENERIC_SECRET_KEY_GEN),
             other => {
                 error!("Mechanism type {} is not supported.", other);
@@ -842,7 +847,8 @@ pub enum Mechanism<'a> {
     Sha384RsaPkcsPss(rsa::PkcsPssParams),
     /// SHA256-RSA-PKCS-PSS mechanism
     Sha512RsaPkcsPss(rsa::PkcsPssParams),
-
+    /// SHA256-HMAC mechanism
+    Sha256Hmac,
     /// GENERIC-SECRET-KEY-GEN mechanism
     GenericSecretKeyGen,
 }
@@ -904,6 +910,8 @@ impl Mechanism<'_> {
             Mechanism::Sha256RsaPkcsPss(_) => MechanismType::SHA256_RSA_PKCS_PSS,
             Mechanism::Sha384RsaPkcsPss(_) => MechanismType::SHA384_RSA_PKCS_PSS,
             Mechanism::Sha512RsaPkcsPss(_) => MechanismType::SHA512_RSA_PKCS_PSS,
+
+            Mechanism::Sha256Hmac => MechanismType::SHA256_HMAC,
 
             Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN,
         }
@@ -971,6 +979,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs
             | Mechanism::Sha512RsaPkcs
+            | Mechanism::Sha256Hmac
             | Mechanism::GenericSecretKeyGen => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
