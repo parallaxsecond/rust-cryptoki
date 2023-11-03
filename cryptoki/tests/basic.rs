@@ -1187,3 +1187,71 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn aes_cmac_sign() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+    let key: [u8; 16] = [
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f,
+        0x3c,
+    ];
+    let message: [u8; 16] = [
+        0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17,
+        0x2a,
+    ];
+    let expected_mac: [u8; 16] = [
+        0x07, 0x0a, 0x16, 0xb4, 0x6b, 0x4d, 0x41, 0x44, 0xf7, 0x9b, 0xdd, 0x9d, 0xd0, 0x4a, 0x28,
+        0x7c,
+    ];
+
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::Private(true),
+        Attribute::Value(key.into()),
+        Attribute::Sign(true),
+    ];
+    let key = session.create_object(&key_template)?;
+    let signature = session.sign(&Mechanism::AesCMac, key, &message)?;
+
+    assert_eq!(expected_mac.as_slice(), signature.as_slice());
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn aes_cmac_verify() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+    let key: [u8; 16] = [
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f,
+        0x3c,
+    ];
+    let message: [u8; 16] = [
+        0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17,
+        0x2a,
+    ];
+    let expected_mac: [u8; 16] = [
+        0x07, 0x0a, 0x16, 0xb4, 0x6b, 0x4d, 0x41, 0x44, 0xf7, 0x9b, 0xdd, 0x9d, 0xd0, 0x4a, 0x28,
+        0x7c,
+    ];
+
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::Private(true),
+        Attribute::Value(key.into()),
+        Attribute::Verify(true),
+    ];
+    let key = session.create_object(&key_template)?;
+    session.verify(&Mechanism::AesCMac, key, &message, &expected_mac)?;
+    Ok(())
+}
