@@ -1255,3 +1255,32 @@ fn aes_cmac_verify() -> TestResult {
     session.verify(&Mechanism::AesCMac, key, &message, &expected_mac)?;
     Ok(())
 }
+
+#[test]
+#[serial]
+fn sign_verify_sha256_hmac() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Sign(true),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(256.into()),
+    ];
+
+    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let signature = session.sign(&Mechanism::Sha256Hmac, private, &data)?;
+
+    session.verify(&Mechanism::Sha256Hmac, private, &data, &signature)?;
+
+    session.destroy_object(private)?;
+    Ok(())
+}
