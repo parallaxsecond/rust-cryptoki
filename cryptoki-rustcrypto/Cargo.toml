@@ -8,10 +8,13 @@ readme = "README.md"
 keywords = ["pkcs11", "cryptoki", "hsm"]
 categories = ["cryptography", "hardware-support"]
 license = "Apache-2.0"
+repository = "https://github.com/parallaxsecond/rust-cryptoki"
 
 [dependencies]
 cryptoki = { path = "../cryptoki", version = "0.6.1" }
 der = "0.7.8"
+ecdsa = "0.16.9"
+p256 = { version = "0.13.2", features = ["pkcs8"] }
 rsa = "0.9"
 signature = { version = "2.2.0", features = ["digest"] }
 sha1 = { version = "0.10", features = ["oid"] }
