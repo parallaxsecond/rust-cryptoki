@@ -1,0 +1,24 @@
+[package]
+name = "cryptoki-rustcrypto"
+version = "0.1.0"
+edition = "2018"
+authors = ["Contributors to the Parsec project"]
+description = "Compatibility layer from PKCS #11 to the RustCrypto ecosystem"
+readme = "README.md"
+keywords = ["pkcs11", "cryptoki", "hsm"]
+categories = ["cryptography", "hardware-support"]
+license = "Apache-2.0"
+
+[dependencies]
+cryptoki = { path = "../cryptoki", version = "0.6.1" }
+der = "0.7.8"
+rsa = "0.9"
+signature = { version = "2.2.0", features = ["digest"] }
+sha1 = { version = "0.10", features = ["oid"] }
+sha2 = { version = "0.10", features = ["oid"] }
+spki = "0.7.2"
+thiserror = "1.0"
+
+[dev-dependencies]
+serial_test = "0.5.1"
+testresult = "0.2.0"
