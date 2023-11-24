@@ -19,9 +19,11 @@ rsa = "0.9"
 signature = { version = "2.2.0", features = ["digest"] }
 sha1 = { version = "0.10", features = ["oid"] }
 sha2 = { version = "0.10", features = ["oid"] }
-spki = "0.7.2"
+spki = "0.7.3"
+x509-cert = "0.2.4"
 thiserror = "1.0"
 
 [dev-dependencies]
 serial_test = "0.5.1"
 testresult = "0.2.0"
+x509-cert = { version = "0.2.4", features = ["builder"] }
