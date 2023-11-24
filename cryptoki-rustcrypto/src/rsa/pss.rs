@@ -1,10 +1,7 @@
 // Copyright 2023 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 
-use cryptoki::{
-    object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle},
-    session::Session,
-};
+use cryptoki::object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle};
 use der::{asn1::ObjectIdentifier, oid::AssociatedOid, Any, AnyRef};
 use rsa::{
     pkcs1::{self, RsaPssParams},
@@ -20,17 +17,18 @@ use spki::{
 use std::convert::TryFrom;
 
 use super::{DigestSigning, Error};
+use crate::SessionLike;
 
-pub struct Signer<D: DigestSigning> {
-    session: Session,
+pub struct Signer<D: DigestSigning, S: SessionLike> {
+    session: S,
     _public_key: ObjectHandle,
     private_key: ObjectHandle,
     verifying_key: VerifyingKey<D>,
     salt_len: usize,
 }
 
-impl<D: DigestSigning> Signer<D> {
-    pub fn new(session: Session, label: &[u8]) -> Result<Self, Error> {
+impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
+    pub fn new(session: S, label: &[u8]) -> Result<Self, Error> {
         // First we'll lookup a private key with that label.
         let template = vec![
             Attribute::Token(true),
@@ -91,17 +89,17 @@ impl<D: DigestSigning> Signer<D> {
         })
     }
 
-    pub fn into_session(self) -> Session {
+    pub fn into_session(self) -> S {
         self.session
     }
 }
 
-impl<D: DigestSigning> AssociatedAlgorithmIdentifier for Signer<D> {
+impl<D: DigestSigning, S: SessionLike> AssociatedAlgorithmIdentifier for Signer<D, S> {
     type Params = AnyRef<'static>;
     const ALGORITHM_IDENTIFIER: AlgorithmIdentifierRef<'static> = pkcs1::ALGORITHM_ID;
 }
 
-impl<D: DigestSigning> signature::Keypair for Signer<D> {
+impl<D: DigestSigning, S: SessionLike> signature::Keypair for Signer<D, S> {
     type VerifyingKey = VerifyingKey<D>;
 
     fn verifying_key(&self) -> Self::VerifyingKey {
@@ -109,7 +107,7 @@ impl<D: DigestSigning> signature::Keypair for Signer<D> {
     }
 }
 
-impl<D: DigestSigning> signature::Signer<Signature> for Signer<D> {
+impl<D: DigestSigning, S: SessionLike> signature::Signer<Signature> for Signer<D, S> {
     fn try_sign(&self, msg: &[u8]) -> Result<Signature, signature::Error> {
         let bytes = self
             .session
@@ -124,7 +122,7 @@ impl<D: DigestSigning> signature::Signer<Signature> for Signer<D> {
     }
 }
 
-impl<D: DigestSigning> DynSignatureAlgorithmIdentifier for Signer<D> {
+impl<D: DigestSigning, S: SessionLike> DynSignatureAlgorithmIdentifier for Signer<D, S> {
     fn signature_algorithm_identifier(&self) -> pkcs8::spki::Result<AlgorithmIdentifierOwned> {
         get_pss_signature_algo_id::<D>(self.salt_len as u8)
     }

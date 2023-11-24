@@ -55,7 +55,8 @@ fn pss_create_ca() -> TestResult {
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
-    let signer = pss::Signer::<sha2::Sha256>::new(session, label).expect("Lookup keys from HSM");
+    let signer =
+        pss::Signer::<sha2::Sha256, _>::new(&session, label).expect("Lookup keys from HSM");
 
     let serial_number = SerialNumber::from(42u32);
     let validity = Validity::from_now(Duration::new(5, 0)).unwrap();
@@ -72,8 +73,6 @@ fn pss_create_ca() -> TestResult {
 
     let pem = certificate.to_pem(LineEnding::LF).expect("generate pem");
     println!("{}", pem);
-
-    let session = signer.into_session();
 
     // delete keys
     session.destroy_object(public)?;

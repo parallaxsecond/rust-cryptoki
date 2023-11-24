@@ -67,14 +67,12 @@ fn sign_verify() -> TestResult {
     let data = [0xFF, 0x55, 0xDD];
 
     let signer =
-        ecdsa::Signer::<p256::NistP256>::new(session, label).expect("Lookup keys from HSM");
+        ecdsa::Signer::<p256::NistP256, _>::new(&session, label).expect("Lookup keys from HSM");
 
     let signature = signer.sign(&data);
 
     let verifying_key = signer.verifying_key();
     verifying_key.verify(&data, &signature)?;
-
-    let session = signer.into_session();
 
     // delete keys
     session.destroy_object(public)?;

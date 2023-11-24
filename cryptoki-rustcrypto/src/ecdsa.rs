@@ -4,7 +4,6 @@
 use cryptoki::{
     mechanism::Mechanism,
     object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle},
-    session::Session,
 };
 use der::{
     asn1::{ObjectIdentifier, OctetStringRef},
@@ -28,6 +27,8 @@ use spki::{
 use std::{convert::TryFrom, ops::Add};
 use thiserror::Error;
 
+use crate::SessionLike;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("Cryptoki error: {0}")]
@@ -50,19 +51,19 @@ impl SignAlgorithm for p256::NistP256 {
     }
 }
 
-pub struct Signer<C: SignAlgorithm> {
-    session: Session,
+pub struct Signer<C: SignAlgorithm, S: SessionLike> {
+    session: S,
     _public_key: ObjectHandle,
     private_key: ObjectHandle,
     verifying_key: VerifyingKey<C>,
 }
 
-impl<C: SignAlgorithm> Signer<C>
+impl<C: SignAlgorithm, S: SessionLike> Signer<C, S>
 where
     FieldBytesSize<C>: ModulusSize,
     AffinePoint<C>: FromEncodedPoint<C> + ToEncodedPoint<C>,
 {
-    pub fn new(session: Session, label: &[u8]) -> Result<Self, Error> {
+    pub fn new(session: S, label: &[u8]) -> Result<Self, Error> {
         // First we'll lookup a private key with that label.
         let template = vec![
             Attribute::Token(true),
@@ -126,12 +127,12 @@ where
         })
     }
 
-    pub fn into_session(self) -> Session {
+    pub fn into_session(self) -> S {
         self.session
     }
 }
 
-impl<C: SignAlgorithm> AssociatedAlgorithmIdentifier for Signer<C>
+impl<C: SignAlgorithm, S: SessionLike> AssociatedAlgorithmIdentifier for Signer<C, S>
 where
     C: AssociatedOid,
 {
@@ -141,7 +142,7 @@ where
         PublicKey::<C>::ALGORITHM_IDENTIFIER;
 }
 
-impl<C: SignAlgorithm> signature::Keypair for Signer<C> {
+impl<C: SignAlgorithm, S: SessionLike> signature::Keypair for Signer<C, S> {
     type VerifyingKey = VerifyingKey<C>;
 
     fn verifying_key(&self) -> Self::VerifyingKey {
@@ -149,7 +150,7 @@ impl<C: SignAlgorithm> signature::Keypair for Signer<C> {
     }
 }
 
-impl<C: SignAlgorithm> signature::Signer<Signature<C>> for Signer<C>
+impl<C: SignAlgorithm, S: SessionLike> signature::Signer<Signature<C>> for Signer<C, S>
 where
     <<C as ecdsa::elliptic_curve::Curve>::FieldBytesSize as Add>::Output: ArrayLength<u8>,
 {
@@ -171,7 +172,7 @@ where
     }
 }
 
-impl<C: SignAlgorithm> SignatureAlgorithmIdentifier for Signer<C>
+impl<C: SignAlgorithm, S: SessionLike> SignatureAlgorithmIdentifier for Signer<C, S>
 where
     AffinePoint<C>: FromEncodedPoint<C> + ToEncodedPoint<C>,
     FieldBytesSize<C>: ModulusSize,

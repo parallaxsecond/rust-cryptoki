@@ -50,14 +50,12 @@ fn pkcs1v15_sign_verify() -> TestResult {
     let data = [0xFF, 0x55, 0xDD];
 
     let signer =
-        pkcs1v15::Signer::<sha2::Sha256>::new(session, label).expect("Lookup keys from HSM");
+        pkcs1v15::Signer::<sha2::Sha256, _>::new(&session, label).expect("Lookup keys from HSM");
 
     let signature = signer.sign(&data);
 
     let verifying_key = signer.verifying_key();
     verifying_key.verify(&data, &signature)?;
-
-    let session = signer.into_session();
 
     // delete keys
     session.destroy_object(public)?;
@@ -104,14 +102,13 @@ fn pss_sign_verify() -> TestResult {
     // data to sign
     let data = [0xFF, 0x55, 0xDD];
 
-    let signer = pss::Signer::<sha2::Sha256>::new(session, label).expect("Lookup keys from HSM");
+    let signer =
+        pss::Signer::<sha2::Sha256, _>::new(&session, label).expect("Lookup keys from HSM");
 
     let signature = signer.sign(&data);
 
     let verifying_key = signer.verifying_key();
     verifying_key.verify(&data, &signature)?;
-
-    let session = signer.into_session();
 
     // delete keys
     session.destroy_object(public)?;
