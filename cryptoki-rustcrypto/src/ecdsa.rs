@@ -89,11 +89,20 @@ pub trait SignAlgorithm: PrimeCurve + CurveArithmetic + AssociatedOid + DigestPr
     fn sign_mechanism() -> Mechanism<'static>;
 }
 
-impl SignAlgorithm for p256::NistP256 {
-    fn sign_mechanism() -> Mechanism<'static> {
-        Mechanism::Ecdsa
-    }
+macro_rules! impl_sign_algorithm {
+    ($ec:ty) => {
+        impl SignAlgorithm for $ec {
+            fn sign_mechanism() -> Mechanism<'static> {
+                Mechanism::Ecdsa
+            }
+        }
+    };
 }
+
+impl_sign_algorithm!(p224::NistP224);
+impl_sign_algorithm!(p256::NistP256);
+impl_sign_algorithm!(p384::NistP384);
+impl_sign_algorithm!(k256::Secp256k1);
 
 pub struct Signer<C: SignAlgorithm, S: SessionLike> {
     session: S,
