@@ -6,17 +6,15 @@ use der::AnyRef;
 use rsa::{
     pkcs1,
     pkcs1v15::{Signature, VerifyingKey},
-    BigUint, RsaPublicKey,
 };
 use spki::{AlgorithmIdentifierRef, AssociatedAlgorithmIdentifier, SignatureAlgorithmIdentifier};
 use std::convert::TryFrom;
 
-use super::{DigestSigning, Error};
+use super::{read_key, DigestSigning, Error};
 use crate::SessionLike;
 
 pub struct Signer<D: DigestSigning, S: SessionLike> {
     session: S,
-    _public_key: ObjectHandle,
     private_key: ObjectHandle,
     verifying_key: VerifyingKey<D>,
 }
@@ -34,21 +32,16 @@ impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
         ];
 
         let private_key = session.find_objects(&template)?.remove(0);
-        let attribute_pk = session.get_attributes(
+        let attribute_priv = session.get_attributes(
             private_key,
             &[AttributeType::Modulus, AttributeType::PublicExponent],
         )?;
 
         // Second we'll lookup a public key with the same label/modulus/public exponent
-        let mut template = vec![
-            Attribute::Private(false),
-            Attribute::Label(label.to_vec()),
-            Attribute::Class(ObjectClass::PUBLIC_KEY),
-            Attribute::KeyType(KeyType::RSA),
-        ];
+        let mut template = vec![Attribute::Private(false), Attribute::Label(label.to_vec())];
         let mut modulus = None;
         let mut public_exponent = None;
-        for attribute in attribute_pk {
+        for attribute in attribute_priv {
             match attribute {
                 Attribute::Modulus(m) if modulus.is_none() => {
                     modulus = Some(m.clone());
@@ -62,21 +55,13 @@ impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
             }
         }
 
-        let modulus = modulus
-            .ok_or(Error::MissingAttribute(AttributeType::Modulus))
-            .map(|v| BigUint::from_bytes_be(v.as_slice()))?;
-        let public_exponent = public_exponent
-            .ok_or(Error::MissingAttribute(AttributeType::PublicExponent))
-            .map(|v| BigUint::from_bytes_be(v.as_slice()))?;
+        let public_key = read_key(&session, template)?;
 
-        let public_key = session.find_objects(&template)?.remove(0);
-
-        let verifying_key = VerifyingKey::new(RsaPublicKey::new(modulus, public_exponent)?);
+        let verifying_key = VerifyingKey::new(public_key);
 
         Ok(Self {
             session,
             private_key,
-            _public_key: public_key,
             verifying_key,
         })
     }
