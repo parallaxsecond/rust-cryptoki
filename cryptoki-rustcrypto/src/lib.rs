@@ -9,6 +9,7 @@ use cryptoki::{
 };
 
 pub mod ecdsa;
+pub mod rng;
 pub mod rsa;
 pub mod x509;
 
@@ -21,6 +22,7 @@ pub trait SessionLike {
         attributes: &[AttributeType],
     ) -> Result<Vec<Attribute>>;
     fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>>;
+    fn generate_random_slice(&self, random_data: &mut [u8]) -> Result<()>;
 }
 
 impl SessionLike for Session {
@@ -40,6 +42,9 @@ impl SessionLike for Session {
     fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
         Session::sign(self, mechanism, key, data)
     }
+    fn generate_random_slice(&self, random_data: &mut [u8]) -> Result<()> {
+        Session::generate_random_slice(self, random_data)
+    }
 }
 
 impl<'s> SessionLike for &'s Session {
@@ -58,5 +63,8 @@ impl<'s> SessionLike for &'s Session {
     }
     fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
         Session::sign(self, mechanism, key, data)
+    }
+    fn generate_random_slice(&self, random_data: &mut [u8]) -> Result<()> {
+        Session::generate_random_slice(self, random_data)
     }
 }
