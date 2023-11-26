@@ -10,8 +10,10 @@ use cryptoki::{
 
 pub mod ecdsa;
 pub mod rsa;
+pub mod x509;
 
 pub trait SessionLike {
+    fn create_object(&self, template: &[Attribute]) -> Result<ObjectHandle>;
     fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>>;
     fn get_attributes(
         &self,
@@ -22,6 +24,9 @@ pub trait SessionLike {
 }
 
 impl SessionLike for Session {
+    fn create_object(&self, template: &[Attribute]) -> Result<ObjectHandle> {
+        Session::create_object(self, template)
+    }
     fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
         Session::find_objects(self, template)
     }
@@ -38,6 +43,9 @@ impl SessionLike for Session {
 }
 
 impl<'s> SessionLike for &'s Session {
+    fn create_object(&self, template: &[Attribute]) -> Result<ObjectHandle> {
+        Session::create_object(self, template)
+    }
     fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
         Session::find_objects(self, template)
     }
