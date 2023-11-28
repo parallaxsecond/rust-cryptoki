@@ -489,7 +489,7 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
             rw_session_count: Some(1),
             max_pin_len: 16,
             min_pin_len: 4,
-            total_public_memory: Some(32 << 30), // 32GiB
+            total_public_memory: Some(1073741824), // 1GiB
             free_public_memory: Some(1234567890),
             total_private_memory: None, // unavailable
             free_private_memory: None,  // unavailable
@@ -521,7 +521,7 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
     max_pin_len: 16,
     min_pin_len: 4,
     total_public_memory: Some(
-        34359738368,
+        1073741824,
     ),
     free_public_memory: Some(
         1234567890,
