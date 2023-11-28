@@ -18,7 +18,7 @@ p224 = { version = "0.13.2", features = ["pkcs8"] }
 p256 = { version = "0.13.2", features = ["pkcs8"] }
 p384 = { version = "0.13.0", features = ["pkcs8"] }
 k256 = { version = "0.13.2", features = ["pkcs8"] }
-rsa = "0.9"
+rsa = "0.9.6"
 signature = { version = "2.2.0", features = ["digest"] }
 sha1 = { version = "0.10", features = ["oid"] }
 sha2 = { version = "0.10", features = ["oid"] }

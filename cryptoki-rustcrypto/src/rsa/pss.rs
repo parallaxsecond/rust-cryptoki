@@ -6,7 +6,7 @@ use der::{asn1::ObjectIdentifier, oid::AssociatedOid, Any, AnyRef};
 use rsa::{
     pkcs1::{self, RsaPssParams},
     pkcs8::{self},
-    pss::{Signature, VerifyingKey},
+    pss::{get_default_pss_signature_algo_id, Signature, VerifyingKey},
 };
 use signature::digest::Digest;
 use spki::{
@@ -22,7 +22,6 @@ pub struct Signer<D: DigestSigning, S: SessionLike> {
     session: S,
     private_key: ObjectHandle,
     verifying_key: VerifyingKey<D>,
-    salt_len: usize,
 }
 
 impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
@@ -64,13 +63,11 @@ impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
         let public_key = read_key(&session, template)?;
 
         let verifying_key = VerifyingKey::new(public_key);
-        let salt_len = <D as Digest>::output_size();
 
         Ok(Self {
             session,
             private_key,
             verifying_key,
-            salt_len,
         })
     }
 
@@ -109,20 +106,6 @@ impl<D: DigestSigning, S: SessionLike> signature::Signer<Signature> for Signer<D
 
 impl<D: DigestSigning, S: SessionLike> DynSignatureAlgorithmIdentifier for Signer<D, S> {
     fn signature_algorithm_identifier(&self) -> pkcs8::spki::Result<AlgorithmIdentifierOwned> {
-        get_pss_signature_algo_id::<D>(self.salt_len as u8)
+        get_default_pss_signature_algo_id::<D>()
     }
-}
-
-fn get_pss_signature_algo_id<D>(salt_len: u8) -> pkcs8::spki::Result<AlgorithmIdentifierOwned>
-where
-    D: Digest + AssociatedOid,
-{
-    const ID_RSASSA_PSS: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.10");
-
-    let pss_params = RsaPssParams::new::<D>(salt_len);
-
-    Ok(AlgorithmIdentifierOwned {
-        oid: ID_RSASSA_PSS,
-        parameters: Some(Any::encode_from(&pss_params)?),
-    })
 }
