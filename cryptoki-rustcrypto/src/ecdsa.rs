@@ -183,8 +183,6 @@ where
     <<C as ecdsa::elliptic_curve::Curve>::FieldBytesSize as Add>::Output: ArrayLength<u8>,
 {
     fn try_sign(&self, msg: &[u8]) -> Result<Signature<C>, signature::Error> {
-        println!("try sign");
-
         let msg = C::Digest::digest(msg);
 
         let bytes = self

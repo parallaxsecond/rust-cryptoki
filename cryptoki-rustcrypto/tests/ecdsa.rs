@@ -51,10 +51,6 @@ fn sign_verify() -> TestResult {
     let priv_key_template = vec![
         Attribute::Token(true),
         Attribute::Private(true),
-        //Attribute::KeyType(KeyType::EC),
-        //Attribute::EcParams(secp256r1_oid),
-        //Attribute::Sensitive(true),
-        //Attribute::Extractable(false),
         Attribute::Sign(true),
         Attribute::Label(label.to_vec()),
     ];
