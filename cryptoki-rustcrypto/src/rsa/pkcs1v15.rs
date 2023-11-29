@@ -2,12 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use cryptoki::object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle};
-use der::AnyRef;
-use rsa::{
-    pkcs1,
-    pkcs1v15::{Signature, VerifyingKey},
-};
-use spki::{AlgorithmIdentifierRef, AssociatedAlgorithmIdentifier, SignatureAlgorithmIdentifier};
+use rsa::pkcs1v15::{RsaSignatureAssociatedOid, Signature, VerifyingKey};
+use spki::{AlgorithmIdentifier, AssociatedAlgorithmIdentifier, SignatureAlgorithmIdentifier};
 use std::convert::TryFrom;
 
 use super::{read_key, DigestSigning, Error};
@@ -71,9 +67,14 @@ impl<D: DigestSigning, S: SessionLike> Signer<D, S> {
     }
 }
 
-impl<D: DigestSigning, S: SessionLike> AssociatedAlgorithmIdentifier for Signer<D, S> {
-    type Params = AnyRef<'static>;
-    const ALGORITHM_IDENTIFIER: AlgorithmIdentifierRef<'static> = pkcs1::ALGORITHM_ID;
+impl<D, S> AssociatedAlgorithmIdentifier for Signer<D, S>
+where
+    D: DigestSigning,
+    S: SessionLike,
+{
+    type Params = <VerifyingKey<D> as AssociatedAlgorithmIdentifier>::Params;
+    const ALGORITHM_IDENTIFIER: AlgorithmIdentifier<Self::Params> =
+        <VerifyingKey<D> as AssociatedAlgorithmIdentifier>::ALGORITHM_IDENTIFIER;
 }
 
 impl<D: DigestSigning, S: SessionLike> signature::Keypair for Signer<D, S> {
@@ -99,12 +100,13 @@ impl<D: DigestSigning, S: SessionLike> signature::Signer<Signature> for Signer<D
     }
 }
 
-impl<D: DigestSigning, S: SessionLike> SignatureAlgorithmIdentifier for Signer<D, S> {
-    type Params = AnyRef<'static>;
+impl<D, S> SignatureAlgorithmIdentifier for Signer<D, S>
+where
+    S: SessionLike,
+    D: DigestSigning + RsaSignatureAssociatedOid,
+{
+    type Params = <VerifyingKey<D> as SignatureAlgorithmIdentifier>::Params;
 
-    const SIGNATURE_ALGORITHM_IDENTIFIER: AlgorithmIdentifierRef<'static> =
-        AlgorithmIdentifierRef {
-            oid: D::OID,
-            parameters: Some(AnyRef::NULL),
-        };
+    const SIGNATURE_ALGORITHM_IDENTIFIER: AlgorithmIdentifier<Self::Params> =
+        <VerifyingKey<D> as SignatureAlgorithmIdentifier>::SIGNATURE_ALGORITHM_IDENTIFIER;
 }

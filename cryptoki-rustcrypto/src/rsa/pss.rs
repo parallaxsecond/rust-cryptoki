@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use cryptoki::object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle};
-use der::{asn1::ObjectIdentifier, oid::AssociatedOid, Any, AnyRef};
+use der::AnyRef;
 use rsa::{
-    pkcs1::{self, RsaPssParams},
+    pkcs1,
     pkcs8::{self},
     pss::{get_default_pss_signature_algo_id, Signature, VerifyingKey},
 };
-use signature::digest::Digest;
 use spki::{
     AlgorithmIdentifierOwned, AlgorithmIdentifierRef, AssociatedAlgorithmIdentifier,
     DynSignatureAlgorithmIdentifier,
