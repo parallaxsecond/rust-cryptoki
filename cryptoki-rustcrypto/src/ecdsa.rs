@@ -19,7 +19,7 @@ use ecdsa::{
     hazmat::DigestPrimitive,
     PrimeCurve, Signature, VerifyingKey,
 };
-use signature::digest::Digest;
+use signature::{digest::Digest, DigestSigner};
 use spki::{
     AlgorithmIdentifier, AlgorithmIdentifierRef, AssociatedAlgorithmIdentifier,
     SignatureAlgorithmIdentifier,
@@ -104,6 +104,7 @@ impl_sign_algorithm!(p256::NistP256);
 impl_sign_algorithm!(p384::NistP384);
 impl_sign_algorithm!(k256::Secp256k1);
 
+#[derive(signature::Signer)]
 pub struct Signer<C: SignAlgorithm, S: SessionLike> {
     session: S,
     private_key: ObjectHandle,
@@ -178,12 +179,12 @@ impl<C: SignAlgorithm, S: SessionLike> signature::Keypair for Signer<C, S> {
     }
 }
 
-impl<C: SignAlgorithm, S: SessionLike> signature::Signer<Signature<C>> for Signer<C, S>
+impl<C: SignAlgorithm, S: SessionLike> DigestSigner<C::Digest, Signature<C>> for Signer<C, S>
 where
     <<C as ecdsa::elliptic_curve::Curve>::FieldBytesSize as Add>::Output: ArrayLength<u8>,
 {
-    fn try_sign(&self, msg: &[u8]) -> Result<Signature<C>, signature::Error> {
-        let msg = C::Digest::digest(msg);
+    fn try_sign_digest(&self, digest: C::Digest) -> Result<Signature<C>, signature::Error> {
+        let msg = digest.finalize();
 
         let bytes = self
             .session
@@ -208,4 +209,19 @@ where
 
     const SIGNATURE_ALGORITHM_IDENTIFIER: AlgorithmIdentifierRef<'static> =
         Signature::<C>::ALGORITHM_IDENTIFIER;
+}
+
+impl<C: SignAlgorithm, S: SessionLike> DigestSigner<C::Digest, ecdsa::der::Signature<C>>
+    for Signer<C, S>
+where
+    ecdsa::der::MaxSize<C>: ArrayLength<u8>,
+    <FieldBytesSize<C> as Add>::Output: Add<ecdsa::der::MaxOverhead> + ArrayLength<u8>,
+    Self: DigestSigner<C::Digest, Signature<C>>,
+{
+    fn try_sign_digest(
+        &self,
+        digest: C::Digest,
+    ) -> Result<ecdsa::der::Signature<C>, signature::Error> {
+        DigestSigner::<C::Digest, Signature<C>>::try_sign_digest(self, digest).map(Into::into)
+    }
 }

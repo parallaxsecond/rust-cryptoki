@@ -65,7 +65,7 @@ fn sign_verify() -> TestResult {
     let signer =
         ecdsa::Signer::<p256::NistP256, _>::new(&session, label).expect("Lookup keys from HSM");
 
-    let signature = signer.sign(&data);
+    let signature: p256::ecdsa::Signature = signer.sign(&data);
 
     let verifying_key = signer.verifying_key();
     verifying_key.verify(&data, &signature)?;
