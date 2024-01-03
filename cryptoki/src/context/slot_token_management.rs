@@ -87,7 +87,7 @@ impl Pkcs11 {
         let label = label_from_str(label);
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
-                slot.try_into()?,
+                slot.into(),
                 pin.expose_secret().as_ptr() as *mut u8,
                 pin.expose_secret().len().try_into()?,
                 label.as_ptr() as *mut u8,
@@ -101,7 +101,7 @@ impl Pkcs11 {
         unsafe {
             let mut slot_info = CK_SLOT_INFO::default();
             Rv::from(get_pkcs11!(self, C_GetSlotInfo)(
-                slot.try_into()?,
+                slot.into(),
                 &mut slot_info,
             ))
             .into_result()?;
@@ -114,7 +114,7 @@ impl Pkcs11 {
         unsafe {
             let mut token_info = CK_TOKEN_INFO::default();
             Rv::from(get_pkcs11!(self, C_GetTokenInfo)(
-                slot.try_into()?,
+                slot.into(),
                 &mut token_info,
             ))
             .into_result()?;
@@ -128,7 +128,7 @@ impl Pkcs11 {
 
         unsafe {
             Rv::from(get_pkcs11!(self, C_GetMechanismList)(
-                slot.try_into()?,
+                slot.into(),
                 std::ptr::null_mut(),
                 &mut mechanism_count,
             ))
@@ -139,7 +139,7 @@ impl Pkcs11 {
 
         unsafe {
             Rv::from(get_pkcs11!(self, C_GetMechanismList)(
-                slot.try_into()?,
+                slot.into(),
                 mechanisms.as_mut_ptr(),
                 &mut mechanism_count,
             ))
@@ -160,7 +160,7 @@ impl Pkcs11 {
         unsafe {
             let mut mechanism_info = CK_MECHANISM_INFO::default();
             Rv::from(get_pkcs11!(self, C_GetMechanismInfo)(
-                slot.try_into()?,
+                slot.into(),
                 type_.into(),
                 &mut mechanism_info,
             ))
