@@ -33,7 +33,7 @@ impl Session {
             Rv::from(get_pkcs11!(self.client(), C_GenerateRandom)(
                 self.handle(),
                 result.as_mut_ptr(),
-                random_len.try_into()?,
+                random_len.into(),
             ))
             .into_result()?;
         }
