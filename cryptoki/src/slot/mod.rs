@@ -64,7 +64,7 @@ impl TryFrom<u32> for Slot {
 
     fn try_from(slot_id: u32) -> Result<Self> {
         Ok(Self {
-            slot_id: slot_id.try_into()?,
+            slot_id: slot_id.into(),
         })
     }
 }

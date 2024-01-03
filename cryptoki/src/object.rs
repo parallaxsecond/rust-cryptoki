@@ -818,10 +818,10 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             }
             // CK_ULONG
             AttributeType::ModulusBits => Ok(Attribute::ModulusBits(
-                CK_ULONG::from_ne_bytes(val.try_into()?).try_into()?,
+                CK_ULONG::from_ne_bytes(val.try_into()?).into(),
             )),
             AttributeType::ValueLen => Ok(Attribute::ValueLen(
-                CK_ULONG::from_ne_bytes(val.try_into()?).try_into()?,
+                CK_ULONG::from_ne_bytes(val.try_into()?).into(),
             )),
             // Vec<u8>
             AttributeType::AcIssuer => Ok(Attribute::AcIssuer(val.to_vec())),
