@@ -8,7 +8,6 @@ use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
 use crate::session::Session;
 use crate::slot::Slot;
-use std::convert::TryInto;
 
 impl Pkcs11 {
     #[inline(always)]
@@ -22,7 +21,7 @@ impl Pkcs11 {
         };
         unsafe {
             Rv::from(get_pkcs11!(self, C_OpenSession)(
-                slot_id.try_into()?,
+                slot_id.into(),
                 flags,
                 // TODO: abstract those types or create new functions for callbacks
                 std::ptr::null_mut(),
