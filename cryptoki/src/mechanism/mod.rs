@@ -71,7 +71,7 @@ impl MechanismType {
         val: CKM_AES_CBC_ENCRYPT_DATA,
     };
 
-    /// AES-CMAC mechanism
+    /// AES-CMAC mechanism (See RFC 4493)
     pub const AES_CMAC: MechanismType = MechanismType { val: CKM_AES_CMAC };
 
     // RSA
@@ -718,7 +718,7 @@ pub enum Mechanism<'a> {
     /// For derivation, the message length must be a multiple of the block
     /// size. See <https://www.cryptsoft.com/pkcs11doc/v220/>.
     AesCbcEncryptData(ekdf::AesCbcDeriveParams<'a>),
-    /// AES CMAC
+    /// AES CMAC (RFC 4493)
     AesCMac,
 
     // RSA
