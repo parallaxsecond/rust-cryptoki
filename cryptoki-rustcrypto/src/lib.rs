@@ -8,6 +8,8 @@ use cryptoki::{
     session::Session,
 };
 
+pub use cryptoki;
+
 pub mod ecdsa;
 pub mod rng;
 pub mod rsa;
