@@ -68,3 +68,11 @@ impl<'s> SessionLike for &'s Session {
         Session::generate_random_slice(self, random_data)
     }
 }
+
+pub trait CryptokiImport {
+    fn put_key<S: SessionLike>(
+        &self,
+        session: &S,
+        template: impl Into<Vec<Attribute>>,
+    ) -> Result<ObjectHandle>;
+}

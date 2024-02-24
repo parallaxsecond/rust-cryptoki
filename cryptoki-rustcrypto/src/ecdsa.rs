@@ -6,18 +6,21 @@ use cryptoki::{
     object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle},
 };
 use der::{
-    asn1::{ObjectIdentifier, OctetStringRef},
+    asn1::{ObjectIdentifier, OctetString, OctetStringRef},
     oid::AssociatedOid,
     AnyRef, Decode, Encode,
 };
 use ecdsa::{
     elliptic_curve::{
         generic_array::ArrayLength,
+        ops::Invert,
+        point::PointCompression,
         sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
-        AffinePoint, CurveArithmetic, FieldBytesSize, PublicKey,
+        subtle::CtOption,
+        AffinePoint, CurveArithmetic, FieldBytesSize, PublicKey, Scalar,
     },
-    hazmat::DigestPrimitive,
-    PrimeCurve, Signature, VerifyingKey,
+    hazmat::{DigestPrimitive, SignPrimitive},
+    PrimeCurve, Signature, SignatureSize, SigningKey, VerifyingKey,
 };
 use signature::{digest::Digest, DigestSigner};
 use spki::{
@@ -27,7 +30,7 @@ use spki::{
 use std::{convert::TryFrom, ops::Add};
 use thiserror::Error;
 
-use crate::SessionLike;
+use crate::{CryptokiImport, SessionLike};
 
 pub fn read_key<S: SessionLike, C: SignAlgorithm>(
     session: &S,
@@ -67,6 +70,56 @@ where
         Ok(PublicKey::<C>::from_sec1_bytes(ec_point.as_bytes())?)
     } else {
         Err(Error::MissingKey)
+    }
+}
+
+impl<C> CryptokiImport for SigningKey<C>
+where
+    C: PrimeCurve + CurveArithmetic,
+    Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
+    SignatureSize<C>: ArrayLength<u8>,
+
+    C: AssociatedOid,
+{
+    fn put_key<S: SessionLike>(
+        &self,
+        session: &S,
+        template: impl Into<Vec<Attribute>>,
+    ) -> cryptoki::error::Result<ObjectHandle> {
+        let mut template = template.into();
+        template.push(Attribute::Class(ObjectClass::PRIVATE_KEY));
+        template.push(Attribute::KeyType(KeyType::EC));
+        template.push(Attribute::EcParams(C::OID.to_der().unwrap()));
+        template.push(Attribute::Value(self.to_bytes().as_slice().to_vec()));
+
+        let handle = session.create_object(&template)?;
+
+        Ok(handle)
+    }
+}
+
+impl<C> CryptokiImport for VerifyingKey<C>
+where
+    C: PrimeCurve + CurveArithmetic + PointCompression,
+    AffinePoint<C>: FromEncodedPoint<C> + ToEncodedPoint<C>,
+    FieldBytesSize<C>: ModulusSize,
+    C: AssociatedOid,
+{
+    fn put_key<S: SessionLike>(
+        &self,
+        session: &S,
+        template: impl Into<Vec<Attribute>>,
+    ) -> cryptoki::error::Result<ObjectHandle> {
+        let mut template = template.into();
+        template.push(Attribute::Class(ObjectClass::PUBLIC_KEY));
+        template.push(Attribute::KeyType(KeyType::EC));
+        template.push(Attribute::EcParams(C::OID.to_der().unwrap()));
+        let ec_point = OctetString::new(self.to_sec1_bytes()).unwrap();
+        template.push(Attribute::EcPoint(ec_point.to_der().unwrap()));
+
+        let handle = session.create_object(&template)?;
+
+        Ok(handle)
     }
 }
 
@@ -119,8 +172,6 @@ where
     pub fn new(session: S, label: &[u8]) -> Result<Self, Error> {
         // First we'll lookup a private key with that label.
         let template = vec![
-            Attribute::Token(true),
-            Attribute::Private(true),
             Attribute::Label(label.to_vec()),
             Attribute::Class(ObjectClass::PRIVATE_KEY),
             Attribute::KeyType(KeyType::EC),
