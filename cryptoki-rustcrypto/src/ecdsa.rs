@@ -17,10 +17,10 @@ use ecdsa::{
         point::PointCompression,
         sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
         subtle::CtOption,
-        AffinePoint, CurveArithmetic, FieldBytesSize, PublicKey, Scalar,
+        AffinePoint, CurveArithmetic, FieldBytesSize, PublicKey, Scalar, SecretKey,
     },
     hazmat::{DigestPrimitive, SignPrimitive},
-    PrimeCurve, Signature, SignatureSize, SigningKey, VerifyingKey,
+    PrimeCurve, Signature, SignatureSize, VerifyingKey,
 };
 use signature::{digest::Digest, DigestSigner};
 use spki::{
@@ -73,7 +73,7 @@ where
     }
 }
 
-impl<C> CryptokiImport for SigningKey<C>
+impl<C> CryptokiImport for SecretKey<C>
 where
     C: PrimeCurve + CurveArithmetic,
     Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
@@ -98,7 +98,7 @@ where
     }
 }
 
-impl<C> CryptokiImport for VerifyingKey<C>
+impl<C> CryptokiImport for PublicKey<C>
 where
     C: PrimeCurve + CurveArithmetic + PointCompression,
     AffinePoint<C>: FromEncodedPoint<C> + ToEncodedPoint<C>,

@@ -6,15 +6,15 @@ use cryptoki::{
         rsa::{PkcsMgfType, PkcsPssParams},
         Mechanism, MechanismType,
     },
-    object::{Attribute, AttributeType, KeyType, ObjectClass},
+    object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle},
 };
 use der::oid::AssociatedOid;
-use rsa::{BigUint, RsaPublicKey};
+use rsa::{traits::PublicKeyParts, BigUint, RsaPublicKey};
 use signature::digest::Digest;
 use std::convert::TryInto;
 use thiserror::Error;
 
-use crate::SessionLike;
+use crate::{CryptokiImport, SessionLike};
 
 pub mod pkcs1v15;
 pub mod pss;
@@ -126,3 +126,21 @@ impl_digest_signing!(
     SHA512,
     MGF1_SHA512
 );
+
+impl CryptokiImport for RsaPublicKey {
+    fn put_key<S: SessionLike>(
+        &self,
+        session: &S,
+        template: impl Into<Vec<Attribute>>,
+    ) -> cryptoki::error::Result<ObjectHandle> {
+        let mut template = template.into();
+        template.push(Attribute::Class(ObjectClass::PUBLIC_KEY));
+        template.push(Attribute::KeyType(KeyType::RSA));
+        template.push(Attribute::Modulus(self.n().to_bytes_be()));
+        template.push(Attribute::PublicExponent(self.e().to_bytes_be()));
+
+        let handle = session.create_object(&template)?;
+
+        Ok(handle)
+    }
+}
