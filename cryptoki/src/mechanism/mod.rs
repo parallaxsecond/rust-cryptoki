@@ -16,6 +16,7 @@ use std::fmt::Formatter;
 use std::ops::Deref;
 use std::ptr::null_mut;
 
+use crate::mechanism::rsa::PkcsOaepParams;
 pub use mechanism_info::MechanismInfo;
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -701,7 +702,7 @@ pub enum Mechanism<'a> {
     RsaPkcsPss(rsa::PkcsPssParams),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
-    RsaPkcsOaep(rsa::PkcsOaepParams<'a>),
+    RsaPkcsOaep(PkcsOaepParams<'a>),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
     /// RSA, as assumed in X.509.
     RsaX509,
@@ -961,7 +962,7 @@ fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
 
 #[cfg(feature = "psa-crypto-conversions")]
 #[allow(deprecated)]
-impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
+impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism<'_> {
     type Error = Error;
 
     fn try_from(alg: psa_crypto::types::algorithm::Algorithm) -> Result<Self, Self::Error> {
@@ -989,13 +990,11 @@ impl TryFrom<psa_crypto::types::algorithm::Algorithm> for Mechanism {
                 Ok(Mechanism::Ecdsa)
             }
             Algorithm::AsymmetricEncryption(AsymmetricEncryption::RsaOaep { hash_alg }) => {
-                Ok(Mechanism::RsaPkcsOaep(rsa::PkcsOaepParams {
-                    hash_alg: Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
-                    mgf: rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
-                    source: rsa::PkcsOaepSourceType::DATA_SPECIFIED,
-                    source_data: std::ptr::null(),
-                    source_data_len: 0.into(),
-                }))
+                Ok(Mechanism::RsaPkcsOaep(PkcsOaepParams::new(
+                    Mechanism::try_from(Algorithm::from(hash_alg))?.mechanism_type(),
+                    rsa::PkcsMgfType::from_psa_crypto_hash(hash_alg)?,
+                    rsa::PkcsOaepSource::empty(),
+                )))
             }
             alg => {
                 error!("{:?} is not a supported algorithm", alg);
