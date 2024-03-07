@@ -9,6 +9,8 @@ set -euf -o pipefail
 
 RUST_BACKTRACE=1 cargo build
 
+RUST_BACKTRACE=1 cargo build --all-features
+
 RUST_BACKTRACE=1 cargo build --target arm-unknown-linux-gnueabi
 RUST_BACKTRACE=1 cargo build --target armv7-unknown-linux-gnueabi
 RUST_BACKTRACE=1 cargo build --target armv7-unknown-linux-gnueabihf
