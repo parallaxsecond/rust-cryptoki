@@ -1,5 +1,15 @@
 # Changelog
 
+## [cryptoki-0.6.2](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.2) (2024-03-08)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.1...cryptoki-0.6.2)
+
+**Merged pull requests:**
+
+- Resolve nightly CI failures [\#205](https://github.com/parallaxsecond/rust-cryptoki/pull/205) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+- Fix errors linked to psa-crypto-conversions feature [\#202](https://github.com/parallaxsecond/rust-cryptoki/pull/202) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
+
 ## [cryptoki-0.6.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.1) (2023-10-16)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.0...cryptoki-0.6.1)
