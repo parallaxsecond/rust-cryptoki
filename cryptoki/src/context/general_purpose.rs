@@ -17,7 +17,7 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
     let init_args_ptr = &mut init_args;
     unsafe {
         Rv::from(get_pkcs11!(ctx, C_Initialize)(
-            init_args_ptr as *mut CK_C_INITIALIZE_ARGS as *mut ::std::ffi::c_void,
+            init_args_ptr as *mut CK_C_INITIALIZE_ARGS as *mut std::ffi::c_void,
         ))
         .into_result(Function::Initialize)
     }
