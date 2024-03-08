@@ -63,6 +63,8 @@ impl MechanismType {
     pub const AES_KEY_WRAP_PAD: MechanismType = MechanismType {
         val: CKM_AES_KEY_WRAP_PAD,
     };
+    /// AES-CTR mechanism
+    pub const AES_CTR: MechanismType = MechanismType { val: CKM_AES_CTR };
     /// AES-GCM mechanism
     pub const AES_GCM: MechanismType = MechanismType { val: CKM_AES_GCM };
 
@@ -73,6 +75,11 @@ impl MechanismType {
 
     /// AES-CMAC mechanism (See RFC 4493)
     pub const AES_CMAC: MechanismType = MechanismType { val: CKM_AES_CMAC };
+
+    /// AES-CFB128 mechanism
+    pub const AES_CFB128: MechanismType = MechanismType {
+        val: CKM_AES_CFB128,
+    };
 
     // RSA
     /// PKCS #1 RSA key pair generation mechanism
@@ -87,6 +94,7 @@ impl MechanismType {
     pub const RSA_PKCS_PSS: MechanismType = MechanismType {
         val: CKM_RSA_PKCS_PSS,
     };
+
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
     pub const RSA_PKCS_OAEP: MechanismType = MechanismType {
@@ -251,9 +259,21 @@ impl MechanismType {
     pub const SHA512_RSA_PKCS_PSS: MechanismType = MechanismType {
         val: CKM_SHA512_RSA_PKCS_PSS,
     };
+    /// SHA1-HMAC mechanism
+    pub const SHA1_HMAC: MechanismType = MechanismType {
+        val: CKM_SHA_1_HMAC,
+    };
     /// SHA256-HMAC mechanism
     pub const SHA256_HMAC: MechanismType = MechanismType {
         val: CKM_SHA256_HMAC,
+    };
+    /// SHA384-HMAC mechanism
+    pub const SHA384_HMAC: MechanismType = MechanismType {
+        val: CKM_SHA384_HMAC,
+    };
+    /// SHA512-HMAC mechanism
+    pub const SHA512_HMAC: MechanismType = MechanismType {
+        val: CKM_SHA512_HMAC,
     };
     /// GENERIC-SECRET-KEY-GEN mechanism
     pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType {
@@ -647,15 +667,25 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
     fn try_from(mechanism_type: CK_MECHANISM_TYPE) -> Result<Self, Self::Error> {
         match mechanism_type {
             CKM_AES_KEY_GEN => Ok(MechanismType::AES_KEY_GEN),
+            CKM_AES_CBC => Ok(MechanismType::AES_CBC),
+            CKM_AES_CBC_PAD => Ok(MechanismType::AES_CBC_PAD),
+            CKM_AES_ECB => Ok(MechanismType::AES_ECB),
+            CKM_AES_KEY_WRAP => Ok(MechanismType::AES_KEY_WRAP),
+            CKM_AES_KEY_WRAP_PAD => Ok(MechanismType::AES_KEY_WRAP_PAD),
+            CKM_AES_CTR => Ok(MechanismType::AES_CTR),
+            CKM_AES_GCM => Ok(MechanismType::AES_GCM),
             CKM_AES_CBC_ENCRYPT_DATA => Ok(MechanismType::AES_CBC_ENCRYPT_DATA),
+            CKM_AES_CMAC => Ok(MechanismType::AES_CMAC),
+            CKM_AES_CFB128 => Ok(MechanismType::AES_CFB128),
             CKM_RSA_PKCS_KEY_PAIR_GEN => Ok(MechanismType::RSA_PKCS_KEY_PAIR_GEN),
             CKM_RSA_PKCS => Ok(MechanismType::RSA_PKCS),
             CKM_RSA_PKCS_PSS => Ok(MechanismType::RSA_PKCS_PSS),
+            CKM_SHA1_RSA_PKCS_PSS => Ok(MechanismType::SHA1_RSA_PKCS_PSS),
+            CKM_SHA256_RSA_PKCS_PSS => Ok(MechanismType::SHA256_RSA_PKCS_PSS),
+            CKM_SHA384_RSA_PKCS_PSS => Ok(MechanismType::SHA384_RSA_PKCS_PSS),
+            CKM_SHA512_RSA_PKCS_PSS => Ok(MechanismType::SHA512_RSA_PKCS_PSS),
             CKM_RSA_PKCS_OAEP => Ok(MechanismType::RSA_PKCS_OAEP),
-            CKM_SHA_1 => Ok(MechanismType::SHA1),
-            CKM_SHA256 => Ok(MechanismType::SHA256),
-            CKM_SHA384 => Ok(MechanismType::SHA384),
-            CKM_SHA512 => Ok(MechanismType::SHA512),
+            CKM_RSA_X_509 => Ok(MechanismType::RSA_X_509),
             CKM_DES3_KEY_GEN => Ok(MechanismType::DES3_KEY_GEN),
             CKM_DES3_ECB => Ok(MechanismType::DES3_ECB),
             CKM_EC_KEY_PAIR_GEN => Ok(MechanismType::ECC_KEY_PAIR_GEN),
@@ -664,10 +694,22 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_EDDSA => Ok(MechanismType::EDDSA),
             CKM_ECDH1_DERIVE => Ok(MechanismType::ECDH1_DERIVE),
             CKM_ECDSA => Ok(MechanismType::ECDSA),
+            CKM_ECDSA_SHA1 => Ok(MechanismType::ECDSA_SHA1),
+            CKM_ECDSA_SHA256 => Ok(MechanismType::ECDSA_SHA256),
+            CKM_ECDSA_SHA384 => Ok(MechanismType::ECDSA_SHA384),
+            CKM_ECDSA_SHA512 => Ok(MechanismType::ECDSA_SHA512),
+            CKM_SHA_1 => Ok(MechanismType::SHA1),
+            CKM_SHA256 => Ok(MechanismType::SHA256),
+            CKM_SHA384 => Ok(MechanismType::SHA384),
+            CKM_SHA512 => Ok(MechanismType::SHA512),
+            CKM_SHA1_RSA_PKCS => Ok(MechanismType::SHA1_RSA_PKCS),
             CKM_SHA256_RSA_PKCS => Ok(MechanismType::SHA256_RSA_PKCS),
             CKM_SHA384_RSA_PKCS => Ok(MechanismType::SHA384_RSA_PKCS),
             CKM_SHA512_RSA_PKCS => Ok(MechanismType::SHA512_RSA_PKCS),
+            CKM_SHA_1_HMAC => Ok(MechanismType::SHA1_HMAC),
             CKM_SHA256_HMAC => Ok(MechanismType::SHA256_HMAC),
+            CKM_SHA384_HMAC => Ok(MechanismType::SHA384_HMAC),
+            CKM_SHA512_HMAC => Ok(MechanismType::SHA512_HMAC),
             CKM_GENERIC_SECRET_KEY_GEN => Ok(MechanismType::GENERIC_SECRET_KEY_GEN),
             other => {
                 error!("Mechanism type {} is not supported.", other);
