@@ -1,0 +1,33 @@
+[package]
+name = "cryptoki-rustcrypto"
+version = "0.1.0"
+edition = "2018"
+authors = ["Contributors to the Parsec project"]
+description = "Compatibility layer from PKCS #11 to the RustCrypto ecosystem"
+readme = "README.md"
+keywords = ["pkcs11", "cryptoki", "hsm"]
+categories = ["cryptography", "hardware-support"]
+license = "Apache-2.0"
+repository = "https://github.com/parallaxsecond/rust-cryptoki"
+
+[dependencies]
+cryptoki = { path = "../cryptoki", version = "0.6.1" }
+der = "0.7.8"
+ecdsa = "0.16.9"
+p224 = { version = "0.13.2", features = ["pkcs8"] }
+p256 = { version = "0.13.2", features = ["pkcs8"] }
+p384 = { version = "0.13.0", features = ["pkcs8"] }
+k256 = { version = "0.13.2", features = ["pkcs8"] }
+rsa = "0.9.6"
+signature = { version = "2.2.0", features = ["derive", "digest"] }
+sha1 = { version = "0.10", features = ["oid"] }
+sha2 = { version = "0.10", features = ["oid"] }
+spki = "0.7.3"
+x509-cert = "0.2.4"
+thiserror = "1.0"
+
+[dev-dependencies]
+rand = "0.8.5"
+serial_test = "0.5.1"
+testresult = "0.2.0"
+x509-cert = { version = "0.2.4", features = ["builder"] }
