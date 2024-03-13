@@ -1046,6 +1046,7 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
         PkcsMgfType::MGF1_SHA1,
         PkcsOaepSource::empty(),
     );
+    assert_eq!(MechanismType::SHA1, oaep.hash_alg());
     let encrypt_mechanism: Mechanism = Mechanism::RsaPkcsOaep(oaep);
     let encrypted_data = session.encrypt(&encrypt_mechanism, pubkey, b"Hello")?;
 
