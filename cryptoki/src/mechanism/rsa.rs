@@ -173,6 +173,11 @@ impl<'a> PkcsOaepParams<'a> {
             _marker: PhantomData,
         }
     }
+
+    /// Get the message digest algorithm for the `PkcsOaepParams`.
+    pub fn hash_alg(&self) -> MechanismType {
+        self.hash_alg
+    }
 }
 
 impl<'a> From<PkcsOaepParams<'a>> for Mechanism<'a> {
