@@ -12,14 +12,14 @@ use der::{
 };
 use ecdsa::{
     elliptic_curve::{
-        generic_array::ArrayLength,
+        array::ArraySize,
         ops::Invert,
         point::PointCompression,
         sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
         subtle::CtOption,
         AffinePoint, CurveArithmetic, FieldBytesSize, PublicKey, Scalar, SecretKey,
     },
-    hazmat::{DigestPrimitive, SignPrimitive},
+    hazmat::DigestPrimitive,
     PrimeCurve, Signature, SignatureSize, VerifyingKey,
 };
 use signature::{digest::Digest, DigestSigner};
@@ -76,8 +76,8 @@ where
 impl<C> CryptokiImport for SecretKey<C>
 where
     C: PrimeCurve + CurveArithmetic,
-    Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
-    SignatureSize<C>: ArrayLength<u8>,
+    Scalar<C>: Invert<Output = CtOption<Scalar<C>>>,
+    SignatureSize<C>: ArraySize,
 
     C: AssociatedOid,
 {
@@ -232,7 +232,7 @@ impl<C: SignAlgorithm, S: SessionLike> signature::Keypair for Signer<C, S> {
 
 impl<C: SignAlgorithm, S: SessionLike> DigestSigner<C::Digest, Signature<C>> for Signer<C, S>
 where
-    <<C as ecdsa::elliptic_curve::Curve>::FieldBytesSize as Add>::Output: ArrayLength<u8>,
+    <<C as ecdsa::elliptic_curve::Curve>::FieldBytesSize as Add>::Output: ArraySize,
 {
     fn try_sign_digest(&self, digest: C::Digest) -> Result<Signature<C>, signature::Error> {
         let msg = digest.finalize();
@@ -265,8 +265,8 @@ where
 impl<C: SignAlgorithm, S: SessionLike> DigestSigner<C::Digest, ecdsa::der::Signature<C>>
     for Signer<C, S>
 where
-    ecdsa::der::MaxSize<C>: ArrayLength<u8>,
-    <FieldBytesSize<C> as Add>::Output: Add<ecdsa::der::MaxOverhead> + ArrayLength<u8>,
+    ecdsa::der::MaxSize<C>: ArraySize,
+    <FieldBytesSize<C> as Add>::Output: Add<ecdsa::der::MaxOverhead> + ArraySize,
     Self: DigestSigner<C::Digest, Signature<C>>,
 {
     fn try_sign_digest(
