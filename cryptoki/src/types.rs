@@ -261,7 +261,7 @@ impl UtcTime {
 
 // UTC time has the format YYYYMMDDhhmmss00 as ASCII digits
 pub(crate) fn convert_utc_time(orig: [u8; 16]) -> Result<UtcTime> {
-    // Note: No validaiton of these values beyond being ASCII digits
+    // Note: No validation of these values beyond being ASCII digits
     // because PKCS#11 doesn't impose any such restrictions.
     Ok(UtcTime {
         year: std::str::from_utf8(&orig[0..4])?.parse()?,
