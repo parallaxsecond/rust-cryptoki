@@ -51,7 +51,7 @@ pub enum Limit {
 #[derive(Debug, Clone)]
 pub struct TokenInfo {
     // The following four strings are limited in size based on
-    // the orignating struct definition. Sizes are in *bytes*
+    // the originating struct definition. Sizes are in *bytes*
     // but UTF-8 data may represent fewer characters.
     // Original buffers were space (0x20) padded.
     label: String,           // len <= 32 bytes
