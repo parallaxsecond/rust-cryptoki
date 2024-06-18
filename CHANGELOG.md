@@ -1,5 +1,41 @@
 # Changelog
 
+## [cryptoki-sys-0.1.8](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.8) (2024-06-18)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.6.2...cryptoki-sys-0.1.8)
+
+**Closed issues:**
+
+- Build of cryptoki v0.6.1 failing on Fedora 39+ [\#198](https://github.com/parallaxsecond/rust-cryptoki/issues/198)
+
+**Merged pull requests:**
+
+- Port 0.6 changes [\#210](https://github.com/parallaxsecond/rust-cryptoki/pull/210) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+- Expose PkcsOaepParams' message digest algorithm [\#207](https://github.com/parallaxsecond/rust-cryptoki/pull/207) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- 20240308 mechanisms [\#203](https://github.com/parallaxsecond/rust-cryptoki/pull/203) ([Firstyear](https://github.com/Firstyear))
+- Add support for `CARGO_TARGET_DIR` in `regenerate_bindings.sh` [\#200](https://github.com/parallaxsecond/rust-cryptoki/pull/200) ([wiktor-k](https://github.com/wiktor-k))
+- Bump bindgen to 0.69.4 [\#199](https://github.com/parallaxsecond/rust-cryptoki/pull/199) ([hug-dev](https://github.com/hug-dev))
+- Use infallible conversion into instead of try\_into [\#197](https://github.com/parallaxsecond/rust-cryptoki/pull/197) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+- Fix test for 32bit arch [\#193](https://github.com/parallaxsecond/rust-cryptoki/pull/193) ([ionut-arm](https://github.com/ionut-arm))
+- nightly: Add the loongaarch64-unkown-linux-gnu target [\#190](https://github.com/parallaxsecond/rust-cryptoki/pull/190) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- ci.yml: Add a job for runnning tests on MSRV [\#188](https://github.com/parallaxsecond/rust-cryptoki/pull/188) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Add references to RFC 4493 in comments about AesCMac. [\#184](https://github.com/parallaxsecond/rust-cryptoki/pull/184) ([xaqq](https://github.com/xaqq))
+- Add SHA256-HMAC mechanism [\#183](https://github.com/parallaxsecond/rust-cryptoki/pull/183) ([jippeholwerda](https://github.com/jippeholwerda))
+- Expose AES-CMAC algorithm [\#181](https://github.com/parallaxsecond/rust-cryptoki/pull/181) ([xaqq](https://github.com/xaqq))
+- Adding 2 new mechanisms: generic key generation and key derivation via encryption [\#178](https://github.com/parallaxsecond/rust-cryptoki/pull/178) ([Nk185](https://github.com/Nk185))
+- Add bindings for loongarch64-linux-gnu [\#166](https://github.com/parallaxsecond/rust-cryptoki/pull/166) ([heiher](https://github.com/heiher))
+- Add function name to errors and logs [\#147](https://github.com/parallaxsecond/rust-cryptoki/pull/147) ([ionut-arm](https://github.com/ionut-arm))
+
+## [cryptoki-0.6.2](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.2) (2024-03-08)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.1...cryptoki-0.6.2)
+
+**Merged pull requests:**
+
+- Resolve nightly CI failures [\#205](https://github.com/parallaxsecond/rust-cryptoki/pull/205) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+- Fix errors linked to psa-crypto-conversions feature [\#202](https://github.com/parallaxsecond/rust-cryptoki/pull/202) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
+
 ## [cryptoki-0.6.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.1) (2023-10-16)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.0...cryptoki-0.6.1)
