@@ -1,5 +1,9 @@
 # Changelog
 
+## [cryptoki-0.7.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.7.0) (2024-06-18)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.8...cryptoki-0.7.0)
+
 ## [cryptoki-sys-0.1.8](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.8) (2024-06-18)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.6.2...cryptoki-sys-0.1.8)
@@ -18,7 +22,7 @@
 - Use infallible conversion into instead of try\_into [\#197](https://github.com/parallaxsecond/rust-cryptoki/pull/197) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
 - Fix test for 32bit arch [\#193](https://github.com/parallaxsecond/rust-cryptoki/pull/193) ([ionut-arm](https://github.com/ionut-arm))
 - nightly: Add the loongaarch64-unkown-linux-gnu target [\#190](https://github.com/parallaxsecond/rust-cryptoki/pull/190) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
-- ci.yml: Add a job for runnning tests on MSRV [\#188](https://github.com/parallaxsecond/rust-cryptoki/pull/188) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- ci.yml: Add a job for running tests on MSRV [\#188](https://github.com/parallaxsecond/rust-cryptoki/pull/188) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Add references to RFC 4493 in comments about AesCMac. [\#184](https://github.com/parallaxsecond/rust-cryptoki/pull/184) ([xaqq](https://github.com/xaqq))
 - Add SHA256-HMAC mechanism [\#183](https://github.com/parallaxsecond/rust-cryptoki/pull/183) ([jippeholwerda](https://github.com/jippeholwerda))
 - Expose AES-CMAC algorithm [\#181](https://github.com/parallaxsecond/rust-cryptoki/pull/181) ([xaqq](https://github.com/xaqq))
