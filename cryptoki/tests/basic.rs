@@ -311,6 +311,63 @@ fn get_token_info() -> TestResult {
 
 #[test]
 #[serial]
+fn session_find_objects() {
+    let (pkcs11, slot) = init_pins();
+    // open a session
+    let session = pkcs11.open_rw_session(slot).unwrap();
+
+    // log in the session
+    session
+        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
+        .unwrap();
+
+    // we generate 11 keys with the same CKA_ID
+    // we will check 3 different use cases, this will cover all cases for Session.find_objects
+    // find 11 keys with the same CKA_ID => should result in two internal iterations over MAX_OBJECT_COUNT
+    // find 10 keys with the same CKA_ID => should result in two internal iterations over MAX_OBJECT_COUNT
+    // find 9 keys with the same CKA_ID  => should result in one internal iteration over MAX_OBJECT_COUNT
+
+    (1..=11).for_each(|i| {
+        let key_template = vec![
+            Attribute::Token(true),
+            Attribute::Encrypt(true),
+            Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
+            Attribute::Id("12345678".as_bytes().to_vec()),          // reusing the same CKA_ID
+        ];
+
+        // generate a secret key
+        let _key = session
+            .generate_key(&Mechanism::Des3KeyGen, &key_template)
+            .unwrap();
+    });
+
+
+    // retrieve the keys by searching for them
+    let key_search_template = vec![
+        Attribute::Token(true),
+        Attribute::Id("12345678".as_bytes().to_vec()),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::DES3),
+    ];
+
+    let mut found_keys = session.find_objects(&key_search_template).unwrap();
+    assert_eq!(found_keys.len(), 11);
+
+    // destroy one key
+    session.destroy_object(found_keys.pop().unwrap()).unwrap();
+
+    let mut found_keys = session.find_objects(&key_search_template).unwrap();
+    assert_eq!(found_keys.len(), 10);
+
+    // destroy another key
+    session.destroy_object(found_keys.pop().unwrap()).unwrap();
+    let found_keys = session.find_objects(&key_search_template).unwrap();
+    assert_eq!(found_keys.len(), 9);
+
+}
+
+#[test]
+#[serial]
 fn wrap_and_unwrap_key() {
     let (pkcs11, slot) = init_pins();
     // open a session
