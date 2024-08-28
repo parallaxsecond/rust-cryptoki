@@ -97,24 +97,19 @@ impl Session {
     }
 
     /// Copy an object
-    /// A optional template can be provided to change some attributes of the new object, when allowed.
+    /// A template can be provided to change some attributes of the new object, when allowed.
     ///
     /// # Arguments
     ///
     /// * `object` - The [ObjectHandle] used to reference the object to copy
-    /// * `template` - an optional reference to a slice of attributes, in the form of `Some(&[Attribute])`, 
-    ///    or set to `None`` if not needed.
+    /// * `template` - a reference to a slice of attributes
     ///
     /// # Returns
     ///
     /// This function will return a new [ObjectHandle] that references the newly created object.
     ///
-    pub fn copy_object(&self, object: ObjectHandle, template: Option<&[Attribute]>) -> Result<ObjectHandle> {
-        let mut template: Vec<CK_ATTRIBUTE> = match template {
-            Some(template) => template.iter().map(|attr| attr.into()).collect(),
-            None => Vec::new(),
-        };
-
+    pub fn copy_object(&self, object: ObjectHandle, template: &[Attribute]) -> Result<ObjectHandle> {
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
         let mut object_handle = 0;
 
         unsafe {

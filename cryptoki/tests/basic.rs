@@ -873,15 +873,15 @@ fn session_copy_object() -> TestResult {
     let object = rw_session.generate_key(&Mechanism::AesKeyGen, &aes128_template)?;
 
     // copy the object without a template
-    let copy = rw_session.copy_object(object, None)?;
+    let copy = rw_session.copy_object(object, &[])?;
     rw_session.destroy_object(copy)?;
 
     // copy the object with a template
-    let copy = rw_session.copy_object(object, Some(&copy_template))?;
+    let copy = rw_session.copy_object(object, &copy_template)?;
     rw_session.destroy_object(copy)?;
 
     // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
-    rw_session.copy_object(object, Some(&insecure_copy_template)).unwrap_err();
+    rw_session.copy_object(object, &insecure_copy_template).unwrap_err();
 
     // delete keys
     rw_session.destroy_object(object)?;
