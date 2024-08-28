@@ -840,6 +840,59 @@ fn ro_rw_session_test() -> TestResult {
 
 #[test]
 #[serial]
+fn session_copy_object() -> TestResult {
+    let aes128_template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Encrypt(true),
+        Attribute::Token(false),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Extractable(false),
+        Attribute::ValueLen(16.into()),
+        Attribute::Label("original".as_bytes().to_vec()),
+    ];
+
+    let copy_template = vec![
+        Attribute::Label("copy".as_bytes().to_vec()),
+    ];
+
+    let insecure_copy_template = vec![
+        Attribute::Extractable(true),
+    ];
+
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let rw_session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    rw_session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // create a key object
+    let object = rw_session.generate_key(&Mechanism::AesKeyGen, &aes128_template)?;
+
+    // copy the object without a template
+    let copy = rw_session.copy_object(object, None)?;
+    rw_session.destroy_object(copy)?;
+
+    // copy the object with a template
+    let copy = rw_session.copy_object(object, Some(&copy_template))?;
+    rw_session.destroy_object(copy)?;
+
+    // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
+    rw_session.copy_object(object, Some(&insecure_copy_template)).unwrap_err();
+
+    // delete keys
+    rw_session.destroy_object(object)?;
+    rw_session.logout()?;
+
+    Ok(())
+}
+
+
+#[test]
+#[serial]
 fn aes_cbc_encrypt() -> TestResult {
     // Encrypt two blocks of zeros with AES-128-CBC, and zero IV
     let key = vec![0; 16];

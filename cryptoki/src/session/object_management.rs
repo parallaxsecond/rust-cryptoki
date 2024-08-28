@@ -96,6 +96,41 @@ impl Session {
         }
     }
 
+    /// Copy an object
+    /// A optional template can be provided to change some attributes of the new object, when allowed.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object to copy
+    /// * `template` - an optional reference to a slice of attributes, in the form of `Some(&[Attribute])`, 
+    ///    or set to `None`` if not needed.
+    ///
+    /// # Returns
+    ///
+    /// This function will return a new [ObjectHandle] that references the newly created object.
+    ///
+    pub fn copy_object(&self, object: ObjectHandle, template: Option<&[Attribute]>) -> Result<ObjectHandle> {
+        let mut template: Vec<CK_ATTRIBUTE> = match template {
+            Some(template) => template.iter().map(|attr| attr.into()).collect(),
+            None => Vec::new(),
+        };
+
+        let mut object_handle = 0;
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_CopyObject)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut object_handle as CK_OBJECT_HANDLE_PTR,
+            ))
+            .into_result(Function::CreateObject)?;
+        }
+
+        Ok(ObjectHandle::new(object_handle))
+    }
+
     /// Get the attribute info of an object: if the attribute is present and its size.
     ///
     /// # Arguments
