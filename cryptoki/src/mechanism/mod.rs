@@ -976,7 +976,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::AesGcm(params) => CK_MECHANISM {
                 mechanism,
                 pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: std::mem::size_of::<CK_GCM_PARAMS>()
+                ulParameterLen: size_of::<CK_GCM_PARAMS>()
                     .try_into()
                     .expect("usize can not fit in CK_ULONG"),
             },
@@ -1039,7 +1039,7 @@ fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
         // mechanisms we support involve mutating the parameter, so
         // this cast is OK.
         pParameter: param as *const T as *mut c_void,
-        ulParameterLen: std::mem::size_of::<T>()
+        ulParameterLen: size_of::<T>()
             .try_into()
             .expect("usize can not fit in CK_ULONG"),
     }
