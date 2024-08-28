@@ -28,10 +28,12 @@ impl Session {
         }
 
         let mut object_handles = [0; MAX_OBJECT_COUNT];
-        let mut object_count = 0;
+        let mut object_count = MAX_OBJECT_COUNT as CK_ULONG; // set to MAX_OBJECT_COUNT to enter loop
         let mut objects = Vec::new();
 
-        loop {
+        // as long as the number of objects returned equals the maximum number
+        // of objects that can be returned, we keep calling C_FindObjects
+        while object_count == MAX_OBJECT_COUNT as CK_ULONG {
             unsafe {
                 Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
                     self.handle(),
@@ -42,19 +44,13 @@ impl Session {
                 .into_result(Function::FindObjects)?;
             }
 
-            // exit loop, no more objects to be returned
+            // exit loop, no more objects to be returned, no need to extend the objects vector
             if object_count == 0 {
                 break;
             }
 
+            // extend the objects vector with the new objects
             objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-
-            // If the returned slice is not full, there are no pending object handles to be returned.
-            // In which case, exit loop.
-            // This avoids, in many situations, an unnecessary API call with 0 object handles returned.
-            if (object_count as usize) < MAX_OBJECT_COUNT {
-                break;
-            }
         }
 
         unsafe {
