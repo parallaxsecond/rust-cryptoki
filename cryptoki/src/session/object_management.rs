@@ -31,26 +31,7 @@ impl Session {
         let mut object_count = 0;
         let mut objects = Vec::new();
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
-                self.handle(),
-                object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-                MAX_OBJECT_COUNT.try_into()?,
-                &mut object_count,
-            ))
-            .into_result(Function::FindObjects)?;
-        }
-
-        while object_count > 0 {
-            objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-
-            // If the returned slice is not full, there are no pending object handles to be returned.
-            // In which case, exit loop.
-            // This avoids, in many situations, an unnecessary API call with 0 object handles returned.
-            if (object_count as usize) < MAX_OBJECT_COUNT {
-                break;
-            }
-
+        loop {
             unsafe {
                 Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
                     self.handle(),
@@ -59,6 +40,20 @@ impl Session {
                     &mut object_count,
                 ))
                 .into_result(Function::FindObjects)?;
+            }
+
+            // exit loop, no more objects to be returned
+            if object_count == 0 {
+                break;
+            }
+
+            objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
+
+            // If the returned slice is not full, there are no pending object handles to be returned.
+            // In which case, exit loop.
+            // This avoids, in many situations, an unnecessary API call with 0 object handles returned.
+            if (object_count as usize) < MAX_OBJECT_COUNT {
+                break;
             }
         }
 
