@@ -853,13 +853,9 @@ fn session_copy_object() -> TestResult {
         Attribute::Label("original".as_bytes().to_vec()),
     ];
 
-    let copy_template = vec![
-        Attribute::Label("copy".as_bytes().to_vec()),
-    ];
+    let copy_template = vec![Attribute::Label("copy".as_bytes().to_vec())];
 
-    let insecure_copy_template = vec![
-        Attribute::Extractable(true),
-    ];
+    let insecure_copy_template = vec![Attribute::Extractable(true)];
 
     let (pkcs11, slot) = init_pins();
 
@@ -881,7 +877,9 @@ fn session_copy_object() -> TestResult {
     rw_session.destroy_object(copy)?;
 
     // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
-    rw_session.copy_object(object, &insecure_copy_template).unwrap_err();
+    rw_session
+        .copy_object(object, &insecure_copy_template)
+        .unwrap_err();
 
     // delete keys
     rw_session.destroy_object(object)?;
@@ -889,7 +887,6 @@ fn session_copy_object() -> TestResult {
 
     Ok(())
 }
-
 
 #[test]
 #[serial]

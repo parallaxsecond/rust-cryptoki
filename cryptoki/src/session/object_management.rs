@@ -108,7 +108,11 @@ impl Session {
     ///
     /// This function will return a new [ObjectHandle] that references the newly created object.
     ///
-    pub fn copy_object(&self, object: ObjectHandle, template: &[Attribute]) -> Result<ObjectHandle> {
+    pub fn copy_object(
+        &self,
+        object: ObjectHandle,
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
         let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
         let mut object_handle = 0;
 
