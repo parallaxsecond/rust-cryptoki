@@ -46,7 +46,7 @@ impl Session {
 
             // If the returned slice is not full, there are no pending object handles to be returned.
             // In which case, exit loop.
-            // This avoids, in many situations, an unecessary API call with 0 object handles returned.
+            // This avoids, in many situations, an unnecessary API call with 0 object handles returned.
             if (object_count as usize) < MAX_OBJECT_COUNT {
                 break;
             }

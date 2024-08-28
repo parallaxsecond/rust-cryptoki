@@ -332,7 +332,7 @@ fn session_find_objects() {
             Attribute::Token(true),
             Attribute::Encrypt(true),
             Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
-            Attribute::Id("12345678".as_bytes().to_vec()),          // reusing the same CKA_ID
+            Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
         // generate a secret key
@@ -340,7 +340,6 @@ fn session_find_objects() {
             .generate_key(&Mechanism::Des3KeyGen, &key_template)
             .unwrap();
     });
-
 
     // retrieve the keys by searching for them
     let key_search_template = vec![
@@ -363,7 +362,6 @@ fn session_find_objects() {
     session.destroy_object(found_keys.pop().unwrap()).unwrap();
     let found_keys = session.find_objects(&key_search_template).unwrap();
     assert_eq!(found_keys.len(), 9);
-
 }
 
 #[test]
