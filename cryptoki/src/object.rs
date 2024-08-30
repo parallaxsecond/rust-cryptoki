@@ -617,16 +617,16 @@ impl Attribute {
             | Attribute::Verify(_)
             | Attribute::VerifyRecover(_)
             | Attribute::Wrap(_)
-            | Attribute::WrapWithTrusted(_) => std::mem::size_of::<bool>(),
+            | Attribute::WrapWithTrusted(_) => size_of::<bool>(),
             Attribute::Base(_) => 1,
             Attribute::Application(bytes) | Attribute::Label(bytes) | Attribute::Url(bytes) => {
-                std::mem::size_of::<CK_UTF8CHAR>() * bytes.len()
+                size_of::<CK_UTF8CHAR>() * bytes.len()
             }
             Attribute::AcIssuer(bytes) => bytes.len(),
             Attribute::AttrTypes(bytes) => bytes.len(),
-            Attribute::CertificateType(_) => std::mem::size_of::<CK_CERTIFICATE_TYPE>(),
+            Attribute::CertificateType(_) => size_of::<CK_CERTIFICATE_TYPE>(),
             Attribute::CheckValue(bytes) => bytes.len(),
-            Attribute::Class(_) => std::mem::size_of::<CK_OBJECT_CLASS>(),
+            Attribute::Class(_) => size_of::<CK_OBJECT_CLASS>(),
             Attribute::Coefficient(bytes) => bytes.len(),
             Attribute::EcParams(bytes) => bytes.len(),
             Attribute::EcPoint(bytes) => bytes.len(),
@@ -636,10 +636,10 @@ impl Attribute {
             Attribute::HashOfSubjectPublicKey(bytes) => bytes.len(),
             Attribute::Id(bytes) => bytes.len(),
             Attribute::Issuer(bytes) => bytes.len(),
-            Attribute::KeyGenMechanism(_) => std::mem::size_of::<CK_MECHANISM_TYPE>(),
-            Attribute::KeyType(_) => std::mem::size_of::<CK_KEY_TYPE>(),
+            Attribute::KeyGenMechanism(_) => size_of::<CK_MECHANISM_TYPE>(),
+            Attribute::KeyType(_) => size_of::<CK_KEY_TYPE>(),
             Attribute::Modulus(bytes) => bytes.len(),
-            Attribute::ModulusBits(_) => std::mem::size_of::<CK_ULONG>(),
+            Attribute::ModulusBits(_) => size_of::<CK_ULONG>(),
             Attribute::ObjectId(bytes) => bytes.len(),
             Attribute::Owner(bytes) => bytes.len(),
             Attribute::Prime(bytes) => bytes.len(),
@@ -651,11 +651,11 @@ impl Attribute {
             Attribute::SerialNumber(bytes) => bytes.len(),
             Attribute::Subject(bytes) => bytes.len(),
             Attribute::Value(bytes) => bytes.len(),
-            Attribute::ValueLen(_) => std::mem::size_of::<CK_ULONG>(),
-            Attribute::EndDate(_) | Attribute::StartDate(_) => std::mem::size_of::<CK_DATE>(),
+            Attribute::ValueLen(_) => size_of::<CK_ULONG>(),
+            Attribute::EndDate(_) | Attribute::StartDate(_) => size_of::<CK_DATE>(),
 
             Attribute::AllowedMechanisms(mechanisms) => {
-                std::mem::size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
+                size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
             }
         }
     }
@@ -767,7 +767,7 @@ impl From<&Attribute> for CK_ATTRIBUTE {
 /// false, and a nonzero value means true." so there is no invalid
 /// byte value.
 fn try_u8_into_bool(slice: &[u8]) -> Result<bool> {
-    let as_array: [u8; std::mem::size_of::<CK_BBOOL>()] = slice.try_into()?;
+    let as_array: [u8; size_of::<CK_BBOOL>()] = slice.try_into()?;
     let as_byte = CK_BBOOL::from_ne_bytes(as_array);
     Ok(!matches!(as_byte, 0u8))
 }

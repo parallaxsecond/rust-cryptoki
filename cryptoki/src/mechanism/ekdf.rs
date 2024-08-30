@@ -28,7 +28,7 @@ impl<'a> AesCbcDeriveParams<'a> {
     /// * `iv` - The initialization vector
     ///
     /// * `data` - Data that will be encryption with the base key to obtain
-    /// the new key from the resulted cypher.
+    ///   the new key from the resulted cypher.
     pub fn new(iv: [u8; 16], data: &'a [u8]) -> Self {
         Self {
             inner: cryptoki_sys::CK_AES_CBC_ENCRYPT_DATA_PARAMS {

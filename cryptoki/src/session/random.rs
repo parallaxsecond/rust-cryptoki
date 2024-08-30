@@ -13,7 +13,7 @@ impl Session {
     /// # Arguments
     ///
     /// * `random_slice` - The slice to stick the random data into.  The length of the slice represents
-    /// the number of bytes to obtain from the RBG
+    ///   the number of bytes to obtain from the RBG
     pub fn generate_random_slice(&self, random_data: &mut [u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_GenerateRandom)(
