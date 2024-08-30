@@ -97,12 +97,14 @@ impl Session {
     }
 
     /// Copy an object
+    ///
     /// A template can be provided to change some attributes of the new object, when allowed.
     ///
     /// # Arguments
     ///
     /// * `object` - The [ObjectHandle] used to reference the object to copy
-    /// * `template` - a reference to a slice of attributes
+    /// * `template` - new values for any attributes of the object that can ordinarily be modified
+    ///   check out [PKCS#11 documentation](https://docs.oasis-open.org/pkcs11/pkcs11-spec/v3.1/cs01/pkcs11-spec-v3.1-cs01.html#_Toc111203284) for details
     ///
     /// # Returns
     ///
@@ -124,7 +126,7 @@ impl Session {
                 template.len().try_into()?,
                 &mut object_handle as CK_OBJECT_HANDLE_PTR,
             ))
-            .into_result(Function::CreateObject)?;
+            .into_result(Function::CopyObject)?;
         }
 
         Ok(ObjectHandle::new(object_handle))
