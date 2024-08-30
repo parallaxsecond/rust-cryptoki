@@ -28,22 +28,12 @@ impl Session {
         }
 
         let mut object_handles = [0; MAX_OBJECT_COUNT];
-        let mut object_count = 0;
+        let mut object_count = MAX_OBJECT_COUNT as CK_ULONG; // set to MAX_OBJECT_COUNT to enter loop
         let mut objects = Vec::new();
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
-                self.handle(),
-                object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-                MAX_OBJECT_COUNT.try_into()?,
-                &mut object_count,
-            ))
-            .into_result(Function::FindObjects)?;
-        }
-
-        while object_count > 0 {
-            objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-
+        // as long as the number of objects returned equals the maximum number
+        // of objects that can be returned, we keep calling C_FindObjects
+        while object_count == MAX_OBJECT_COUNT as CK_ULONG {
             unsafe {
                 Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
                     self.handle(),
@@ -53,6 +43,14 @@ impl Session {
                 ))
                 .into_result(Function::FindObjects)?;
             }
+
+            // exit loop, no more objects to be returned, no need to extend the objects vector
+            if object_count == 0 {
+                break;
+            }
+
+            // extend the objects vector with the new objects
+            objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
         }
 
         unsafe {
