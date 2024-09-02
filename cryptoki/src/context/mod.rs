@@ -13,6 +13,14 @@ macro_rules! get_pkcs11 {
     };
 }
 
+/// Same as get_pkcs11! but does not attempt to apply '?' syntactic sugar.
+/// Suitable only if the caller can't return a Result.
+macro_rules! get_pkcs11_func {
+    ($pkcs11:expr, $func_name:ident) => {
+        ($pkcs11.impl_.function_list.$func_name)
+    };
+}
+
 mod general_purpose;
 mod info;
 mod locking;

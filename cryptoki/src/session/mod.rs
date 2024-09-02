@@ -19,6 +19,7 @@ mod session_management;
 mod signing_macing;
 mod slot_token_management;
 
+pub use object_management::ObjectHandleIterator;
 pub use session_info::{SessionInfo, SessionState};
 
 /// Type that identifies a session
@@ -31,6 +32,8 @@ pub use session_info::{SessionInfo, SessionState};
 pub struct Session {
     handle: CK_SESSION_HANDLE,
     client: Pkcs11,
+    #[allow(dead_code)]
+    search_active: bool,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: PhantomData<*mut u32>,
 }
@@ -62,6 +65,7 @@ impl Session {
         Session {
             handle,
             client,
+            search_active: false,
             _guard: PhantomData,
         }
     }
