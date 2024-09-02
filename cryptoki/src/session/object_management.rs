@@ -94,6 +94,42 @@ impl Session {
         }
     }
 
+    /// Copy an object
+    ///
+    /// A template can be provided to change some attributes of the new object, when allowed.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object to copy
+    /// * `template` - new values for any attributes of the object that can ordinarily be modified
+    ///   check out [PKCS#11 documentation](https://docs.oasis-open.org/pkcs11/pkcs11-spec/v3.1/cs01/pkcs11-spec-v3.1-cs01.html#_Toc111203284) for details
+    ///
+    /// # Returns
+    ///
+    /// This function will return a new [ObjectHandle] that references the newly created object.
+    ///
+    pub fn copy_object(
+        &self,
+        object: ObjectHandle,
+        template: &[Attribute],
+    ) -> Result<ObjectHandle> {
+        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let mut object_handle = 0;
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_CopyObject)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+                &mut object_handle as CK_OBJECT_HANDLE_PTR,
+            ))
+            .into_result(Function::CopyObject)?;
+        }
+
+        Ok(ObjectHandle::new(object_handle))
+    }
+
     /// Get the attribute info of an object: if the attribute is present and its size.
     ///
     /// # Arguments
