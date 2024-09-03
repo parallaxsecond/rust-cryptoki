@@ -16,6 +16,7 @@ use std::ffi::c_void;
 use std::fmt::Formatter;
 use std::ops::Deref;
 use std::ptr::null_mut;
+use std::mem::size_of;
 
 use crate::mechanism::rsa::PkcsOaepParams;
 pub use mechanism_info::MechanismInfo;
