@@ -11,8 +11,8 @@ use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::ffi::c_void;
 use std::fmt::Formatter;
-use std::ops::Deref;
 use std::mem::size_of;
+use std::ops::Deref;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
