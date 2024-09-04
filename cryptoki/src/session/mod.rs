@@ -91,7 +91,7 @@ pub enum UserType {
     /// Context Specific
     ContextSpecific,
     /// Vendor extension
-    VendorExtension(u32)
+    VendorExtension(u32),
 }
 
 impl From<UserType> for CK_USER_TYPE {
@@ -100,7 +100,7 @@ impl From<UserType> for CK_USER_TYPE {
             UserType::So => CKU_SO,
             UserType::User => CKU_USER,
             UserType::ContextSpecific => CKU_CONTEXT_SPECIFIC,
-            UserType::VendorExtension(n) => n as CK_USER_TYPE
+            UserType::VendorExtension(n) => n as CK_USER_TYPE,
         }
     }
 }
