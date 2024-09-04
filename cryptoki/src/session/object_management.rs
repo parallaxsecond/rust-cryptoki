@@ -144,26 +144,22 @@ impl<'a> Iterator for ObjectHandleIterator<'a> {
                 }
             }
 
-            let p11rv;
-
-            match get_pkcs11_func!(self.session.client(), C_FindObjects) {
-                Some(f) => {
-                    p11rv = unsafe {
-                        f(
-                            self.session.handle(),
-                            self.cache.as_mut_ptr(),
-                            self.cache.len() as CK_ULONG,
-                            &mut self.object_count as *mut usize as CK_ULONG_PTR,
-                        )
-                    };
-                }
+            let p11rv = match get_pkcs11_func!(self.session.client(), C_FindObjects) {
+                Some(f) => unsafe {
+                    f(
+                        self.session.handle(),
+                        self.cache.as_mut_ptr(),
+                        self.cache.len() as CK_ULONG,
+                        &mut self.object_count as *mut usize as CK_ULONG_PTR,
+                    )
+                },
                 None => {
                     // C_FindObjects() is not implemented on this implementation
                     // sort of unexpected. TODO: Consider panic!() instead?
                     log::error!("C_FindObjects() is not implemented on this library");
                     return Some(Err(Error::NullFunctionPointer) as Result<ObjectHandle>);
                 }
-            }
+            };
 
             if let Rv::Error(error) = Rv::from(p11rv) {
                 return Some(
