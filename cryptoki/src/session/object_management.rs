@@ -18,6 +18,11 @@ const MAX_OBJECT_COUNT: usize = 10;
 /// Used to iterate over the object handles returned by underlying calls to `C_FindObjects`.
 /// The iterator is created by calling the `iter_objects` and `iter_objects_with_cache_size` methods on a `Session` object.
 ///
+/// # Note
+///
+/// The iterator `new()` method will call `C_FindObjectsInit`. It means that until the iterator is dropped,
+/// creating another iterator will result in an error (typically `RvError::OperationActive` ).
+///
 /// # Example
 ///
 /// ```no_run
@@ -30,47 +35,44 @@ const MAX_OBJECT_COUNT: usize = 10;
 /// use cryptoki::types::AuthPin;
 /// use std::env;
 ///
-/// fn test() -> Result<(), Error> {
-///     let pkcs11 = Pkcs11::new(
-///         env::var("PKCS11_SOFTHSM2_MODULE")
-///             .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
-///     )?;
+/// # fn main() -> testresult::TestResult {
+/// let pkcs11 = Pkcs11::new(
+///     env::var("PKCS11_SOFTHSM2_MODULE")
+///         .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
+/// )?;
 ///
-///     pkcs11.initialize(CInitializeArgs::OsThreads)?;
-///     let slot = pkcs11.get_slots_with_token()?.remove(0);
+/// pkcs11.initialize(CInitializeArgs::OsThreads)?;
+/// let slot = pkcs11.get_slots_with_token()?.remove(0);
 ///
-///     let session = pkcs11.open_ro_session(slot).unwrap();
-///     session.login(UserType::User, Some(&AuthPin::new("fedcba".into())))?;
+/// let session = pkcs11.open_ro_session(slot).unwrap();
+/// session.login(UserType::User, Some(&AuthPin::new("fedcba".into())))?;
 ///
-///     let token_object = vec![Attribute::Token(true)];
-///     let wanted_attr = vec![AttributeType::Label];
+/// let token_object = vec![Attribute::Token(true)];
+/// let wanted_attr = vec![AttributeType::Label];
 ///
-///     for (idx, obj) in session.iter_objects(&token_object)?.enumerate() {
-///         let obj = obj?; // handle potential error condition
+/// for (idx, obj) in session.iter_objects(&token_object)?.enumerate() {
+///     let obj = obj?; // handle potential error condition
 ///
-///         let attributes = session.get_attributes(obj, &wanted_attr)?;
+///     let attributes = session.get_attributes(obj, &wanted_attr)?;
 ///
-///         match attributes.get(0) {
-///             Some(Attribute::Label(l)) => {
-///                 println!(
-///                     "token object #{}: handle {}, label {}",
-///                     idx,
-///                     obj,
-///                     String::from_utf8(l.to_vec())
-///                         .unwrap_or_else(|_| "*** not valid utf8 ***".to_string())
-///                 );
-///             }
-///             _ => {
-///                 println!("token object #{}: handle {}, label not found", idx, obj);
-///             }
+///     match attributes.get(0) {
+///         Some(Attribute::Label(l)) => {
+///             println!(
+///                 "token object #{}: handle {}, label {}",
+///                 idx,
+///                 obj,
+///                 String::from_utf8(l.to_vec())
+///                     .unwrap_or_else(|_| "*** not valid utf8 ***".to_string())
+///             );
+///         }
+///         _ => {
+///             println!("token object #{}: handle {}, label not found", idx, obj);
 ///         }
 ///     }
-///     Ok(())
 /// }
+/// # Ok(())
+/// # }
 ///
-/// pub fn main() {
-///     test().unwrap();
-/// }
 /// ```
 #[derive(Debug)]
 pub struct ObjectHandleIterator<'a> {
@@ -154,8 +156,7 @@ impl<'a> Iterator for ObjectHandleIterator<'a> {
                     )
                 },
                 None => {
-                    // C_FindObjects() is not implemented on this implementation
-                    // sort of unexpected. TODO: Consider panic!() instead?
+                    // C_FindObjects() is not implemented,, bark and return an error
                     log::error!("C_FindObjects() is not implemented on this library");
                     return Some(Err(Error::NullFunctionPointer) as Result<ObjectHandle>);
                 }
@@ -173,9 +174,9 @@ impl<'a> Iterator for ObjectHandleIterator<'a> {
 
 impl Drop for ObjectHandleIterator<'_> {
     fn drop(&mut self) {
-        // silently pass if C_FindObjectsFinal() is not implemented on this implementation
-        // this is unexpected. TODO: Consider panic!() instead?
+        // bark but pass if C_FindObjectsFinal() is not implemented
         if let Some(f) = get_pkcs11_func!(self.session.client(), C_FindObjectsFinal) {
+            log::error!("C_FindObjectsFinal() is not implemented on this library");
             // swallow the return value, as we can't do anything about it
             let _ = unsafe { f(self.session.handle()) };
         }
@@ -220,17 +221,31 @@ impl Session {
         template: &[Attribute],
         cache_size: usize,
     ) -> Result<ObjectHandleIterator> {
-        let template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
+        let template: Vec<CK_ATTRIBUTE> = template.iter().map(Into::into).collect();
         ObjectHandleIterator::new(self, template, cache_size)
     }
 
     /// Search for session objects matching a template
     ///
     /// # Arguments
+    ///
     /// * `template` - A [Attribute] of search parameters that will be used
     ///                 to find objects.
     ///
-    /// # Examples
+    /// # Returns
+    ///
+    /// Upon success, a vector of [ObjectHandle] wrapped in a Result.
+    /// Upon failure, the first error encountered.
+    ///
+    /// # Note
+    ///
+    /// It is a convenience method that will call [`Session::iter_objects`] and collect the results.
+    ///
+    /// # See also
+    ///
+    /// * [`Session::iter_objects`] for a way to specify the cache size
+
+    /// # Example
     ///
     /// ```rust
     /// # fn main() -> testresult::TestResult {
@@ -260,54 +275,11 @@ impl Session {
     /// }
     /// # Ok(()) }
     /// ```
+    ///
+    #[inline(always)]
     pub fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
-        let mut template: Vec<CK_ATTRIBUTE> = template.iter().map(|attr| attr.into()).collect();
-
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_FindObjectsInit)(
-                self.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
-            ))
-            .into_result(Function::FindObjectsInit)?;
-        }
-
-        let mut object_handles = [0; MAX_OBJECT_COUNT];
-        let mut object_count = MAX_OBJECT_COUNT as CK_ULONG; // set to MAX_OBJECT_COUNT to enter loop
-        let mut objects = Vec::new();
-
-        // as long as the number of objects returned equals the maximum number
-        // of objects that can be returned, we keep calling C_FindObjects
-        while object_count == MAX_OBJECT_COUNT as CK_ULONG {
-            unsafe {
-                Rv::from(get_pkcs11!(self.client(), C_FindObjects)(
-                    self.handle(),
-                    object_handles.as_mut_ptr() as CK_OBJECT_HANDLE_PTR,
-                    MAX_OBJECT_COUNT.try_into()?,
-                    &mut object_count,
-                ))
-                .into_result(Function::FindObjects)?;
-            }
-
-            // exit loop, no more objects to be returned, no need to extend the objects vector
-            if object_count == 0 {
-                break;
-            }
-
-            // extend the objects vector with the new objects
-            objects.extend_from_slice(&object_handles[..object_count.try_into()?]);
-        }
-
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_FindObjectsFinal)(
-                self.handle(),
-            ))
-            .into_result(Function::FindObjectsFinal)?;
-        }
-
-        let objects = objects.into_iter().map(ObjectHandle::new).collect();
-
-        Ok(objects)
+        self.iter_objects(template)?
+            .collect::<Result<Vec<ObjectHandle>>>()
     }
 
     /// Create a new object

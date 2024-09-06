@@ -313,15 +313,13 @@ fn get_token_info() -> TestResult {
 
 #[test]
 #[serial]
-fn session_find_objects() {
+fn session_find_objects() -> testresult::TestResult {
     let (pkcs11, slot) = init_pins();
     // open a session
-    let session = pkcs11.open_rw_session(slot).unwrap();
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session
-        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
-        .unwrap();
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // we generate 11 keys with the same CKA_ID
     // we will check 3 different use cases, this will cover all cases for Session.find_objects
@@ -351,32 +349,31 @@ fn session_find_objects() {
         Attribute::KeyType(KeyType::DES3),
     ];
 
-    let mut found_keys = session.find_objects(&key_search_template).unwrap();
+    let mut found_keys = session.find_objects(&key_search_template)?;
     assert_eq!(found_keys.len(), 11);
 
     // destroy one key
-    session.destroy_object(found_keys.pop().unwrap()).unwrap();
+    session.destroy_object(found_keys.pop().unwrap())?;
 
-    let mut found_keys = session.find_objects(&key_search_template).unwrap();
+    let mut found_keys = session.find_objects(&key_search_template)?;
     assert_eq!(found_keys.len(), 10);
 
     // destroy another key
-    session.destroy_object(found_keys.pop().unwrap()).unwrap();
-    let found_keys = session.find_objects(&key_search_template).unwrap();
+    session.destroy_object(found_keys.pop().unwrap())?;
+    let found_keys = session.find_objects(&key_search_template)?;
     assert_eq!(found_keys.len(), 9);
+    Ok(())
 }
 
 #[test]
 #[serial]
-fn session_objecthandle_iterator() {
+fn session_objecthandle_iterator() -> testresult::TestResult {
     let (pkcs11, slot) = init_pins();
     // open a session
-    let session = pkcs11.open_rw_session(slot).unwrap();
+    let session = pkcs11.open_rw_session(slot)?;
 
     // log in the session
-    session
-        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
-        .unwrap();
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // we generate 11 keys with the same CKA_ID
 
@@ -389,9 +386,7 @@ fn session_objecthandle_iterator() {
         ];
 
         // generate a secret key
-        let _key = session
-            .generate_key(&Mechanism::Des3KeyGen, &key_template)
-            .unwrap();
+        let _key = session.generate_key(&Mechanism::Des3KeyGen, &key_template);
     });
 
     // retrieve these keys using this template
@@ -404,9 +399,7 @@ fn session_objecthandle_iterator() {
 
     // test iter_objects_with_cache_size()
     // count keys with cache size of 20
-    let found_keys = session
-        .iter_objects_with_cache_size(&key_search_template, 20)
-        .unwrap();
+    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 20)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
@@ -415,23 +408,18 @@ fn session_objecthandle_iterator() {
     assert!(found_keys.is_err());
 
     // count keys with cache size of 1
-    let found_keys = session
-        .iter_objects_with_cache_size(&key_search_template, 1)
-        .unwrap();
+    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 1)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
     // count keys with cache size of 10
-    let found_keys = session
-        .iter_objects_with_cache_size(&key_search_template, 10)
-        .unwrap();
+    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
     // fetch keys into a vector
     let found_keys: Vec<ObjectHandle> = session
-        .iter_objects_with_cache_size(&key_search_template, 10)
-        .unwrap()
+        .iter_objects_with_cache_size(&key_search_template, 10)?
         .map_while(|key| key.ok())
         .collect();
     assert_eq!(found_keys.len(), 11);
@@ -440,24 +428,31 @@ fn session_objecthandle_iterator() {
     let key1 = found_keys[1];
 
     session.destroy_object(key0).unwrap();
-    let found_keys = session
-        .iter_objects_with_cache_size(&key_search_template, 10)
-        .unwrap();
+    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 10);
 
     // destroy another key
     session.destroy_object(key1).unwrap();
-    let found_keys = session
-        .iter_objects_with_cache_size(&key_search_template, 10)
-        .unwrap();
+    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 9);
 
     // test iter_objects()
-    let found_keys = session.iter_objects(&key_search_template).unwrap();
+    let found_keys = session.iter_objects(&key_search_template)?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 9);
+
+    // test interleaved iterators - the second iterator should fail
+    let iter = session.iter_objects(&key_search_template);
+    let iter2 = session.iter_objects(&key_search_template);
+
+    assert!(matches!(iter, Ok(_)));
+    assert!(matches!(
+        iter2,
+        Err(Error::Pkcs11(RvError::OperationActive, _))
+    ));
+    Ok(())
 }
 
 #[test]
