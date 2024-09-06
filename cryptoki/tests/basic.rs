@@ -447,7 +447,7 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
     let iter = session.iter_objects(&key_search_template);
     let iter2 = session.iter_objects(&key_search_template);
 
-    assert!(matches!(iter, Ok(_)));
+    assert!(iter.is_ok());
     assert!(matches!(
         iter2,
         Err(Error::Pkcs11(RvError::OperationActive, _))
