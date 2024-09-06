@@ -90,14 +90,19 @@ pub enum UserType {
     User,
     /// Context Specific
     ContextSpecific,
+    /// Vendor extension
+    VendorExtension(u32),
 }
 
 impl From<UserType> for CK_USER_TYPE {
+    // Mask lint for n.into() on 32-bit systems.
+    #![allow(clippy::useless_conversion)]
     fn from(user_type: UserType) -> CK_USER_TYPE {
         match user_type {
             UserType::So => CKU_SO,
             UserType::User => CKU_USER,
             UserType::ContextSpecific => CKU_CONTEXT_SPECIFIC,
+            UserType::VendorExtension(n) => n.into(),
         }
     }
 }
