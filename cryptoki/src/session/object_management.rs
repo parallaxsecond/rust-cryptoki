@@ -12,7 +12,8 @@ use std::convert::TryInto;
 use std::num::NonZeroUsize;
 
 // Search 10 elements at a time
-const MAX_OBJECT_COUNT: usize = 10;
+// Safety: the value provided (10) must be non-zero
+const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) };
 
 /// Iterator over object handles, in an active session.
 ///
@@ -37,16 +38,16 @@ const MAX_OBJECT_COUNT: usize = 10;
 /// use std::env;
 ///
 /// # fn main() -> testresult::TestResult {
-/// let pkcs11 = Pkcs11::new(
-///     env::var("PKCS11_SOFTHSM2_MODULE")
-///         .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
-/// )?;
-///
-/// pkcs11.initialize(CInitializeArgs::OsThreads)?;
-/// let slot = pkcs11.get_slots_with_token()?.remove(0);
-///
-/// let session = pkcs11.open_ro_session(slot).unwrap();
-/// session.login(UserType::User, Some(&AuthPin::new("fedcba".into())))?;
+/// # let pkcs11 = Pkcs11::new(
+/// #    env::var("PKCS11_SOFTHSM2_MODULE")
+/// #        .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
+/// # )?;
+/// #
+/// # pkcs11.initialize(CInitializeArgs::OsThreads)?;
+/// # let slot = pkcs11.get_slots_with_token()?.remove(0);
+/// #
+/// # let session = pkcs11.open_ro_session(slot).unwrap();
+/// # session.login(UserType::User, Some(&AuthPin::new("fedcba".into())))?;
 ///
 /// let token_object = vec![Attribute::Token(true)];
 /// let wanted_attr = vec![AttributeType::Label];
@@ -84,6 +85,28 @@ pub struct ObjectHandleIterator<'a> {
 }
 
 impl<'a> ObjectHandleIterator<'a> {
+    /// Create a new iterator over object handles.
+    ///
+    /// # Arguments
+    ///
+    /// * `session` - The session to iterate over
+    /// * `template` - The template to match objects against
+    /// * `cache_size` - The number of objects to cache (type is [`NonZeroUsize`])
+    ///
+    /// # Returns
+    ///
+    /// This function will return a [`Result<ObjectHandleIterator>`] that can be used to iterate over the objects
+    /// matching the template. The cache size corresponds to the size of the array provided to `C_FindObjects()`.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the call to `C_FindObjectsInit` fails.
+    ///
+    /// # Note
+    ///
+    /// The iterator `new()` method will call `C_FindObjectsInit`. It means that until the iterator is dropped,
+    /// creating another iterator will result in an error (typically `RvError::OperationActive` ).
+    ///
     fn new(
         session: &'a Session,
         mut template: Vec<CK_ATTRIBUTE>,
@@ -171,11 +194,15 @@ impl<'a> Iterator for ObjectHandleIterator<'a> {
 
 impl Drop for ObjectHandleIterator<'_> {
     fn drop(&mut self) {
-        // bark but pass if C_FindObjectsFinal() is not implemented
         if let Some(f) = get_pkcs11_func!(self.session.client(), C_FindObjectsFinal) {
+            // swallow the return value, as we can't do anything about it,
+            // but log the error
+            if let Rv::Error(error) = Rv::from(unsafe { f(self.session.handle()) }) {
+                log::error!("C_FindObjectsFinal() failed with error: {:?}", error);
+            }
+        } else {
+            // bark but pass if C_FindObjectsFinal() is not implemented
             log::error!("C_FindObjectsFinal() is not implemented on this library");
-            // swallow the return value, as we can't do anything about it
-            let _ = unsafe { f(self.session.handle()) };
         }
     }
 }
@@ -198,7 +225,7 @@ impl Session {
     /// * [`Session::iter_objects_with_cache_size`] for a way to specify the cache size
     #[inline(always)]
     pub fn iter_objects(&self, template: &[Attribute]) -> Result<ObjectHandleIterator> {
-        self.iter_objects_with_cache_size(template, NonZeroUsize::new(MAX_OBJECT_COUNT).unwrap())
+        self.iter_objects_with_cache_size(template, MAX_OBJECT_COUNT)
     }
 
     /// Iterate over session objects matching a template, with cache size
@@ -279,8 +306,7 @@ impl Session {
     ///
     #[inline(always)]
     pub fn find_objects(&self, template: &[Attribute]) -> Result<Vec<ObjectHandle>> {
-        self.iter_objects(template)?
-            .collect::<Result<Vec<ObjectHandle>>>()
+        self.iter_objects(template)?.collect()
     }
 
     /// Create a new object
