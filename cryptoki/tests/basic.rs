@@ -378,7 +378,7 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
 
     // we generate 11 keys with the same CKA_ID
 
-    (1..=11).for_each(|i| {
+    for i in 1..=11 {
         let key_template = vec![
             Attribute::Token(true),
             Attribute::Encrypt(true),
@@ -387,8 +387,8 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
         ];
 
         // generate a secret key
-        let _key = session.generate_key(&Mechanism::Des3KeyGen, &key_template);
-    });
+        session.generate_key(&Mechanism::Des3KeyGen, &key_template)?;
+    }
 
     // retrieve these keys using this template
     let key_search_template = vec![
