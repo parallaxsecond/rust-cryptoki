@@ -7,6 +7,18 @@
 
 set -euf -o pipefail
 
+pushd cryptoki-sys
+RUST_BACKTRACE=1 cargo build --features generate-bindings
+popd
+
+# check formatting before going through all the builds
+if cargo fmt --version; then
+	cargo fmt --all -- --check
+fi
+if cargo clippy --version; then
+	cargo clippy --all-targets -- -D clippy::all -D clippy::cargo
+fi
+
 RUST_BACKTRACE=1 cargo build
 
 RUST_BACKTRACE=1 cargo build --all-features
@@ -23,16 +35,5 @@ RUST_BACKTRACE=1 cargo build --target x86_64-pc-windows-msvc
 RUST_BACKTRACE=1 cargo build --target x86_64-apple-darwin
 RUST_BACKTRACE=1 cargo build --target aarch64-apple-darwin
 RUST_BACKTRACE=1 cargo build --target x86_64-unknown-freebsd
-
-pushd cryptoki-sys
-RUST_BACKTRACE=1 cargo build --features generate-bindings
-popd
-
-if cargo fmt --version; then
-	cargo fmt --all -- --check
-fi
-if cargo clippy --version; then
-	cargo clippy --all-targets -- -D clippy::all -D clippy::cargo
-fi
 
 RUST_BACKTRACE=1 cargo test
