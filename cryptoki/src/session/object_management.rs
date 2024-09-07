@@ -9,6 +9,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::num::NonZeroUsize;
 
 // Search 10 elements at a time
 const MAX_OBJECT_COUNT: usize = 10;
@@ -86,12 +87,8 @@ impl<'a> ObjectHandleIterator<'a> {
     fn new(
         session: &'a Session,
         mut template: Vec<CK_ATTRIBUTE>,
-        cache_size: usize,
+        cache_size: NonZeroUsize,
     ) -> Result<Self> {
-        if cache_size == 0 {
-            return Err(Error::InvalidValue);
-        }
-
         unsafe {
             Rv::from(get_pkcs11!(session.client(), C_FindObjectsInit)(
                 session.handle(),
@@ -101,11 +98,11 @@ impl<'a> ObjectHandleIterator<'a> {
             .into_result(Function::FindObjectsInit)?;
         }
 
-        let cache: Vec<CK_OBJECT_HANDLE> = vec![0; cache_size];
+        let cache: Vec<CK_OBJECT_HANDLE> = vec![0; cache_size.get()];
         Ok(ObjectHandleIterator {
             session,
-            object_count: cache_size,
-            index: cache_size,
+            object_count: cache_size.get(),
+            index: cache_size.get(),
             cache,
         })
     }
@@ -187,6 +184,7 @@ impl Session {
     /// Iterate over session objects matching a template.
     ///
     /// # Arguments
+    ///
     /// * `template` - The template to match objects against
     ///
     /// # Returns
@@ -195,18 +193,20 @@ impl Session {
     /// matching the template. Note that the cache size is managed internally and set to a default value (10)
     ///
     /// # See also
+    ///
     /// * [`ObjectHandleIterator`] for more information on how to use the iterator
     /// * [`Session::iter_objects_with_cache_size`] for a way to specify the cache size
     #[inline(always)]
     pub fn iter_objects(&self, template: &[Attribute]) -> Result<ObjectHandleIterator> {
-        self.iter_objects_with_cache_size(template, MAX_OBJECT_COUNT)
+        self.iter_objects_with_cache_size(template, NonZeroUsize::new(MAX_OBJECT_COUNT).unwrap())
     }
 
     /// Iterate over session objects matching a template, with cache size
     ///
     /// # Arguments
+    ///
     /// * `template` - The template to match objects against
-    /// * `cache_size` - The number of objects to cache. Note that 0 is an invalid value and will return an error.
+    /// * `cache_size` - The number of objects to cache (type is [`NonZeroUsize`])
     ///
     /// # Returns
     ///
@@ -214,12 +214,13 @@ impl Session {
     /// matching the template. The cache size corresponds to the size of the array provided to `C_FindObjects()`.
     ///
     /// # See also
+    ///
     /// * [`ObjectHandleIterator`] for more information on how to use the iterator
     /// * [`Session::iter_objects`] for a simpler way to iterate over objects
     pub fn iter_objects_with_cache_size(
         &self,
         template: &[Attribute],
-        cache_size: usize,
+        cache_size: NonZeroUsize,
     ) -> Result<ObjectHandleIterator> {
         let template: Vec<CK_ATTRIBUTE> = template.iter().map(Into::into).collect();
         ObjectHandleIterator::new(self, template, cache_size)
@@ -229,12 +230,12 @@ impl Session {
     ///
     /// # Arguments
     ///
-    /// * `template` - A [Attribute] of search parameters that will be used
-    ///                 to find objects.
+    /// * `template` - A reference to [Attribute] of search parameters that will be used
+    ///                to find objects.
     ///
     /// # Returns
     ///
-    /// Upon success, a vector of [ObjectHandle] wrapped in a Result.
+    /// Upon success, a vector of [`ObjectHandle`] wrapped in a Result.
     /// Upon failure, the first error encountered.
     ///
     /// # Note

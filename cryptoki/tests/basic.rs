@@ -16,6 +16,7 @@ use cryptoki::session::{SessionState, UserType};
 use cryptoki::types::AuthPin;
 use serial_test::serial;
 use std::collections::HashMap;
+use std::num::NonZeroUsize;
 use std::thread;
 
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
@@ -399,27 +400,26 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
 
     // test iter_objects_with_cache_size()
     // count keys with cache size of 20
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 20)?;
+    let found_keys = session
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(20).unwrap())?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
-    // count keys with cache size of 0 => should result in an error
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 0);
-    assert!(found_keys.is_err());
-
     // count keys with cache size of 1
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 1)?;
+    let found_keys = session
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(1).unwrap())?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
     // count keys with cache size of 10
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
+    let found_keys = session
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(10).unwrap())?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 11);
 
     // fetch keys into a vector
     let found_keys: Vec<ObjectHandle> = session
-        .iter_objects_with_cache_size(&key_search_template, 10)?
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(10).unwrap())?
         .map_while(|key| key.ok())
         .collect();
     assert_eq!(found_keys.len(), 11);
@@ -428,13 +428,15 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
     let key1 = found_keys[1];
 
     session.destroy_object(key0).unwrap();
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
+    let found_keys = session
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(10).unwrap())?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 10);
 
     // destroy another key
     session.destroy_object(key1).unwrap();
-    let found_keys = session.iter_objects_with_cache_size(&key_search_template, 10)?;
+    let found_keys = session
+        .iter_objects_with_cache_size(&key_search_template, NonZeroUsize::new(10).unwrap())?;
     let found_keys = found_keys.map_while(|key| key.ok()).count();
     assert_eq!(found_keys, 9);
 
