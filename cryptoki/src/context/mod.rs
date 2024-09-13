@@ -3,13 +3,18 @@
 //! Pkcs11 context and initialization types
 
 /// Directly get the PKCS #11 operation from the context structure and check for null pointers.
+/// Note that this macro depends on the get_pkcs11_func! macro.
 macro_rules! get_pkcs11 {
     ($pkcs11:expr, $func_name:ident) => {
-        ($pkcs11
-            .impl_
-            .function_list
-            .$func_name
-            .ok_or(crate::error::Error::NullFunctionPointer)?)
+        (get_pkcs11_func!($pkcs11, $func_name).ok_or(crate::error::Error::NullFunctionPointer)?)
+    };
+}
+
+/// Same as get_pkcs11! but does not attempt to apply '?' syntactic sugar.
+/// Suitable only if the caller can't return a Result.
+macro_rules! get_pkcs11_func {
+    ($pkcs11:expr, $func_name:ident) => {
+        ($pkcs11.impl_.function_list.$func_name)
     };
 }
 

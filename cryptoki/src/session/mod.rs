@@ -19,6 +19,7 @@ mod session_management;
 mod signing_macing;
 mod slot_token_management;
 
+pub use object_management::ObjectHandleIterator;
 pub use session_info::{SessionInfo, SessionState};
 
 /// Type that identifies a session
