@@ -93,6 +93,17 @@ impl<'a> EcKdf<'a> {
         }
     }
 
+    /// The sha256 transformation as defined in the x9 standard. The
+    /// derived key is produced by concatenating hashes of the shared
+    /// value followed by 00000001, 00000002, etc. until we find
+    /// enough bytes to fill the `CKA_VALUE_LEN` of the derived key.
+    pub fn sha256_x9() -> Self {
+        Self {
+            kdf_type: CKD_SHA256_KDF,
+            shared_data: None,
+        }
+    }
+
     // The intention here is to be able to support other methods with
     // shared data, without it being a breaking change, by just adding
     // additional constructors here.
