@@ -720,7 +720,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
     }
 }
 
-#[derive(Copy, Debug, Clone)]
+#[derive(Debug)]
 #[non_exhaustive]
 /// Type defining a specific mechanism and its parameters
 pub enum Mechanism<'a> {
