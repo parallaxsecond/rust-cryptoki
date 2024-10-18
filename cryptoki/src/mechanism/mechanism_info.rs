@@ -269,7 +269,7 @@ mod test {
 HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
 VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
 EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
-EC_UNCOMPRESS | EC_COMPRESS";
+EC_OID | EC_UNCOMPRESS | EC_COMPRESS";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");
