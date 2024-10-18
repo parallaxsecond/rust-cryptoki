@@ -26,6 +26,7 @@ bitflags! {
         const EC_F_2M = CKF_EC_F_2M;
         const EC_ECPARAMETERS = CKF_EC_ECPARAMETERS;
         const EC_NAMEDCURVE = CKF_EC_NAMEDCURVE;
+        const EC_OID = CKF_EC_OID;
         const EC_UNCOMPRESS = CKF_EC_UNCOMPRESS;
         const EC_COMPRESS = CKF_EC_COMPRESS;
     }
@@ -182,7 +183,7 @@ impl MechanismInfo {
     ///
     /// **[Conformance](crate#conformance-notes):**
     /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
-    /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
+    /// [`ec_from_oid`](Self::ec_from_oid) must be `true`
     pub fn ec_from_parameters(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::EC_ECPARAMETERS)
     }
@@ -193,8 +194,19 @@ impl MechanismInfo {
     /// **[Conformance](crate#conformance-notes):**
     /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
     /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
+    #[deprecated = "use `ec_from_oid` instead"]
     pub fn ec_from_named_curve(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::EC_NAMEDCURVE)
+    }
+
+    /// True if the mechanism supports specifying elliptic curve domain
+    /// parameters with an oid
+    ///
+    /// **[Conformance](crate#conformance-notes):**
+    /// *At least* one of [`ec_from_parameters`](Self::ec_from_parameters) and
+    /// [`ec_from_oid`](Self::ec_from_oid) must be `true`
+    pub fn ec_from_oid(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::EC_OID)
     }
 
     /// True if the mechanism can be used with elliptic curve points in
