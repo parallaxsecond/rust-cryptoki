@@ -138,6 +138,6 @@ include!(concat!(
 #[cfg(feature = "generate-bindings")]
 include!(concat!(env!("OUT_DIR"), "/pkcs11_bindings.rs"));
 
-// bindgen generates u64::MAX value for ~0UL macro defination, it's not valid on 32bit ulong platforms.
+// bindgen generates u64::MAX value for ~0UL macro definition, it's not valid on 32bit ulong platforms.
 // This is a workaround for that.
 pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = CK_ULONG::MAX;
