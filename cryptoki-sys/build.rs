@@ -87,7 +87,7 @@ mod generate {
         }
 
         builder = builder
-            .header("pkcs11.h")
+            .header("vendor/pkcs11.h")
             .dynamic_library_name("Pkcs11")
             // The PKCS11 library works in a slightly different way to most shared libraries. We have
             // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
@@ -96,7 +96,7 @@ mod generate {
             // This is needed because no types will be generated if `allowlist_function` is used.
             // Unsure if this is a bug.
             .allowlist_type("*")
-            .allowlist_file("pkcs11.h")
+            .allowlist_file("vendor/pkcs11.h")
             // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
             .blocklist_type("max_align_t")
             // Derive the `Debug` trait for the generated structs where possible.
