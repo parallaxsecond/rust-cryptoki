@@ -15,6 +15,15 @@ mod generate {
     pub struct CargoCallbacks;
 
     impl callbacks::ParseCallbacks for CargoCallbacks {
+        // skip processing CK_UNAVAILABLE_INFORMATION macro, more details in lib.rs
+        fn will_parse_macro(&self, name: &str) -> callbacks::MacroParsingBehavior {
+            if name == "CK_UNAVAILABLE_INFORMATION" {
+                callbacks::MacroParsingBehavior::Ignore
+            } else {
+                callbacks::MacroParsingBehavior::Default
+            }
+        }
+
         fn int_macro(&self, name: &str, _: i64) -> Option<callbacks::IntKind> {
             let prefixes = [
                 ("CK_", "CK_ULONG"),
@@ -23,16 +32,22 @@ mod generate {
                 ("CKD_", "CK_EC_KDF_TYPE"),
                 ("CKF_", "CK_FLAGS"),
                 ("CKG_MGF1_", "CK_RSA_PKCS_MGF_TYPE"),
+                ("CKG", "CK_GENERATOR_FUNCTION"),
                 ("CKH_", "CK_HW_FEATURE_TYPE"),
                 ("CKK_", "CK_KEY_TYPE"),
                 ("CKM_", "CK_MECHANISM_TYPE"),
                 ("CKN_", "CK_NOTIFICATION"),
                 ("CKO_", "CK_OBJECT_CLASS"),
+                (
+                    "CKP_PKCS5_PBKD2_",
+                    "CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE",
+                ),
                 ("CKP_", "CK_PROFILE_ID"),
                 ("CKR_", "CK_RV"),
                 ("CKS_", "CK_STATE"),
                 ("CKU_", "CK_USER_TYPE"),
-                ("CKZ_", "CK_RSA_PKCS_OAEP_SOURCE_TYPE"),
+                ("CKZ_DATA_SPECIFIED", "CK_RSA_PKCS_OAEP_SOURCE_TYPE"),
+                ("CKZ_SALT_SPECIFIED", "CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE"),
                 ("CRYPTOKI_VERSION_", "CK_BYTE"),
             ];
 
@@ -59,6 +74,8 @@ mod generate {
     pub fn generate_bindings() {
         let make_generic: bool = std::env::var_os("MAKE_GENERIC_BINDINGS").is_some();
         let mut builder = bindgen::Builder::default();
+        // to be fully compatible with 2.4
+        builder = builder.header_contents("enable-deprecated.h", "#define PKCS11_DEPRECATED 1\n");
         if make_generic {
             // only WIN32 bindings are "packed". It's easier to "unpack" for other architectures
             // __declspec is not needed and causes problems
@@ -70,7 +87,7 @@ mod generate {
         }
 
         builder = builder
-            .header("pkcs11.h")
+            .header("vendor/pkcs11.h")
             .dynamic_library_name("Pkcs11")
             // The PKCS11 library works in a slightly different way to most shared libraries. We have
             // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
@@ -79,7 +96,7 @@ mod generate {
             // This is needed because no types will be generated if `allowlist_function` is used.
             // Unsure if this is a bug.
             .allowlist_type("*")
-            .allowlist_file("pkcs11.h")
+            .allowlist_file("vendor/pkcs11.h")
             // See this issue: https://github.com/parallaxsecond/rust-cryptoki/issues/12
             .blocklist_type("max_align_t")
             // Derive the `Debug` trait for the generated structs where possible.

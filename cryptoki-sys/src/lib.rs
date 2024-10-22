@@ -138,22 +138,6 @@ include!(concat!(
 #[cfg(feature = "generate-bindings")]
 include!(concat!(env!("OUT_DIR"), "/pkcs11_bindings.rs"));
 
-/// Typedefs and defines for the CKM_X9_42_DH_KEY_PAIR_GEN and the
-/// CKM_X9_42_DH_PARAMETER_GEN mechanisms
-pub type CK_X9_42_DH_KDF_TYPE = CK_ULONG;
-pub type CK_X9_42_DH_KDF_TYPE_PTR = *mut CK_X9_42_DH_KDF_TYPE;
-
-pub type CK_EC_KDF_TYPE = CK_ULONG;
-
-// The values below are defined in pkcs11.h with `#define` macros. As a result, bindgen cannot
-// generate bindings for them. They are included here for completeness.
-pub const CKA_WRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000211;
-pub const CKA_UNWRAP_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000212;
-pub const CKA_DERIVE_TEMPLATE: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000213;
-pub const CKA_ALLOWED_MECHANISMS: CK_ATTRIBUTE_TYPE = CKF_ARRAY_ATTRIBUTE | 0x00000600;
-pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = !0;
-pub const CKF_EXTENSION: CK_FLAGS = 0x80000000;
-pub const CKK_EC_MONTGOMERY: CK_KEY_TYPE = 0x00000041;
-pub const CKR_VENDOR_DEFINED: CK_RV = 0x80000000;
-pub const CKR_CURVE_NOT_SUPPORTED: CK_RV = 0x00000140;
-pub const CKM_VENDOR_DEFINED: CK_MECHANISM_TYPE = 0x80000000;
+// bindgen generates u64::MAX value for ~0UL macro definition, it's not valid on 32bit ulong platforms.
+// This is a workaround for that.
+pub const CK_UNAVAILABLE_INFORMATION: CK_ULONG = CK_ULONG::MAX;
