@@ -38,53 +38,55 @@ impl<'a> HkdfParams<'a> {
     ///
     /// # Arguments
     ///
-    /// * `extract` - Whether to execute the extract portion of HKDF.
-    ///
-    /// * `expand` - Whether to execute the expand portion of HKDF.
-    ///
     /// * `prf_hash_mechanism` - The base hash used for the HMAC in the underlying HKDF operation
     ///
-    /// * `salt` - The salt for the extract stage.
+    /// * `salt` - The salt for the extract stage, skip extract if `None`.
     ///
-    /// * `info` - The info string for the expand stage.
+    /// * `info` - The info string for the expand stage, skip expand if `None`.
     pub fn new(
-        extract: bool,
-        expand: bool,
         prf_hash_mechanism: MechanismType,
-        salt: HkdfSalt,
-        info: &'a [u8],
+        salt: Option<HkdfSalt>,
+        info: Option<&'a [u8]>,
     ) -> Self {
         Self {
             inner: cryptoki_sys::CK_HKDF_PARAMS {
-                bExtract: extract as u8,
-                bExpand: expand as u8,
+                bExtract: salt.is_some() as u8,
+                bExpand: info.is_some() as u8,
                 prfHashMechanism: *prf_hash_mechanism,
                 ulSaltType: match salt {
-                    HkdfSalt::Null => CKF_HKDF_SALT_NULL,
-                    HkdfSalt::Data(_) => CKF_HKDF_SALT_DATA,
-                    HkdfSalt::Key(_) => CKF_HKDF_SALT_KEY,
+                    None | Some(HkdfSalt::Null) => CKF_HKDF_SALT_NULL,
+                    Some(HkdfSalt::Data(_)) => CKF_HKDF_SALT_DATA,
+                    Some(HkdfSalt::Key(_)) => CKF_HKDF_SALT_KEY,
                 },
-                pSalt: if let HkdfSalt::Data(data) = salt {
+                pSalt: if let Some(HkdfSalt::Data(data)) = salt {
                     data.as_ptr() as *mut _
                 } else {
                     null_mut()
                 },
-                ulSaltLen: if let HkdfSalt::Data(data) = salt {
+                ulSaltLen: if let Some(HkdfSalt::Data(data)) = salt {
                     data.len()
                         .try_into()
                         .expect("salt length does not fit in CK_ULONG")
                 } else {
                     0
                 },
-                hSaltKey: match salt {
-                    HkdfSalt::Key(key) => key.handle(),
-                    _ => 0,
+                hSaltKey: if let Some(HkdfSalt::Key(key)) = salt {
+                    key.handle()
+                } else {
+                    0
                 },
-                pInfo: info.as_ptr() as *mut _,
-                ulInfoLen: info
-                    .len()
-                    .try_into()
-                    .expect("info length does not fit in CK_ULONG"),
+                pInfo: if let Some(info) = info {
+                    info.as_ptr() as *mut _
+                } else {
+                    null_mut()
+                },
+                ulInfoLen: if let Some(info) = info {
+                    info.len()
+                        .try_into()
+                        .expect("salt length does not fit in CK_ULONG")
+                } else {
+                    0
+                },
             },
             _marker: PhantomData,
         }
