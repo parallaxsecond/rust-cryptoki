@@ -1,3 +1,5 @@
+// Copyright 2021 Contributors to the Parsec project.
+// SPDX-License-Identifier: Apache-2.0
 //! Mechanisms of hash-based key derive function (HKDF)
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061597>
 
@@ -9,8 +11,8 @@ use crate::object::ObjectHandle;
 
 use super::MechanismType;
 
-#[derive(Debug, Clone, Copy)]
 /// The salt for the extract stage.
+#[derive(Debug, Clone, Copy)]
 pub enum HkdfSalt<'a> {
     /// CKF_HKDF_SALT_NULL no salt is supplied.
     Null,
@@ -62,16 +64,17 @@ impl<'a> HkdfParams<'a> {
                     HkdfSalt::Data(_) => CKF_HKDF_SALT_DATA,
                     HkdfSalt::Key(_) => CKF_HKDF_SALT_KEY,
                 },
-                pSalt: match salt {
-                    HkdfSalt::Data(data) => data.as_ptr() as *mut _,
-                    _ => null_mut(),
+                pSalt: if let HkdfSalt::Data(data) = salt {
+                    data.as_ptr() as *mut _
+                } else {
+                    null_mut()
                 },
-                ulSaltLen: match salt {
-                    HkdfSalt::Data(data) => data
-                        .len()
+                ulSaltLen: if let HkdfSalt::Data(data) = salt {
+                    data.len()
                         .try_into()
-                        .expect("salt length does not fit in CK_ULONG"),
-                    _ => 0,
+                        .expect("salt length does not fit in CK_ULONG")
+                } else {
+                    0
                 },
                 hSaltKey: match salt {
                     HkdfSalt::Key(key) => key.handle(),
