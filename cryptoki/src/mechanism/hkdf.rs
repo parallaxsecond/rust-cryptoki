@@ -1,4 +1,4 @@
-// Copyright 2021 Contributors to the Parsec project.
+// Copyright 2024 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 //! Mechanisms of hash-based key derive function (HKDF)
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061597>
