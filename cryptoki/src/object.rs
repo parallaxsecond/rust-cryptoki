@@ -1192,6 +1192,9 @@ impl KeyType {
         val: CKK_EC_MONTGOMERY,
     };
 
+    /// HKDF key
+    pub const HKDF: KeyType = KeyType { val: CKK_HKDF };
+
     fn stringify(key_type: CK_KEY_TYPE) -> String {
         match key_type {
             CKK_RSA => String::from(stringify!(CKK_RSA)),
@@ -1236,6 +1239,8 @@ impl KeyType {
             CKK_GOSTR3411 => String::from(stringify!(CKK_GOSTR3411)),
             CKK_GOST28147 => String::from(stringify!(CKK_GOST28147)),
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
+            CKK_EC_MONTGOMERY => String::from(stringify!(CKK_EC_MONTGOMERY)),
+            CKK_HKDF => String::from(stringify!(CKK_HKDF)),
             _ => format!("unknown ({key_type:08x})"),
         }
     }
@@ -1309,6 +1314,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_GOST28147 => Ok(KeyType::GOST28147),
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
+            CKK_HKDF => Ok(KeyType::HKDF),
             _ => {
                 error!("Key type {} is not supported.", key_type);
                 Err(Error::NotSupported)
