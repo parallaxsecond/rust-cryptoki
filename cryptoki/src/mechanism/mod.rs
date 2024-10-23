@@ -264,6 +264,10 @@ impl MechanismType {
     pub const SHA1_HMAC: MechanismType = MechanismType {
         val: CKM_SHA_1_HMAC,
     };
+    /// SHA224-HMAC mechanism
+    pub const SHA224_HMAC: MechanismType = MechanismType {
+        val: CKM_SHA224_HMAC,
+    };
     /// SHA256-HMAC mechanism
     pub const SHA256_HMAC: MechanismType = MechanismType {
         val: CKM_SHA256_HMAC,
@@ -708,6 +712,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA384_RSA_PKCS => Ok(MechanismType::SHA384_RSA_PKCS),
             CKM_SHA512_RSA_PKCS => Ok(MechanismType::SHA512_RSA_PKCS),
             CKM_SHA_1_HMAC => Ok(MechanismType::SHA1_HMAC),
+            CKM_SHA224_HMAC => Ok(MechanismType::SHA224_HMAC),
             CKM_SHA256_HMAC => Ok(MechanismType::SHA256_HMAC),
             CKM_SHA384_HMAC => Ok(MechanismType::SHA384_HMAC),
             CKM_SHA512_HMAC => Ok(MechanismType::SHA512_HMAC),
@@ -890,8 +895,19 @@ pub enum Mechanism<'a> {
     Sha384RsaPkcsPss(rsa::PkcsPssParams),
     /// SHA256-RSA-PKCS-PSS mechanism
     Sha512RsaPkcsPss(rsa::PkcsPssParams),
+
+    // SHAn-HMAC
+    /// SHA1-HMAC mechanism
+    Sha1Hmac,
+    /// SHA224-HMAC mechanism
+    Sha224Hmac,
     /// SHA256-HMAC mechanism
     Sha256Hmac,
+    /// SHA384-HMAC mechanism
+    Sha384Hmac,
+    /// SHA512-HMAC mechanism
+    Sha512Hmac,
+
     /// GENERIC-SECRET-KEY-GEN mechanism
     GenericSecretKeyGen,
 }
@@ -954,7 +970,11 @@ impl Mechanism<'_> {
             Mechanism::Sha384RsaPkcsPss(_) => MechanismType::SHA384_RSA_PKCS_PSS,
             Mechanism::Sha512RsaPkcsPss(_) => MechanismType::SHA512_RSA_PKCS_PSS,
 
+            Mechanism::Sha1Hmac => MechanismType::SHA1_HMAC,
+            Mechanism::Sha224Hmac => MechanismType::SHA224_HMAC,
             Mechanism::Sha256Hmac => MechanismType::SHA256_HMAC,
+            Mechanism::Sha384Hmac => MechanismType::SHA384_HMAC,
+            Mechanism::Sha512Hmac => MechanismType::SHA512_HMAC,
 
             Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN,
         }
@@ -1022,7 +1042,11 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha256RsaPkcs
             | Mechanism::Sha384RsaPkcs
             | Mechanism::Sha512RsaPkcs
+            | Mechanism::Sha1Hmac
+            | Mechanism::Sha224Hmac
             | Mechanism::Sha256Hmac
+            | Mechanism::Sha384Hmac
+            | Mechanism::Sha512Hmac
             | Mechanism::GenericSecretKeyGen => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),

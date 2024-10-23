@@ -1396,6 +1396,64 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
 
 #[test]
 #[serial]
+fn sign_verify_sha1_hmac() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Sign(true),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(256.into()),
+    ];
+
+    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let signature = session.sign(&Mechanism::Sha1Hmac, private, &data)?;
+
+    session.verify(&Mechanism::Sha1Hmac, private, &data, &signature)?;
+
+    session.destroy_object(private)?;
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_sha224_hmac() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Sign(true),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(256.into()),
+    ];
+
+    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let signature = session.sign(&Mechanism::Sha224Hmac, private, &data)?;
+
+    session.verify(&Mechanism::Sha224Hmac, private, &data, &signature)?;
+
+    session.destroy_object(private)?;
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn sign_verify_sha256_hmac() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
@@ -1418,6 +1476,64 @@ fn sign_verify_sha256_hmac() -> TestResult {
     let signature = session.sign(&Mechanism::Sha256Hmac, private, &data)?;
 
     session.verify(&Mechanism::Sha256Hmac, private, &data, &signature)?;
+
+    session.destroy_object(private)?;
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_sha384_hmac() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Sign(true),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(256.into()),
+    ];
+
+    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let signature = session.sign(&Mechanism::Sha384Hmac, private, &data)?;
+
+    session.verify(&Mechanism::Sha384Hmac, private, &data, &signature)?;
+
+    session.destroy_object(private)?;
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_sha512_hmac() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(true),
+        Attribute::Sensitive(true),
+        Attribute::Sign(true),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(256.into()),
+    ];
+
+    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let signature = session.sign(&Mechanism::Sha512Hmac, private, &data)?;
+
+    session.verify(&Mechanism::Sha512Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
     Ok(())
