@@ -29,7 +29,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 ///
 /// ```no_run
 /// use cryptoki::context::CInitializeArgs;
-/// use cryptoki::context::{Pkcs11, LibLoadingType};
+/// use cryptoki::context::Pkcs11;
 /// use cryptoki::error::Error;
 /// use cryptoki::object::Attribute;
 /// use cryptoki::object::AttributeType;
@@ -278,7 +278,7 @@ impl Session {
     /// ```rust
     /// # fn main() -> testresult::TestResult {
     /// # use cryptoki::session::Session;
-    /// # use cryptoki::context::{LibLoadingType, Pkcs11};
+    /// # use cryptoki::context::Pkcs11;
     /// # use cryptoki::object::{Attribute, AttributeType, CertificateType, ObjectClass, ObjectHandle};
     /// #
     /// # let mut client = Pkcs11::new(
@@ -392,7 +392,7 @@ impl Session {
     /// types.  If you wish, you may create a hash table simply by:
     ///
     /// ```no_run
-    /// use cryptoki::context::{LibLoadingType, Pkcs11};
+    /// use cryptoki::context::Pkcs11;
     /// use cryptoki::context::CInitializeArgs;
     /// use cryptoki::object::AttributeType;
     /// use cryptoki::session::UserType;

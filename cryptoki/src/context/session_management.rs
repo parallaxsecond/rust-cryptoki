@@ -47,7 +47,7 @@ impl Pkcs11 {
     /// ```rust
     /// # fn main() -> testresult::TestResult {
     /// use cryptoki::session::Session;
-    /// use cryptoki::context::{LibLoadingType, Pkcs11};
+    /// use cryptoki::context::Pkcs11;
     ///
     /// let mut client = Pkcs11::new(
     ///     std::env::var("PKCS11_SOFTHSM2_MODULE")
