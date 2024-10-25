@@ -104,7 +104,7 @@ impl Pkcs11 {
             #[cfg(not(windows))]
             let this_lib = libloading::os::unix::Library::this();
             #[cfg(windows)]
-            let this_lib = libloading::os::windows::Library::this();
+            let this_lib = libloading::os::windows::Library::this()?;
             let pkcs11_lib = cryptoki_sys::Pkcs11::from_library(this_lib)?;
             Self::_new(pkcs11_lib)
         }
