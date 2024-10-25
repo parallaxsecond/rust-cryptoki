@@ -47,12 +47,12 @@ impl Pkcs11 {
     /// ```rust
     /// # fn main() -> testresult::TestResult {
     /// use cryptoki::session::Session;
-    /// use cryptoki::context::Pkcs11;
+    /// use cryptoki::context::{LibLoadingType, Pkcs11};
     ///
-    /// let mut client = Pkcs11::new(
+    /// let mut client = Pkcs11::new(LibLoadingType::Open(
     ///     std::env::var("PKCS11_SOFTHSM2_MODULE")
     ///        .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
-    /// )?;
+    /// ))?;
     /// client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
     ///
     /// // Use the first slot

@@ -85,15 +85,32 @@ pub struct Pkcs11 {
     initialized: Arc<RwLock<bool>>,
 }
 
+#[derive(Debug)]
+/// Type of library to load in the instantiation of a new Pkcs11 context.
+pub enum LibLoadingType<P: AsRef<Path>> {
+    /// Load current executable, the PKCS11 implementation is contained in the current executable
+    OpenSelf,
+    /// Open dynamic library specify in input
+    Open(P),
+}
+
 impl Pkcs11 {
     /// Instantiate a new context from the path of a PKCS11 dynamic library implementation.
-    pub fn new<P>(filename: P) -> Result<Self>
+    pub fn new<P>(filename: LibLoadingType<P>) -> Result<Self>
     where
         P: AsRef<Path>,
     {
         unsafe {
-            let pkcs11_lib =
-                cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?;
+            let pkcs11_lib = match filename {
+                LibLoadingType::OpenSelf => {
+                    #[cfg(not(windows))]
+                    let this_lib = libloading::os::unix::Library::this();
+                    #[cfg(windows)]
+                    let this_lib = libloading::os::windows::Library::this();
+                    cryptoki_sys::Pkcs11::from_library(this_lib)?
+                }
+                LibLoadingType::Open(filename) => cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?
+            };
             let mut list = mem::MaybeUninit::uninit();
 
             Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
