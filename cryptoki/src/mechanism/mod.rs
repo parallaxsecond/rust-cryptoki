@@ -8,6 +8,7 @@ pub mod elliptic_curve;
 pub mod hkdf;
 mod mechanism_info;
 pub mod rsa;
+pub mod vendor_defined;
 
 use crate::error::Error;
 use cryptoki_sys::*;
@@ -18,6 +19,7 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 use std::ptr::null_mut;
+use vendor_defined::VendorDefinedMechanism;
 
 use crate::mechanism::rsa::PkcsOaepParams;
 pub use mechanism_info::MechanismInfo;
@@ -297,6 +299,28 @@ impl MechanismType {
     };
     /// HKDF-DATA mechanism
     pub const HKDF_DATA: MechanismType = MechanismType { val: CKM_HKDF_DATA };
+
+    /// Create vendor defined mechanism
+    ///
+    /// # Arguments
+    ///
+    /// * `adding` - The adding based on `CKM_VENDOR_DEFINED`
+    ///
+    /// Usually vendors defines custom mechanism like this:
+    /// ```c
+    /// #define CKM_SOME_CUSTOM_MECH (CKM_VENDOR_DEFINED | 0x00000001UL)
+    /// ```
+    ///
+    /// It maps to
+    /// ```rust
+    /// pub const CKM_SOME_CUSTOM_MECH: MechanismType =
+    ///     MechanismType::new_vendor_defined(0x00000001);
+    /// ```
+    pub const fn new_vendor_defined(adding: u64) -> MechanismType {
+        MechanismType {
+            val: CKM_VENDOR_DEFINED | adding,
+        }
+    }
 
     pub(crate) fn stringify(mech: CK_MECHANISM_TYPE) -> String {
         match mech {
@@ -937,6 +961,9 @@ pub enum Mechanism<'a> {
     HkdfDerive(hkdf::HkdfParams<'a>),
     /// HKDF-DATA mechanism
     HkdfData(hkdf::HkdfParams<'a>),
+
+    /// Vendor defined mechanism
+    VendorDefined(VendorDefinedMechanism<'a>),
 }
 
 impl Mechanism<'_> {
@@ -1008,6 +1035,10 @@ impl Mechanism<'_> {
             Mechanism::HkdfKeyGen => MechanismType::HKDF_KEY_GEN,
             Mechanism::HkdfDerive(_) => MechanismType::HKDF_DERIVE,
             Mechanism::HkdfData(_) => MechanismType::HKDF_DATA,
+
+            Mechanism::VendorDefined(vm) => MechanismType {
+                val: vm.inner.mechanism,
+            },
         }
     }
 }
@@ -1087,6 +1118,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
                 pParameter: null_mut(),
                 ulParameterLen: 0,
             },
+            // Vendor defined mechanisms
+            Mechanism::VendorDefined(vm) => vm.inner,
         }
     }
 }
