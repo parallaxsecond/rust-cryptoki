@@ -316,7 +316,7 @@ impl MechanismType {
     /// pub const CKM_SOME_CUSTOM_MECH: MechanismType =
     ///     MechanismType::new_vendor_defined(0x00000001);
     /// ```
-    pub const fn new_vendor_defined(adding: u64) -> MechanismType {
+    pub const fn new_vendor_defined(adding: CK_ULONG) -> MechanismType {
         MechanismType {
             val: CKM_VENDOR_DEFINED | adding,
         }
