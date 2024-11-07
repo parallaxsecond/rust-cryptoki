@@ -313,6 +313,8 @@ impl MechanismType {
     ///
     /// It maps to
     /// ```rust
+    /// use cryptoki::mechanism::MechanismType;
+    ///
     /// pub const CKM_SOME_CUSTOM_MECH: MechanismType =
     ///     MechanismType::new_vendor_defined(0x00000001);
     /// ```
