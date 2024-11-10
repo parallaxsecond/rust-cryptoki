@@ -11,7 +11,7 @@ license = "Apache-2.0"
 repository = "https://github.com/parallaxsecond/rust-cryptoki"
 
 [dependencies]
-cryptoki = { path = "../cryptoki", version = "0.6.1" }
+cryptoki = { path = "../cryptoki", version = "0.7.0" }
 der = "=0.8.0-pre.0"
 ecdsa = "=0.17.0-pre.5"
 p224 = { version = "=0.14.0-pre", features = ["pkcs8"] }
