@@ -1,2 +1,6 @@
 [workspace]
 members = ["cryptoki", "cryptoki-sys", "cryptoki-rustcrypto"]
+
+[patch.crates-io]
+pkcs12 = { git = "https://github.com/RustCrypto/formats.git" }
+rsa = { path = "../RSA" }

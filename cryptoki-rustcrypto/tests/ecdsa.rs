@@ -95,8 +95,9 @@ fn test_import() -> TestResult {
 
     let template = vec![Attribute::Token(false), Attribute::Label(label.to_vec())];
 
-    let private_handle = private.put_key(&session, template.clone())?;
-    let public_handle = private.verifying_key().put_key(&session, template)?;
+    let private_handle = p256::SecretKey::from(&private).put_key(&session, template.clone())?;
+    let public_handle =
+        p256::PublicKey::from(private.verifying_key()).put_key(&session, template)?;
 
     // data to sign
     let data = [0xFF, 0x55, 0xDD];

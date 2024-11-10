@@ -54,8 +54,10 @@ where
         template.push(Attribute::CertificateType(CertificateType::X_509));
         template.push(Attribute::Token(true));
         template.push(Attribute::Value(self.to_der()?));
-        if !self.tbs_certificate.subject.is_empty() {
-            template.push(Attribute::Subject(self.tbs_certificate.subject.to_der()?));
+        if !self.tbs_certificate().subject().is_empty() {
+            template.push(Attribute::Subject(
+                self.tbs_certificate().subject().to_der()?,
+            ));
         }
 
         Ok(session.create_object(&template)?)

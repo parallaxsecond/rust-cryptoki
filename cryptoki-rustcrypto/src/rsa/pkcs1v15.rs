@@ -1,9 +1,16 @@
 // Copyright 2023 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 
-use cryptoki::object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle};
+use cryptoki::{
+    mechanism::Mechanism,
+    object::{Attribute, AttributeType, KeyType, ObjectClass, ObjectHandle},
+};
 use rsa::pkcs1v15::{RsaSignatureAssociatedOid, Signature, VerifyingKey};
-use spki::{AlgorithmIdentifier, AssociatedAlgorithmIdentifier, SignatureAlgorithmIdentifier};
+use spki::{
+    der::{asn1::OctetString, oid::AssociatedOid, referenced::RefToOwned, AnyRef, Encode},
+    AlgorithmIdentifier, AlgorithmIdentifierRef, AssociatedAlgorithmIdentifier,
+    SignatureAlgorithmIdentifier,
+};
 use std::convert::TryFrom;
 
 use super::{read_key, DigestSigning, Error};
@@ -109,4 +116,35 @@ where
 
     const SIGNATURE_ALGORITHM_IDENTIFIER: AlgorithmIdentifier<Self::Params> =
         <VerifyingKey<D> as SignatureAlgorithmIdentifier>::SIGNATURE_ALGORITHM_IDENTIFIER;
+}
+
+impl<D, S> signature::hazmat::PrehashSigner<Signature> for Signer<D, S>
+where
+    S: SessionLike,
+    D: DigestSigning + RsaSignatureAssociatedOid,
+{
+    fn sign_prehash(&self, prehash: &[u8]) -> Result<Signature, signature::Error> {
+        let payload = pkcs12::DigestInfo {
+            algorithm: (AlgorithmIdentifierRef {
+                oid: <D as AssociatedOid>::OID,
+                parameters: Some(AnyRef::NULL),
+            })
+            .ref_to_owned(),
+            digest: OctetString::new(prehash).unwrap(),
+        };
+
+        let msg = payload.to_der().unwrap();
+        println!("msg: {msg:x?}");
+
+        let bytes = self
+            .session
+            .sign(&Mechanism::RsaPkcs, self.private_key, &msg)
+            .map_err(Error::Cryptoki)
+            .map_err(Box::new)
+            .map_err(signature::Error::from_source)?;
+
+        let signature = Signature::try_from(bytes.as_slice())?;
+
+        Ok(signature)
+    }
 }

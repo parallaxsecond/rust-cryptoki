@@ -152,7 +152,7 @@ macro_rules! impl_sign_algorithm {
     };
 }
 
-impl_sign_algorithm!(p224::NistP224);
+//impl_sign_algorithm!(p224::NistP224);
 impl_sign_algorithm!(p256::NistP256);
 impl_sign_algorithm!(p384::NistP384);
 impl_sign_algorithm!(k256::Secp256k1);

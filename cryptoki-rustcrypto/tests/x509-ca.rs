@@ -20,7 +20,7 @@ use spki::SubjectPublicKeyInfoOwned;
 use std::{str::FromStr, time::Duration};
 use testresult::TestResult;
 use x509_cert::{
-    builder::{Builder, CertificateBuilder, Profile},
+    builder::{profile::cabf, Builder, CertificateBuilder},
     name::Name,
     serial_number::SerialNumber,
     time::Validity,
@@ -66,16 +66,15 @@ fn pss_create_ca() -> TestResult {
 
     let serial_number = SerialNumber::from(42u32);
     let validity = Validity::from_now(Duration::new(5, 0)).unwrap();
-    let profile = Profile::Root;
     let subject =
         Name::from_str("CN=World domination corporation,O=World domination Inc,C=US").unwrap();
-    let pub_key = SubjectPublicKeyInfoOwned::from_key(signer.verifying_key()).unwrap();
+    let profile = cabf::Root::new(false, subject).expect("Create root profile");
+    let pub_key = SubjectPublicKeyInfoOwned::from_key(&signer.verifying_key()).unwrap();
 
-    let builder =
-        CertificateBuilder::new(profile, serial_number, validity, subject, pub_key, &signer)
-            .expect("Create certificate");
+    let builder = CertificateBuilder::new(profile, serial_number, validity, pub_key)
+        .expect("Create certificate");
 
-    let certificate = builder.build().unwrap();
+    let certificate = builder.build(&signer).unwrap();
 
     let pem = certificate.to_pem(LineEnding::LF).expect("generate pem");
     println!("{}", pem);
@@ -132,16 +131,17 @@ fn ecdsa_create_ca() -> TestResult {
 
     let serial_number = SerialNumber::from(42u32);
     let validity = Validity::from_now(Duration::new(5, 0)).unwrap();
-    let profile = Profile::Root;
     let subject =
         Name::from_str("CN=World domination corporation,O=World domination Inc,C=US").unwrap();
-    let pub_key = SubjectPublicKeyInfoOwned::from_key(signer.verifying_key()).unwrap();
+    let profile = cabf::Root::new(false, subject).expect("create root profile");
+    let pub_key = SubjectPublicKeyInfoOwned::from_key(&signer.verifying_key()).unwrap();
 
-    let builder =
-        CertificateBuilder::new(profile, serial_number, validity, subject, pub_key, &signer)
-            .expect("Create certificate");
+    let builder = CertificateBuilder::new(profile, serial_number, validity, pub_key)
+        .expect("Create certificate");
 
-    let certificate = builder.build::<p256::ecdsa::DerSignature>().unwrap();
+    let certificate = builder
+        .build::<_, p256::ecdsa::DerSignature>(&signer)
+        .unwrap();
 
     let pem = certificate.to_pem(LineEnding::LF).expect("generate pem");
     println!("{}", pem);
