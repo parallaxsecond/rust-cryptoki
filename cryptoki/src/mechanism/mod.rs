@@ -304,23 +304,24 @@ impl MechanismType {
     ///
     /// # Arguments
     ///
-    /// * `adding` - The adding based on `CKM_VENDOR_DEFINED`
+    /// * `val` - The value of vendor defined mechanism
     ///
-    /// Usually vendors defines custom mechanism like this:
-    /// ```c
-    /// #define CKM_SOME_CUSTOM_MECH (CKM_VENDOR_DEFINED | 0x00000001UL)
-    /// ```
+    /// # Errors
     ///
-    /// It maps to
+    /// If `val` is less then `CKM_VENDOR_DEFINED`, a `Error::InvalidValue` will be returned
+    ///
+    /// # Examples
     /// ```rust
-    /// use cryptoki::mechanism::MechanismType;
+    /// use cryptoki::mechanism::{vendor_defined::CKM_VENDOR_DEFINED, MechanismType};
     ///
-    /// pub const CKM_SOME_CUSTOM_MECH: MechanismType =
-    ///     MechanismType::new_vendor_defined(0x00000001);
+    /// let some_custom_mech: MechanismType =
+    ///     MechanismType::new_vendor_defined(CKM_VENDOR_DEFINED | 0x00000001).unwrap();
     /// ```
-    pub const fn new_vendor_defined(adding: CK_ULONG) -> MechanismType {
-        MechanismType {
-            val: CKM_VENDOR_DEFINED | adding,
+    pub fn new_vendor_defined(val: CK_MECHANISM_TYPE) -> crate::error::Result<MechanismType> {
+        if val < CKM_VENDOR_DEFINED {
+            Err(Error::InvalidValue)
+        } else {
+            Ok(MechanismType { val })
         }
     }
 

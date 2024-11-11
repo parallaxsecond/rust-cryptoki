@@ -6,6 +6,7 @@
 
 use std::{marker::PhantomData, ptr::null_mut};
 
+pub use cryptoki_sys::CKM_VENDOR_DEFINED;
 use cryptoki_sys::CK_MECHANISM;
 
 use super::{make_mechanism, MechanismType};
