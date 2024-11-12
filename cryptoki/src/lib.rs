@@ -1,23 +1,6 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-//! Rust PKCS11 new abstraction
-//!
-//! The items in the new module only expose idiomatic and safe Rust types and functions to
-//! interface with the PKCS11 API. All the PKCS11 items might not be implemented but everything
-//! that is implemented is safe.
-//!
-//! The modules under `new` follow the structure of the PKCS11 document version 2.40 available [here](http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/pkcs11-base-v2.40.html).
-//!
-//! # Conformance Notes
-//!
-//! Throughout this crate, many functions and other items include additional
-//! "**Conformance**" notes. These notes may provide guarantees about behavior or
-//! additional, contextual information. In all cases, such items pertain
-//! to information from the PKCS#11 standard and are contingent on the provider
-//! being accessed through this crate conforming to that standard. That is, this
-//! crate is permitted to *assume* these guarantees, and is does not necessarily
-//! check for or enforce them itself.
-
+#![doc = include_str!("../README.md")]
 // This list comes from
 // https://github.com/rust-unofficial/patterns/blob/master/anti_patterns/deny-warnings.md
 #![allow(renamed_and_removed_lints, unknown_lints)]
