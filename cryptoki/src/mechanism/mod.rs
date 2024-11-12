@@ -8,6 +8,7 @@ pub mod elliptic_curve;
 pub mod hkdf;
 mod mechanism_info;
 pub mod rsa;
+pub mod vendor_defined;
 
 use crate::error::Error;
 use cryptoki_sys::*;
@@ -18,6 +19,7 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 use std::ptr::null_mut;
+use vendor_defined::VendorDefinedMechanism;
 
 use crate::mechanism::rsa::PkcsOaepParams;
 pub use mechanism_info::MechanismInfo;
@@ -297,6 +299,31 @@ impl MechanismType {
     };
     /// HKDF-DATA mechanism
     pub const HKDF_DATA: MechanismType = MechanismType { val: CKM_HKDF_DATA };
+
+    /// Create vendor defined mechanism
+    ///
+    /// # Arguments
+    ///
+    /// * `val` - The value of vendor defined mechanism
+    ///
+    /// # Errors
+    ///
+    /// If `val` is less then `CKM_VENDOR_DEFINED`, a `Error::InvalidValue` will be returned
+    ///
+    /// # Examples
+    /// ```rust
+    /// use cryptoki::mechanism::{vendor_defined::CKM_VENDOR_DEFINED, MechanismType};
+    ///
+    /// let some_custom_mech: MechanismType =
+    ///     MechanismType::new_vendor_defined(CKM_VENDOR_DEFINED | 0x00000001).unwrap();
+    /// ```
+    pub fn new_vendor_defined(val: CK_MECHANISM_TYPE) -> crate::error::Result<MechanismType> {
+        if val < CKM_VENDOR_DEFINED {
+            Err(Error::InvalidValue)
+        } else {
+            Ok(MechanismType { val })
+        }
+    }
 
     pub(crate) fn stringify(mech: CK_MECHANISM_TYPE) -> String {
         match mech {
@@ -937,6 +964,9 @@ pub enum Mechanism<'a> {
     HkdfDerive(hkdf::HkdfParams<'a>),
     /// HKDF-DATA mechanism
     HkdfData(hkdf::HkdfParams<'a>),
+
+    /// Vendor defined mechanism
+    VendorDefined(VendorDefinedMechanism<'a>),
 }
 
 impl Mechanism<'_> {
@@ -1008,6 +1038,10 @@ impl Mechanism<'_> {
             Mechanism::HkdfKeyGen => MechanismType::HKDF_KEY_GEN,
             Mechanism::HkdfDerive(_) => MechanismType::HKDF_DERIVE,
             Mechanism::HkdfData(_) => MechanismType::HKDF_DATA,
+
+            Mechanism::VendorDefined(vm) => MechanismType {
+                val: vm.inner.mechanism,
+            },
         }
     }
 }
@@ -1087,6 +1121,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
                 pParameter: null_mut(),
                 ulParameterLen: 0,
             },
+            // Vendor defined mechanisms
+            Mechanism::VendorDefined(vm) => vm.inner,
         }
     }
 }
