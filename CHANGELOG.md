@@ -1,5 +1,40 @@
 # Changelog
 
+## [cryptoki-0.8.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.8.0) (2024-11-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.2.0...cryptoki-0.8.0)
+
+## [cryptoki-sys-0.2.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.2.0) (2024-11-14)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.7.0...cryptoki-sys-0.2.0)
+
+**Closed issues:**
+
+- build issues with rust \< 1.80 [\#221](https://github.com/parallaxsecond/rust-cryptoki/issues/221)
+- project won't compile under Rust 1.80 - CI broken [\#216](https://github.com/parallaxsecond/rust-cryptoki/issues/216)
+- New release? [\#194](https://github.com/parallaxsecond/rust-cryptoki/issues/194)
+- Underlying library access / vendor extensions [\#115](https://github.com/parallaxsecond/rust-cryptoki/issues/115)
+- Expose more fine-grained control over `find_objects` [\#106](https://github.com/parallaxsecond/rust-cryptoki/issues/106)
+- Current `pkcs11.h` is not up-to-date [\#65](https://github.com/parallaxsecond/rust-cryptoki/issues/65)
+
+**Merged pull requests:**
+
+- chore: upgrade version number before publishing [\#233](https://github.com/parallaxsecond/rust-cryptoki/pull/233) ([hug-dev](https://github.com/hug-dev))
+- feat: support vendor defined mechanisms [\#232](https://github.com/parallaxsecond/rust-cryptoki/pull/232) ([Direktor799](https://github.com/Direktor799))
+- Move crate documentation to README and add code example [\#231](https://github.com/parallaxsecond/rust-cryptoki/pull/231) ([wiktor-k](https://github.com/wiktor-k))
+- Add capability to load symbols from current executable [\#230](https://github.com/parallaxsecond/rust-cryptoki/pull/230) ([EliseChouleur](https://github.com/EliseChouleur))
+- feat: add SHAn-HMAC [\#229](https://github.com/parallaxsecond/rust-cryptoki/pull/229) ([Direktor799](https://github.com/Direktor799))
+- Feat/pkcs11 3.0 [\#228](https://github.com/parallaxsecond/rust-cryptoki/pull/228) ([Direktor799](https://github.com/Direktor799))
+- feat: add HKDF mechanisms [\#227](https://github.com/parallaxsecond/rust-cryptoki/pull/227) ([Direktor799](https://github.com/Direktor799))
+- flip order of CI commands, to check fmt and clippy first [\#224](https://github.com/parallaxsecond/rust-cryptoki/pull/224) ([keldonin](https://github.com/keldonin))
+- implements session object handle iterator, with caching [\#223](https://github.com/parallaxsecond/rust-cryptoki/pull/223) ([keldonin](https://github.com/keldonin))
+- fix compilation issues with Rust 1.79 [\#222](https://github.com/parallaxsecond/rust-cryptoki/pull/222) ([keldonin](https://github.com/keldonin))
+- Support vendor extensions for CK\_USER\_TYPE [\#220](https://github.com/parallaxsecond/rust-cryptoki/pull/220) ([larper2axis](https://github.com/larper2axis))
+- Add an example to `find_objects` [\#219](https://github.com/parallaxsecond/rust-cryptoki/pull/219) ([wiktor-k](https://github.com/wiktor-k))
+- Adjust code to compile under rust 1.80 [\#217](https://github.com/parallaxsecond/rust-cryptoki/pull/217) ([keldonin](https://github.com/keldonin))
+- Implement Session.copy\_object\(\) [\#215](https://github.com/parallaxsecond/rust-cryptoki/pull/215) ([keldonin](https://github.com/keldonin))
+- Session.find\_objects\(\): implement fewer calls to C\_FindObjects\(\) [\#214](https://github.com/parallaxsecond/rust-cryptoki/pull/214) ([keldonin](https://github.com/keldonin))
+
 ## [cryptoki-0.7.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.7.0) (2024-06-18)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.8...cryptoki-0.7.0)
@@ -14,6 +49,7 @@
 
 **Merged pull requests:**
 
+- Bump crates [\#211](https://github.com/parallaxsecond/rust-cryptoki/pull/211) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
 - Port 0.6 changes [\#210](https://github.com/parallaxsecond/rust-cryptoki/pull/210) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
 - Expose PkcsOaepParams' message digest algorithm [\#207](https://github.com/parallaxsecond/rust-cryptoki/pull/207) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - 20240308 mechanisms [\#203](https://github.com/parallaxsecond/rust-cryptoki/pull/203) ([Firstyear](https://github.com/Firstyear))
@@ -22,7 +58,7 @@
 - Use infallible conversion into instead of try\_into [\#197](https://github.com/parallaxsecond/rust-cryptoki/pull/197) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
 - Fix test for 32bit arch [\#193](https://github.com/parallaxsecond/rust-cryptoki/pull/193) ([ionut-arm](https://github.com/ionut-arm))
 - nightly: Add the loongaarch64-unkown-linux-gnu target [\#190](https://github.com/parallaxsecond/rust-cryptoki/pull/190) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
-- ci.yml: Add a job for running tests on MSRV [\#188](https://github.com/parallaxsecond/rust-cryptoki/pull/188) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- ci.yml: Add a job for runnning tests on MSRV [\#188](https://github.com/parallaxsecond/rust-cryptoki/pull/188) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Add references to RFC 4493 in comments about AesCMac. [\#184](https://github.com/parallaxsecond/rust-cryptoki/pull/184) ([xaqq](https://github.com/xaqq))
 - Add SHA256-HMAC mechanism [\#183](https://github.com/parallaxsecond/rust-cryptoki/pull/183) ([jippeholwerda](https://github.com/jippeholwerda))
 - Expose AES-CMAC algorithm [\#181](https://github.com/parallaxsecond/rust-cryptoki/pull/181) ([xaqq](https://github.com/xaqq))
@@ -32,22 +68,21 @@
 
 ## [cryptoki-0.6.2](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.2) (2024-03-08)
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.1...cryptoki-0.6.2)
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.6.1...cryptoki-0.6.2)
+
+**Closed issues:**
+
+- session.login fails on MacOS Sonoma [\#191](https://github.com/parallaxsecond/rust-cryptoki/issues/191)
+- test slot::token\_info::test::debug\_info fails on 32-bit architectures. [\#186](https://github.com/parallaxsecond/rust-cryptoki/issues/186)
+
+## [cryptoki-0.6.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.1) (2023-10-17)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.6.0...cryptoki-0.6.1)
 
 **Merged pull requests:**
 
-- Resolve nightly CI failures [\#205](https://github.com/parallaxsecond/rust-cryptoki/pull/205) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
-- Fix errors linked to psa-crypto-conversions feature [\#202](https://github.com/parallaxsecond/rust-cryptoki/pull/202) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
-
-
-## [cryptoki-0.6.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.1) (2023-10-16)
-
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.6.0...cryptoki-0.6.1)
-
-**Merged pull requests:**
-
+- Bump cryptoki to 0.6.1 [\#180](https://github.com/parallaxsecond/rust-cryptoki/pull/180) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Bump psa-crypto to 0.12.0 [\#179](https://github.com/parallaxsecond/rust-cryptoki/pull/179) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
-
 
 ## [cryptoki-0.6.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.6.0) (2023-10-06)
 
@@ -55,18 +90,10 @@
 
 **Merged pull requests:**
 
+- Update Changelog with psa-crypto bump [\#177](https://github.com/parallaxsecond/rust-cryptoki/pull/177) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Bump psa-crypto to 0.11.0 [\#176](https://github.com/parallaxsecond/rust-cryptoki/pull/176) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
-
-## [cryptoki-sys-0.1.7](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.7) (2023-10-05)
-
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.5.0...cryptoki-sys-0.1.7)
-
-**Closed issues:**
-
-- PKCS OAEP padding always returns: Pkcs11\(ArgumentsBad\) [\#163](https://github.com/parallaxsecond/rust-cryptoki/issues/163)
-
-**Merged pull requests:**
-
+- Update cryptoki crate version and add changelog [\#175](https://github.com/parallaxsecond/rust-cryptoki/pull/175) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
+- Update -sys crate version and add changelog [\#174](https://github.com/parallaxsecond/rust-cryptoki/pull/174) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Fix spelling and Update Cargo.lock [\#172](https://github.com/parallaxsecond/rust-cryptoki/pull/172) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - Start tracking Cargo.lock file [\#171](https://github.com/parallaxsecond/rust-cryptoki/pull/171) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
 - ci: Add workflow dispatch [\#170](https://github.com/parallaxsecond/rust-cryptoki/pull/170) ([tgonzalezorlandoarm](https://github.com/tgonzalezorlandoarm))
@@ -77,28 +104,97 @@
 - elliptic\_curve: Fix broken references [\#161](https://github.com/parallaxsecond/rust-cryptoki/pull/161) ([wiktor-k](https://github.com/wiktor-k))
 - Make generic bindings [\#154](https://github.com/parallaxsecond/rust-cryptoki/pull/154) ([arjennienhuis](https://github.com/arjennienhuis))
 
-## [cryptoki-sys-0.1.6](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.6) (2023-04-22)
+## [cryptoki-sys-0.1.7](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.7) (2023-10-06)
 
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.1...cryptoki-sys-0.1.6)
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.5.0...cryptoki-sys-0.1.7)
+
+**Closed issues:**
+
+- PKCS OAEP padding always returns: Pkcs11\(ArgumentsBad\) [\#163](https://github.com/parallaxsecond/rust-cryptoki/issues/163)
+
+## [cryptoki-0.5.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.5.0) (2023-08-12)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.6...cryptoki-0.5.0)
+
+**Closed issues:**
+
+- Signing and Verifying [\#159](https://github.com/parallaxsecond/rust-cryptoki/issues/159)
+- UserNotLoggedIn calling decrypt after login.... [\#157](https://github.com/parallaxsecond/rust-cryptoki/issues/157)
+- Wrapper for C\_WaitForSlotEvent [\#145](https://github.com/parallaxsecond/rust-cryptoki/issues/145)
 
 **Merged pull requests:**
 
+- Bump cryptoki to 0.5.0 [\#160](https://github.com/parallaxsecond/rust-cryptoki/pull/160) ([ionut-arm](https://github.com/ionut-arm))
+- "fix" for clone-then-initialize problem [\#152](https://github.com/parallaxsecond/rust-cryptoki/pull/152) ([arjennienhuis](https://github.com/arjennienhuis))
+- Fix codespell action [\#148](https://github.com/parallaxsecond/rust-cryptoki/pull/148) ([wiktor-k](https://github.com/wiktor-k))
+- Add wait\_for\_slot\_event and get\_slot\_event [\#146](https://github.com/parallaxsecond/rust-cryptoki/pull/146) ([arjennienhuis](https://github.com/arjennienhuis))
+- Add AES-GCM mechanism [\#144](https://github.com/parallaxsecond/rust-cryptoki/pull/144) ([wiktor-k](https://github.com/wiktor-k))
+- Add documentation check to CI test suite [\#141](https://github.com/parallaxsecond/rust-cryptoki/pull/141) ([wiktor-k](https://github.com/wiktor-k))
+- Add EdDSA mechanism [\#140](https://github.com/parallaxsecond/rust-cryptoki/pull/140) ([wiktor-k](https://github.com/wiktor-k))
+- Remove derivative crate [\#139](https://github.com/parallaxsecond/rust-cryptoki/pull/139) ([a1ien](https://github.com/a1ien))
+
+## [cryptoki-sys-0.1.6](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.6) (2023-04-25)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.3.1...cryptoki-sys-0.1.6)
+
+**Closed issues:**
+
+- Set homepage in GitHub project info [\#129](https://github.com/parallaxsecond/rust-cryptoki/issues/129)
+
+**Merged pull requests:**
+
+- Cryptoki-sys 0.1.6 [\#138](https://github.com/parallaxsecond/rust-cryptoki/pull/138) ([ionut-arm](https://github.com/ionut-arm))
+- Add binding for single-part digest function [\#132](https://github.com/parallaxsecond/rust-cryptoki/pull/132) ([ellerh](https://github.com/ellerh))
 - Bump bindgen version [\#130](https://github.com/parallaxsecond/rust-cryptoki/pull/130) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+- Add new Pin type with secrecy/zeroize wrapper [\#128](https://github.com/parallaxsecond/rust-cryptoki/pull/128) ([sbihel](https://github.com/sbihel))
+- fixup clippy errors [\#127](https://github.com/parallaxsecond/rust-cryptoki/pull/127) ([baloo](https://github.com/baloo))
+- Fix CI \(clippy warnings\) [\#125](https://github.com/parallaxsecond/rust-cryptoki/pull/125) ([Bobo1239](https://github.com/Bobo1239))
+- Implement PartialEq/Eq for Attribute [\#124](https://github.com/parallaxsecond/rust-cryptoki/pull/124) ([Bobo1239](https://github.com/Bobo1239))
+- Update to remove const\_err lint [\#122](https://github.com/parallaxsecond/rust-cryptoki/pull/122) ([wiktor-k](https://github.com/wiktor-k))
+- Simplify tests using TestResult [\#120](https://github.com/parallaxsecond/rust-cryptoki/pull/120) ([wiktor-k](https://github.com/wiktor-k))
+- Implement update attributes for objects [\#119](https://github.com/parallaxsecond/rust-cryptoki/pull/119) ([baloo](https://github.com/baloo))
+- Split the implementation of session and pkcs11 [\#118](https://github.com/parallaxsecond/rust-cryptoki/pull/118) ([baloo](https://github.com/baloo))
+- Fix CI [\#117](https://github.com/parallaxsecond/rust-cryptoki/pull/117) ([Bobo1239](https://github.com/Bobo1239))
+- Fix wrong mapping of AttributeType::CertificateType [\#116](https://github.com/parallaxsecond/rust-cryptoki/pull/116) ([Bobo1239](https://github.com/Bobo1239))
+- Add CBC mode block ciphers [\#111](https://github.com/parallaxsecond/rust-cryptoki/pull/111) ([jhagborgftx](https://github.com/jhagborgftx))
+- Make RSA OAEP and ECDH1 safe using lifetime parameters [\#110](https://github.com/parallaxsecond/rust-cryptoki/pull/110) ([jhagborgftx](https://github.com/jhagborgftx))
+- Add several no-parameter mechanisms [\#108](https://github.com/parallaxsecond/rust-cryptoki/pull/108) ([jhagborgftx](https://github.com/jhagborgftx))
+
+## [cryptoki-0.3.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.3.1) (2023-03-15)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.5...cryptoki-0.3.1)
+
+## [cryptoki-sys-0.1.5](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.5) (2023-03-15)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.4.1...cryptoki-sys-0.1.5)
+
+**Closed issues:**
+
+- `#[hsm_test]` attribute/macro [\#121](https://github.com/parallaxsecond/rust-cryptoki/issues/121)
+- RSA OAEP interface is unsound [\#107](https://github.com/parallaxsecond/rust-cryptoki/issues/107)
 
 ## [cryptoki-0.4.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.1) (2022-09-29)
 
-**Implemented enhancements:**
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.4.0...cryptoki-0.4.1)
 
+**Merged pull requests:**
+
+- Bump to v0.4.1 [\#104](https://github.com/parallaxsecond/rust-cryptoki/pull/104) ([ionut-arm](https://github.com/ionut-arm))
 - Implement Eq for SessionState [\#103](https://github.com/parallaxsecond/rust-cryptoki/pull/103) ([a1ien](https://github.com/a1ien))
 
 ## [cryptoki-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.4.0) (2022-09-07)
 
-### Breaking changes since 0.3.0
-
-- A change to the way `Pkcs11::initialize` needs to be called, and a new error variant in [#84](https://github.com/parallaxsecond/rust-cryptoki/pull/84)
-- A change to the way sessions are created, in [#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101)
-
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.1.4...cryptoki-0.4.0)
+
+**Merged pull requests:**
+
+- Bump version and update CHANGELOG [\#102](https://github.com/parallaxsecond/rust-cryptoki/pull/102) ([ionut-arm](https://github.com/ionut-arm))
+- Make separate constructors for RO/RW sessions [\#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101) ([ionut-arm](https://github.com/ionut-arm))
+- Fix issues reported by clippy [\#98](https://github.com/parallaxsecond/rust-cryptoki/pull/98) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
+
+## [cryptoki-sys-0.1.4](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.4) (2022-08-11)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.1...cryptoki-sys-0.1.4)
 
 **Implemented enhancements:**
 
@@ -112,24 +208,16 @@
 - Segmentation fault on parsing `Date` [\#74](https://github.com/parallaxsecond/rust-cryptoki/issues/74)
 
 **Merged pull requests:**
+
+- Prepare release of changes to bindings [\#96](https://github.com/parallaxsecond/rust-cryptoki/pull/96) ([ionut-arm](https://github.com/ionut-arm))
 - Fix CI error for x86\_64-pc-windows-msvc [\#95](https://github.com/parallaxsecond/rust-cryptoki/pull/95) ([hug-dev](https://github.com/hug-dev))
+- Add bindings for FreeBSD on x86-64. [\#94](https://github.com/parallaxsecond/rust-cryptoki/pull/94) ([ximon18](https://github.com/ximon18))
+- Add script for regenerating bindings [\#91](https://github.com/parallaxsecond/rust-cryptoki/pull/91) ([ionut-arm](https://github.com/ionut-arm))
 - session\_management: Add ability to login with raw bytes [\#90](https://github.com/parallaxsecond/rust-cryptoki/pull/90) ([Subject38](https://github.com/Subject38))
+- Add bindings for aarch64-darwin [\#89](https://github.com/parallaxsecond/rust-cryptoki/pull/89) ([Subject38](https://github.com/Subject38))
 - Remove serial\_test\_derive from deps [\#86](https://github.com/parallaxsecond/rust-cryptoki/pull/86) ([palfrey](https://github.com/palfrey))
 - Fix typos and add automatic check to CI [\#83](https://github.com/parallaxsecond/rust-cryptoki/pull/83) ([wiktor-k](https://github.com/wiktor-k))
 - Info flags refactor [\#68](https://github.com/parallaxsecond/rust-cryptoki/pull/68) ([vkkoskie](https://github.com/vkkoskie))
-- Make separate constructors for RO/RW sessions [\#101](https://github.com/parallaxsecond/rust-cryptoki/pull/101) ([ionut-arm](https://github.com/ionut-arm))
-- Fix issues reported by clippy [\#98](https://github.com/parallaxsecond/rust-cryptoki/pull/98) ([gowthamsk-arm](https://github.com/gowthamsk-arm))
-
-## [cryptoki-sys-0.1.4](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.1.4) (2022-08-11)
-
-[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.2.1...cryptoki-sys-0.1.4)
-
-**Merged pull requests:**
-
-- Prepare release of changes to bindings [\#96](https://github.com/parallaxsecond/rust-cryptoki/pull/96) ([ionut-arm](https://github.com/ionut-arm))
-- Add bindings for FreeBSD on x86-64. [\#94](https://github.com/parallaxsecond/rust-cryptoki/pull/94) ([ximon18](https://github.com/ximon18))
-- Add script for regenerating bindings [\#91](https://github.com/parallaxsecond/rust-cryptoki/pull/91) ([ionut-arm](https://github.com/ionut-arm))
-- Add bindings for aarch64-darwin [\#89](https://github.com/parallaxsecond/rust-cryptoki/pull/89) ([Subject38](https://github.com/Subject38))
 
 ## [cryptoki-0.2.1](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.2.1) (2022-02-14)
 
@@ -151,7 +239,7 @@
 **Implemented enhancements:**
 
 - PIN Handling [\#50](https://github.com/parallaxsecond/rust-cryptoki/issues/50)
-- Updates for getting attribute info - \#42 [\#48](https://github.com/parallaxsecond/rust-cryptoki/pull/48) ([mjb3279](https://github.com/mjb3279))
+- Updates for getting attribute info - \#42 [\#48](https://github.com/parallaxsecond/rust-cryptoki/pull/48) ([mike-boquard](https://github.com/mike-boquard))
 - Add secret key generation and key wrapping functions [\#38](https://github.com/parallaxsecond/rust-cryptoki/pull/38) ([wiktor-k](https://github.com/wiktor-k))
 
 **Fixed bugs:**
@@ -173,11 +261,11 @@
 - Suppress null pointer deref warnings [\#62](https://github.com/parallaxsecond/rust-cryptoki/pull/62) ([vkkoskie](https://github.com/vkkoskie))
 - Use rust's own bool type in abstraction crate [\#61](https://github.com/parallaxsecond/rust-cryptoki/pull/61) ([vkkoskie](https://github.com/vkkoskie))
 - Switch to inclusive bindgen naming [\#60](https://github.com/parallaxsecond/rust-cryptoki/pull/60) ([vkkoskie](https://github.com/vkkoskie))
-- Implemented new way of holding the context within the session [\#59](https://github.com/parallaxsecond/rust-cryptoki/pull/59) ([mjb3279](https://github.com/mjb3279))
+- Implemented new way of holding the context within the session [\#59](https://github.com/parallaxsecond/rust-cryptoki/pull/59) ([mike-boquard](https://github.com/mike-boquard))
 - Module tree hygiene [\#56](https://github.com/parallaxsecond/rust-cryptoki/pull/56) ([vkkoskie](https://github.com/vkkoskie))
-- Fixes to address \#50 [\#52](https://github.com/parallaxsecond/rust-cryptoki/pull/52) ([mjb3279](https://github.com/mjb3279))
+- Fixes to address \#50 [\#52](https://github.com/parallaxsecond/rust-cryptoki/pull/52) ([mike-boquard](https://github.com/mike-boquard))
 - Merge `devel` into `main` [\#51](https://github.com/parallaxsecond/rust-cryptoki/pull/51) ([hug-dev](https://github.com/hug-dev))
-- Added support for `C_SetPIN` [\#49](https://github.com/parallaxsecond/rust-cryptoki/pull/49) ([mjb3279](https://github.com/mjb3279))
+- Added support for `C_SetPIN` [\#49](https://github.com/parallaxsecond/rust-cryptoki/pull/49) ([mike-boquard](https://github.com/mike-boquard))
 - Simplify test code by using Results instead of unwraps [\#39](https://github.com/parallaxsecond/rust-cryptoki/pull/39) ([wiktor-k](https://github.com/wiktor-k))
 - Update CHaNGELOG [\#37](https://github.com/parallaxsecond/rust-cryptoki/pull/37) ([hug-dev](https://github.com/hug-dev))
 
