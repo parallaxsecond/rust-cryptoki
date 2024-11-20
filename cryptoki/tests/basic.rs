@@ -1172,7 +1172,7 @@ fn sha256_digest() -> TestResult {
 fn aes_gcm_no_aad() -> TestResult {
     // Encrypt two blocks of zeros with AES-128-GCM
     let key = vec![0; 16];
-    let iv = [0; 12];
+    let mut iv = [0; 12];
     let aad = [];
     let plain = [0; 32];
     let expected_cipher_and_tag = [
@@ -1192,7 +1192,7 @@ fn aes_gcm_no_aad() -> TestResult {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()));
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
@@ -1204,7 +1204,7 @@ fn aes_gcm_with_aad() -> TestResult {
     // Encrypt a block of zeros with AES-128-GCM.
     // Use another block of zeros for AAD.
     let key = vec![0; 16];
-    let iv = [0; 12];
+    let mut iv = [0; 12];
     let aad = [0; 16];
     let plain = [0; 16];
     let expected_cipher_and_tag = [
@@ -1223,7 +1223,7 @@ fn aes_gcm_with_aad() -> TestResult {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&iv, &aad, 96.into()));
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()));
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
