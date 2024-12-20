@@ -138,7 +138,7 @@ impl<'a> ObjectHandleIterator<'a> {
 // and index to cache_size. That allows to jump directly to the C_FindObjects call
 // and start filling the cache.
 
-impl<'a> Iterator for ObjectHandleIterator<'a> {
+impl Iterator for ObjectHandleIterator<'_> {
     type Item = Result<ObjectHandle>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -272,7 +272,7 @@ impl Session {
     /// # See also
     ///
     /// * [`Session::iter_objects`] for a way to specify the cache size
-
+    ///
     /// # Example
     ///
     /// ```rust

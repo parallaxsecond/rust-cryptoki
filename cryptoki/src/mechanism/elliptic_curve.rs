@@ -82,7 +82,7 @@ pub struct EcKdf<'a> {
     shared_data: Option<&'a [u8]>,
 }
 
-impl<'a> EcKdf<'a> {
+impl EcKdf<'_> {
     /// The null transformation. The derived key value is produced by
     /// taking bytes from the left of the agreed value. The new key
     /// size is limited to the size of the agreed value.
