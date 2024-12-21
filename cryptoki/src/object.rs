@@ -14,6 +14,8 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
+const MAX_CU_ULONG: CK_ULONG = !0;
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 /// Type of an attribute
 pub enum AttributeType {
@@ -255,7 +257,9 @@ impl AttributeType {
             CKA_UNWRAP_TEMPLATE => String::from(stringify!(CKA_UNWRAP_TEMPLATE)),
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
-            CKA_VENDOR_DEFINED => String::from(stringify!(CKA_VENDOR_DEFINED)),
+            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => {
+                format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
+            }
             _ => format!("unknown ({val:08x})"),
         }
     }
@@ -399,7 +403,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_VERIFY_RECOVER => Ok(AttributeType::VerifyRecover),
             CKA_WRAP => Ok(AttributeType::Wrap),
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
-            0x8000_0000..=0xffff_ffff => Ok(AttributeType::VendorDefined(attribute_type)),
+            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => Ok(AttributeType::VendorDefined(attribute_type)),
             attr_type => {
                 error!("Attribute type {} not supported.", attr_type);
                 Err(Error::NotSupported)
@@ -937,7 +941,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                         )?))
                     }
                 }
-            },
+            }
             AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((t, val.to_vec()))),
         }
     }
