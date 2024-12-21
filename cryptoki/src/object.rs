@@ -526,7 +526,7 @@ pub enum Attribute {
     /// Length in bytes of the value
     ValueLen(Ulong),
     /// Vendor defined value
-    VendorDefined((CK_ATTRIBUTE_TYPE, Vec<u8>)),
+    VendorDefined((AttributeType, Vec<u8>)),
     /// Determines if a key supports verifying
     Verify(bool),
     /// Determines if a key supports verifying where the data can be recovered from the signature
@@ -596,7 +596,7 @@ impl Attribute {
             Attribute::Url(_) => AttributeType::Url,
             Attribute::Value(_) => AttributeType::Value,
             Attribute::ValueLen(_) => AttributeType::ValueLen,
-            Attribute::VendorDefined((num, _)) => AttributeType::VendorDefined(*num),
+            Attribute::VendorDefined((num, _)) => *num,
             Attribute::Verify(_) => AttributeType::Verify,
             Attribute::VerifyRecover(_) => AttributeType::VerifyRecover,
             Attribute::Wrap(_) => AttributeType::Wrap,
@@ -942,7 +942,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                     }
                 }
             }
-            AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((t, val.to_vec()))),
+            AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((AttributeType::VendorDefined(t), val.to_vec()))),
         }
     }
 }
