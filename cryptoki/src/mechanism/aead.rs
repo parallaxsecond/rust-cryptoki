@@ -9,11 +9,11 @@ use std::marker::PhantomData;
 use std::slice;
 
 /// Parameters for AES-GCM.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 #[repr(transparent)]
 pub struct GcmParams<'a> {
     inner: CK_GCM_PARAMS,
-    _marker: PhantomData<&'a [u8]>,
+    _marker: PhantomData<&'a mut [u8]>,
 }
 
 impl<'a> GcmParams<'a> {
@@ -36,7 +36,7 @@ impl<'a> GcmParams<'a> {
     ///
     /// This function panics if the length of `iv` or `aad` does not
     /// fit into an [Ulong].
-    pub fn new(iv: &'a [u8], aad: &'a [u8], tag_bits: Ulong) -> Self {
+    pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Self {
         // The ulIvBits parameter seems to be missing from the 2.40 spec,
         // although it is included in the header file.  In [1], OASIS clarified
         // that the header file is normative.  In 3.0, they added the parameter
@@ -55,7 +55,7 @@ impl<'a> GcmParams<'a> {
         // [1]: https://www.oasis-open.org/committees/document.php?document_id=58032&wg_abbrev=pkcs11
         GcmParams {
             inner: CK_GCM_PARAMS {
-                pIv: iv.as_ptr() as *mut _,
+                pIv: iv.as_mut_ptr(),
                 ulIvLen: iv
                     .len()
                     .try_into()
@@ -73,9 +73,9 @@ impl<'a> GcmParams<'a> {
     }
 
     /// The initialization vector.
-    pub fn iv(&self) -> &'a [u8] {
-        // SAFETY: In the constructor, the IV always comes from a &'a [u8]
-        unsafe { slice::from_raw_parts(self.inner.pIv, self.inner.ulIvLen as _) }
+    pub fn iv(&mut self) -> &mut [u8] {
+        // SAFETY: In the constructor, the IV always comes from a &'a mut [u8]
+        unsafe { slice::from_raw_parts_mut(self.inner.pIv, self.inner.ulIvLen as _) }
     }
 
     /// The additional authenticated data.
