@@ -185,24 +185,3 @@ impl<'a> From<PkcsOaepParams<'a>> for Mechanism<'a> {
         Mechanism::RsaPkcsOaep(pkcs_oaep_params)
     }
 }
-
-#[cfg(feature = "psa-crypto-conversions")]
-#[allow(deprecated)]
-impl PkcsMgfType {
-    /// Convert a PSA Crypto Hash algorithm to a MGF type
-    pub fn from_psa_crypto_hash(alg: psa_crypto::types::algorithm::Hash) -> Result<Self> {
-        use psa_crypto::types::algorithm::Hash;
-
-        match alg {
-            Hash::Sha1 => Ok(PkcsMgfType::MGF1_SHA1),
-            Hash::Sha224 => Ok(PkcsMgfType::MGF1_SHA224),
-            Hash::Sha256 => Ok(PkcsMgfType::MGF1_SHA256),
-            Hash::Sha384 => Ok(PkcsMgfType::MGF1_SHA384),
-            Hash::Sha512 => Ok(PkcsMgfType::MGF1_SHA512),
-            alg => {
-                error!("{:?} is not a supported MGF1 algorithm", alg);
-                Err(Error::NotSupported)
-            }
-        }
-    }
-}
