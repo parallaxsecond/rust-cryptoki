@@ -942,7 +942,10 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                     }
                 }
             }
-            AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((AttributeType::VendorDefined(t), val.to_vec()))),
+            AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((
+                AttributeType::VendorDefined(t),
+                val.to_vec(),
+            ))),
         }
     }
 }
