@@ -137,15 +137,15 @@ pub struct PkcsPssParams {
 pub struct PkcsOaepParams<'a> {
     /// mechanism ID of the message digest algorithm used to calculate the digest of the encoding
     /// parameter
-    hash_alg: MechanismType,
+    pub hash_alg: MechanismType,
     /// mask generation function to use on the encoded block
-    mgf: PkcsMgfType,
+    pub mgf: PkcsMgfType,
     /// source of the encoding parameter
-    source: CK_RSA_PKCS_OAEP_SOURCE_TYPE,
+    pub source: CK_RSA_PKCS_OAEP_SOURCE_TYPE,
     /// data used as the input for the encoding parameter source
-    source_data: *const c_void,
+    pub source_data: *const c_void,
     /// length of the encoding parameter source input
-    source_data_len: Ulong,
+    pub source_data_len: Ulong,
     /// marker type to ensure we don't outlive the source_data
     _marker: PhantomData<&'a [u8]>,
 }

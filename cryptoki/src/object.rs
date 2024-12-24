@@ -6,7 +6,7 @@ use crate::error::{Error, Result};
 use crate::mechanism::MechanismType;
 use crate::types::{Date, Ulong};
 use cryptoki_sys::*;
-use log::error;
+use log::{error, warn};
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::ffi::c_void;
@@ -136,6 +136,8 @@ pub enum AttributeType {
     Wrap,
     /// Indicates that the key can only be wrapped with a wrapping key that has the Trusted attribute
     WrapWithTrusted,
+    /// Wraps undefined and custom attribute types.
+    Unhandled(CK_ATTRIBUTE_TYPE),
 }
 
 impl AttributeType {
@@ -328,6 +330,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::VerifyRecover => CKA_VERIFY_RECOVER,
             AttributeType::Wrap => CKA_WRAP,
             AttributeType::WrapWithTrusted => CKA_WRAP_WITH_TRUSTED,
+            AttributeType::Unhandled(attr_type) => attr_type,
         }
     }
 }
@@ -397,8 +400,10 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_WRAP => Ok(AttributeType::Wrap),
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
             attr_type => {
-                error!("Attribute type {} not supported.", attr_type);
-                Err(Error::NotSupported)
+                // error!("Attribute type {} not supported.", attr_type);
+                // Err(Error::NotSupported)
+                warn!("Unhandled attribute type {} detected.", attr_type);
+                Ok(AttributeType::Unhandled(attr_type))
             }
         }
     }
@@ -526,6 +531,8 @@ pub enum Attribute {
     Wrap(bool),
     /// Indicates that the key can only be wrapped with a wrapping key that has the Trusted attribute
     WrapWithTrusted(bool),
+    /// Not defined attributes enter this option.
+    Unhandled(CK_ATTRIBUTE_TYPE, Vec<u8>),
 }
 
 impl Attribute {
@@ -591,6 +598,9 @@ impl Attribute {
             Attribute::VerifyRecover(_) => AttributeType::VerifyRecover,
             Attribute::Wrap(_) => AttributeType::Wrap,
             Attribute::WrapWithTrusted(_) => AttributeType::WrapWithTrusted,
+            Attribute::Unhandled(attribute_type, _) => {
+                AttributeType::Unhandled(attribute_type.clone())
+            }
         }
     }
 
@@ -658,6 +668,7 @@ impl Attribute {
             Attribute::AllowedMechanisms(mechanisms) => {
                 size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
             }
+            Attribute::Unhandled(_, bytes) => bytes.len(),
         }
     }
 
@@ -730,7 +741,8 @@ impl Attribute {
             | Attribute::Subject(bytes)
             | Attribute::Url(bytes)
             | Attribute::Value(bytes)
-            | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
+            | Attribute::Id(bytes)
+            | Attribute::Unhandled(_, bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
             Attribute::CertificateType(certificate_type) => {
                 certificate_type as *const _ as *mut c_void
@@ -930,6 +942,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                     }
                 }
             }
+            AttributeType::Unhandled(_) => todo!(),
         }
     }
 }
@@ -1006,6 +1019,8 @@ impl ObjectClass {
     pub const MECHANISM: ObjectClass = ObjectClass { val: CKO_MECHANISM };
     /// An OTP key object
     pub const OTP_KEY: ObjectClass = ObjectClass { val: CKO_OTP_KEY };
+    /// A profile object
+    pub const PROFILE: ObjectClass = ObjectClass { val: CKO_PROFILE };
 
     pub(crate) fn stringify(class: CK_OBJECT_CLASS) -> String {
         match class {
@@ -1018,6 +1033,7 @@ impl ObjectClass {
             CKO_DOMAIN_PARAMETERS => String::from(stringify!(CKO_DOMAIN_PARAMETERS)),
             CKO_MECHANISM => String::from(stringify!(CKO_MECHANISM)),
             CKO_OTP_KEY => String::from(stringify!(CKO_OTP_KEY)),
+            CKO_PROFILE => String::from(stringify!(CKO_PROFILE)),
             _ => format!("unknown ({class:08x})"),
         }
     }

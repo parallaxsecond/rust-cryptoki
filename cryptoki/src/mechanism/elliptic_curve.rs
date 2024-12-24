@@ -19,17 +19,17 @@ use std::ptr;
 #[repr(C)]
 pub struct Ecdh1DeriveParams<'a> {
     /// Key derivation function
-    kdf: CK_EC_KDF_TYPE,
+    pub kdf: CK_EC_KDF_TYPE,
     /// Length of the optional shared data used by some of the key
     /// derivation functions
-    shared_data_len: Ulong,
+    pub shared_data_len: Ulong,
     /// Address of the optional data or `std::ptr::null()` of there is
     /// no shared data
-    shared_data: *const u8,
+    pub shared_data: *const u8,
     /// Length of the other party's public key
-    public_data_len: Ulong,
+    pub public_data_len: Ulong,
     /// Pointer to the other party public key
-    public_data: *const u8,
+    pub public_data: *const u8,
     /// Marker type to ensure we don't outlive shared and public data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -82,7 +82,15 @@ pub struct EcKdf<'a> {
     shared_data: Option<&'a [u8]>,
 }
 
-impl EcKdf<'_> {
+impl<'a> EcKdf<'a> {
+    /// Define KDF_TYPE and shared_data
+    pub fn new(kdf_type: CK_EC_KDF_TYPE, shared_data: Option<&'a [u8]>) -> Self {
+        Self {
+            kdf_type,
+            shared_data,
+        }
+    }
+
     /// The null transformation. The derived key value is produced by
     /// taking bytes from the left of the agreed value. The new key
     /// size is limited to the size of the agreed value.
