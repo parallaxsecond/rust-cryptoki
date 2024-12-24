@@ -17,6 +17,7 @@ use std::ops::Deref;
 const MAX_CU_ULONG: CK_ULONG = !0;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[non_exhaustive]
 /// Type of an attribute
 pub enum AttributeType {
     /// DER-encoding of the attribute certificate's issuer
@@ -413,6 +414,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 /// Attribute value
 pub enum Attribute {
     /// DER-encoding of the attribute certificate's issuer
