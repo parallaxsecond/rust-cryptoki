@@ -598,9 +598,7 @@ impl Attribute {
             Attribute::VerifyRecover(_) => AttributeType::VerifyRecover,
             Attribute::Wrap(_) => AttributeType::Wrap,
             Attribute::WrapWithTrusted(_) => AttributeType::WrapWithTrusted,
-            Attribute::Unhandled(attribute_type, _) => {
-                AttributeType::Unhandled(attribute_type.clone())
-            }
+            Attribute::Unhandled(attribute_type, _) => AttributeType::Unhandled(*attribute_type),
         }
     }
 
