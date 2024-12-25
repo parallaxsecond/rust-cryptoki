@@ -11,9 +11,26 @@ The items in this crate only expose idiomatic and safe Rust types and
 functions to interface with the PKCS11 API. All the PKCS11 items might
 not be implemented but everything that is implemented is safe.
 
+## Prerequisites
+
+In order to use this crate you will need to have access to a PKCS11 dynamic library to load, to use your HSM.
+To develop locally on this crate and in the CI we use [SoftHSM version 2](https://github.com/softhsm/SoftHSMv2). You can also use that if you want to run the example below.
+
+You can follow the installation steps directly in the repository's README but here are instructions proven to work on Ubuntu 24.01:
+
+```bash
+sudo apt install libsofthsm2
+mkdir /tmp/tokens
+echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
+export PKCS11_SOFTHSM2_MODULE="/usr/lib/softhsm/libsofthsm2.so"
+export SOFTHSM2_CONF="/tmp/softhsm2.conf"
+cargo run --example generate_key_pair
+```
+
 ## Example
 
 The following example initializes an empty token and generates a new RSA key.
+You can find it in the `examples` folder and run it with `cargo run --example generate_key_pair`.
 
 ```rust
 # fn main() -> testresult::TestResult {
@@ -22,9 +39,13 @@ use cryptoki::context::{CInitializeArgs, Pkcs11};
 use cryptoki::session::UserType;
 use cryptoki::types::AuthPin;
 use cryptoki::mechanism::Mechanism;
+use std::env;
 
 // initialize a new Pkcs11 object using the module from the env variable
-let pkcs11 = Pkcs11::new(std::env::var("PKCS11_SOFTHSM2_MODULE")?)?;
+let pkcs11 = Pkcs11::new(
+    env::var("PKCS11_SOFTHSM2_MODULE")
+        .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
+)?;
 
 pkcs11.initialize(CInitializeArgs::OsThreads)?;
 
