@@ -3,6 +3,8 @@
 The `cryptoki` crate provides an idiomatic interface to the PKCS #11 API.
 The `cryptoki-sys` crate provides the direct FFI bindings.
 
+Check the `cryptoki` [README file](cryptoki/README.md) to get started!
+
 # Community
 
 Come and ask questions or talk with the Parsec Community in our Slack channel or biweekly meetings.
