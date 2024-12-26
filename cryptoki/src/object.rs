@@ -14,6 +14,8 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
+const MAX_CU_ULONG: CK_ULONG = !0;
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
@@ -128,6 +130,8 @@ pub enum AttributeType {
     Value,
     /// Length in bytes of the value
     ValueLen,
+    /// Vendor defined attribute
+    VendorDefined(CK_ATTRIBUTE_TYPE),
     /// Determines if a key supports verifying
     Verify,
     /// Determines if a key supports verifying where the data can be recovered from the signature
@@ -254,6 +258,9 @@ impl AttributeType {
             CKA_UNWRAP_TEMPLATE => String::from(stringify!(CKA_UNWRAP_TEMPLATE)),
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
+            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => {
+                format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
+            }
             _ => format!("unknown ({val:08x})"),
         }
     }
@@ -324,6 +331,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Url => CKA_URL,
             AttributeType::Value => CKA_VALUE,
             AttributeType::ValueLen => CKA_VALUE_LEN,
+            AttributeType::VendorDefined(val) => val,
             AttributeType::Verify => CKA_VERIFY,
             AttributeType::VerifyRecover => CKA_VERIFY_RECOVER,
             AttributeType::Wrap => CKA_WRAP,
@@ -396,6 +404,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_VERIFY_RECOVER => Ok(AttributeType::VerifyRecover),
             CKA_WRAP => Ok(AttributeType::Wrap),
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
+            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => Ok(AttributeType::VendorDefined(attribute_type)),
             attr_type => {
                 error!("Attribute type {} not supported.", attr_type);
                 Err(Error::NotSupported)
@@ -518,6 +527,8 @@ pub enum Attribute {
     Value(Vec<u8>),
     /// Length in bytes of the value
     ValueLen(Ulong),
+    /// Vendor defined value
+    VendorDefined((AttributeType, Vec<u8>)),
     /// Determines if a key supports verifying
     Verify(bool),
     /// Determines if a key supports verifying where the data can be recovered from the signature
@@ -587,6 +598,7 @@ impl Attribute {
             Attribute::Url(_) => AttributeType::Url,
             Attribute::Value(_) => AttributeType::Value,
             Attribute::ValueLen(_) => AttributeType::ValueLen,
+            Attribute::VendorDefined((num, _)) => *num,
             Attribute::Verify(_) => AttributeType::Verify,
             Attribute::VerifyRecover(_) => AttributeType::VerifyRecover,
             Attribute::Wrap(_) => AttributeType::Wrap,
@@ -658,6 +670,7 @@ impl Attribute {
             Attribute::AllowedMechanisms(mechanisms) => {
                 size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
             }
+            Attribute::VendorDefined((_, bytes)) => bytes.len(),
         }
     }
 
@@ -730,6 +743,7 @@ impl Attribute {
             | Attribute::Subject(bytes)
             | Attribute::Url(bytes)
             | Attribute::Value(bytes)
+            | Attribute::VendorDefined((_, bytes))
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
             Attribute::CertificateType(certificate_type) => {
@@ -930,6 +944,10 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                     }
                 }
             }
+            AttributeType::VendorDefined(t) => Ok(Attribute::VendorDefined((
+                AttributeType::VendorDefined(t),
+                val.to_vec(),
+            ))),
         }
     }
 }
