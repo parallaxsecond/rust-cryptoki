@@ -83,6 +83,10 @@ let (public, private) = session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen,
 # Ok(()) }
 ```
 
+## See also
+
+* Session Pool Management based on `r2d2`: <https://github.com/spruceid/r2d2-cryptoki>
+
 ## Conformance Notes
 
 Throughout this crate, many functions and other items include additional
