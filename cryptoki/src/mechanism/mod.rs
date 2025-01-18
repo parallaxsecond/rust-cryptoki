@@ -3,6 +3,7 @@
 //! Data types for mechanisms
 
 pub mod aead;
+pub mod eddsa;
 pub mod ekdf;
 pub mod elliptic_curve;
 pub mod hkdf;
@@ -902,11 +903,16 @@ pub enum Mechanism<'a> {
     EcdsaSha512,
     /// EDDSA mechanism
     ///
+    /// This mechanism has an optional parameter, a CK_EDDSA_PARAMS
+    /// structure. The absence or presence of the parameter as well
+    /// as its content is used to identify which signature scheme
+    /// is to be used.
+    ///
     /// Note: EdDSA is not part of the PKCS#11 v2.40 standard and as
-    /// such may not be understood by the backend. It is included here
-    /// because some vendor implementations support it through the
-    /// v2.40 interface.
-    Eddsa,
+    /// such may not be understood by some backends. It is included
+    /// here because some vendor implementations support it through
+    /// the v2.40 interface.
+    Eddsa(eddsa::EddsaParams<'a>),
 
     // SHA-n
     /// SHA-1 mechanism
@@ -1001,7 +1007,7 @@ impl Mechanism<'_> {
             Mechanism::EccKeyPairGen => MechanismType::ECC_KEY_PAIR_GEN,
             Mechanism::EccEdwardsKeyPairGen => MechanismType::ECC_EDWARDS_KEY_PAIR_GEN,
             Mechanism::EccMontgomeryKeyPairGen => MechanismType::ECC_MONTGOMERY_KEY_PAIR_GEN,
-            Mechanism::Eddsa => MechanismType::EDDSA,
+            Mechanism::Eddsa(_) => MechanismType::EDDSA,
             Mechanism::Ecdh1Derive(_) => MechanismType::ECDH1_DERIVE,
             Mechanism::Ecdsa => MechanismType::ECDSA,
             Mechanism::EcdsaSha1 => MechanismType::ECDSA_SHA1,
@@ -1073,6 +1079,14 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha512RsaPkcsPss(params) => make_mechanism(mechanism, params),
             Mechanism::RsaPkcsOaep(params) => make_mechanism(mechanism, params),
             Mechanism::Ecdh1Derive(params) => make_mechanism(mechanism, params),
+            Mechanism::Eddsa(params) => match params.inner() {
+                None => CK_MECHANISM {
+                    mechanism,
+                    pParameter: null_mut(),
+                    ulParameterLen: 0,
+                },
+                Some(params) => make_mechanism(mechanism, params),
+            },
             Mechanism::HkdfDerive(params) | Mechanism::HkdfData(params) => {
                 make_mechanism(mechanism, params)
             }
@@ -1098,7 +1112,6 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::EccKeyPairGen
             | Mechanism::EccEdwardsKeyPairGen
             | Mechanism::EccMontgomeryKeyPairGen
-            | Mechanism::Eddsa
             | Mechanism::Ecdsa
             | Mechanism::EcdsaSha1
             | Mechanism::EcdsaSha224
