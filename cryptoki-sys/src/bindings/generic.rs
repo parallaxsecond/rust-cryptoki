@@ -926,100 +926,38 @@ pub type CK_ULONG_PTR = *mut CK_ULONG;
 pub type CK_VOID_PTR = *mut ::std::os::raw::c_void;
 pub type CK_VOID_PTR_PTR = *mut *mut ::std::os::raw::c_void;
 pub type CK_ATTRIBUTE_TYPE = CK_ULONG;
-pub type CK_ATTRIBUTE_TYPE_PTR = *mut CK_ATTRIBUTE_TYPE;
 pub type CK_CERTIFICATE_CATEGORY = CK_ULONG;
-pub type CK_CERTIFICATE_CATEGORY_PTR = *mut CK_CERTIFICATE_CATEGORY;
 pub type CK_CERTIFICATE_TYPE = CK_ULONG;
-pub type CK_CERTIFICATE_TYPE_PTR = *mut CK_CERTIFICATE_TYPE;
 pub type CK_EC_KDF_TYPE = CK_ULONG;
-pub type CK_EC_KDF_TYPE_PTR = *mut CK_EC_KDF_TYPE;
 pub type CK_EXTRACT_PARAMS = CK_ULONG;
-pub type CK_EXTRACT_PARAMS_PTR = *mut CK_EXTRACT_PARAMS;
 pub type CK_FLAGS = CK_ULONG;
-pub type CK_FLAGS_PTR = *mut CK_FLAGS;
 pub type CK_GENERATOR_FUNCTION = CK_ULONG;
-pub type CK_GENERATOR_FUNCTION_PTR = *mut CK_GENERATOR_FUNCTION;
 pub type CK_HW_FEATURE_TYPE = CK_ULONG;
-pub type CK_HW_FEATURE_TYPE_PTR = *mut CK_HW_FEATURE_TYPE;
 pub type CK_JAVA_MIDP_SECURITY_DOMAIN = CK_ULONG;
-pub type CK_JAVA_MIDP_SECURITY_DOMAIN_PTR = *mut CK_JAVA_MIDP_SECURITY_DOMAIN;
 pub type CK_KEY_TYPE = CK_ULONG;
-pub type CK_KEY_TYPE_PTR = *mut CK_KEY_TYPE;
 pub type CK_MAC_GENERAL_PARAMS = CK_ULONG;
-pub type CK_MAC_GENERAL_PARAMS_PTR = *mut CK_MAC_GENERAL_PARAMS;
 pub type CK_MECHANISM_TYPE = CK_ULONG;
-pub type CK_MECHANISM_TYPE_PTR = *mut CK_MECHANISM_TYPE;
 pub type CK_NOTIFICATION = CK_ULONG;
-pub type CK_NOTIFICATION_PTR = *mut CK_NOTIFICATION;
 pub type CK_OBJECT_CLASS = CK_ULONG;
-pub type CK_OBJECT_CLASS_PTR = *mut CK_OBJECT_CLASS;
 pub type CK_OBJECT_HANDLE = CK_ULONG;
-pub type CK_OBJECT_HANDLE_PTR = *mut CK_OBJECT_HANDLE;
 pub type CK_OTP_PARAM_TYPE = CK_ULONG;
-pub type CK_OTP_PARAM_TYPE_PTR = *mut CK_OTP_PARAM_TYPE;
 pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE = CK_ULONG;
-pub type CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE_PTR =
-    *mut CK_PKCS5_PBKD2_PSEUDO_RANDOM_FUNCTION_TYPE;
 pub type CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE = CK_ULONG;
-pub type CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE_PTR = *mut CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE;
 pub type CK_PRF_DATA_TYPE = CK_ULONG;
-pub type CK_PRF_DATA_TYPE_PTR = *mut CK_PRF_DATA_TYPE;
 pub type CK_PROFILE_ID = CK_ULONG;
-pub type CK_PROFILE_ID_PTR = *mut CK_PROFILE_ID;
 pub type CK_RC2_PARAMS = CK_ULONG;
-pub type CK_RC2_PARAMS_PTR = *mut CK_RC2_PARAMS;
 pub type CK_RSA_PKCS_MGF_TYPE = CK_ULONG;
-pub type CK_RSA_PKCS_MGF_TYPE_PTR = *mut CK_RSA_PKCS_MGF_TYPE;
 pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE = CK_ULONG;
-pub type CK_RSA_PKCS_OAEP_SOURCE_TYPE_PTR = *mut CK_RSA_PKCS_OAEP_SOURCE_TYPE;
 pub type CK_RV = CK_ULONG;
-pub type CK_RV_PTR = *mut CK_RV;
 pub type CK_SESSION_HANDLE = CK_ULONG;
-pub type CK_SESSION_HANDLE_PTR = *mut CK_SESSION_HANDLE;
 pub type CK_SLOT_ID = CK_ULONG;
-pub type CK_SLOT_ID_PTR = *mut CK_SLOT_ID;
 pub type CK_SP800_108_DKM_LENGTH_METHOD = CK_ULONG;
-pub type CK_SP800_108_DKM_LENGTH_METHOD_PTR = *mut CK_SP800_108_DKM_LENGTH_METHOD;
 pub type CK_STATE = CK_ULONG;
-pub type CK_STATE_PTR = *mut CK_STATE;
 pub type CK_USER_TYPE = CK_ULONG;
-pub type CK_USER_TYPE_PTR = *mut CK_USER_TYPE;
 pub type CK_X2RATCHET_KDF_TYPE = CK_ULONG;
-pub type CK_X2RATCHET_KDF_TYPE_PTR = *mut CK_X2RATCHET_KDF_TYPE;
 pub type CK_X3DH_KDF_TYPE = CK_ULONG;
-pub type CK_X3DH_KDF_TYPE_PTR = *mut CK_X3DH_KDF_TYPE;
 pub type CK_X9_42_DH_KDF_TYPE = CK_ULONG;
-pub type CK_X9_42_DH_KDF_TYPE_PTR = *mut CK_X9_42_DH_KDF_TYPE;
 pub type CK_XEDDSA_HASH_TYPE = CK_ULONG;
-pub type CK_XEDDSA_HASH_TYPE_PTR = *mut CK_XEDDSA_HASH_TYPE;
-pub type CK_ATTRIBUTE_PTR = *mut CK_ATTRIBUTE;
-pub type CK_ATTRIBUTE_PTR_PTR = *mut *mut CK_ATTRIBUTE;
-pub type CK_C_INITIALIZE_ARGS_PTR = *mut CK_C_INITIALIZE_ARGS;
-pub type CK_C_INITIALIZE_ARGS_PTR_PTR = *mut *mut CK_C_INITIALIZE_ARGS;
-pub type CK_DATE_PTR = *mut CK_DATE;
-pub type CK_DATE_PTR_PTR = *mut *mut CK_DATE;
-pub type CK_DERIVED_KEY_PTR = *mut CK_DERIVED_KEY;
-pub type CK_DERIVED_KEY_PTR_PTR = *mut *mut CK_DERIVED_KEY;
-pub type CK_FUNCTION_LIST_PTR = *mut CK_FUNCTION_LIST;
-pub type CK_FUNCTION_LIST_PTR_PTR = *mut *mut CK_FUNCTION_LIST;
-pub type CK_FUNCTION_LIST_3_0_PTR = *mut CK_FUNCTION_LIST_3_0;
-pub type CK_FUNCTION_LIST_3_0_PTR_PTR = *mut *mut CK_FUNCTION_LIST_3_0;
-pub type CK_INFO_PTR = *mut CK_INFO;
-pub type CK_INFO_PTR_PTR = *mut *mut CK_INFO;
-pub type CK_INTERFACE_PTR = *mut CK_INTERFACE;
-pub type CK_INTERFACE_PTR_PTR = *mut *mut CK_INTERFACE;
-pub type CK_MECHANISM_PTR = *mut CK_MECHANISM;
-pub type CK_MECHANISM_PTR_PTR = *mut *mut CK_MECHANISM;
-pub type CK_MECHANISM_INFO_PTR = *mut CK_MECHANISM_INFO;
-pub type CK_MECHANISM_INFO_PTR_PTR = *mut *mut CK_MECHANISM_INFO;
-pub type CK_SESSION_INFO_PTR = *mut CK_SESSION_INFO;
-pub type CK_SESSION_INFO_PTR_PTR = *mut *mut CK_SESSION_INFO;
-pub type CK_SLOT_INFO_PTR = *mut CK_SLOT_INFO;
-pub type CK_SLOT_INFO_PTR_PTR = *mut *mut CK_SLOT_INFO;
-pub type CK_TOKEN_INFO_PTR = *mut CK_TOKEN_INFO;
-pub type CK_TOKEN_INFO_PTR_PTR = *mut *mut CK_TOKEN_INFO;
-pub type CK_VERSION_PTR = *mut CK_VERSION;
-pub type CK_VERSION_PTR_PTR = *mut *mut CK_VERSION;
 pub type CK_NOTIFY = ::std::option::Option<
     unsafe extern "C" fn(
         arg1: CK_SESSION_HANDLE,
@@ -1036,6 +974,7 @@ pub type CK_LOCKMUTEX =
 pub type CK_UNLOCKMUTEX =
     ::std::option::Option<unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void) -> CK_RV>;
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ATTRIBUTE {
     pub type_: CK_ATTRIBUTE_TYPE,
@@ -1052,6 +991,7 @@ impl Default for CK_ATTRIBUTE {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_C_INITIALIZE_ARGS {
     pub CreateMutex: CK_CREATEMUTEX,
@@ -1078,6 +1018,7 @@ pub struct CK_DATE {
     pub day: [CK_CHAR; 2usize],
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_DERIVED_KEY {
     pub pTemplate: *mut CK_ATTRIBUTE,
@@ -1100,6 +1041,7 @@ pub struct CK_VERSION {
     pub minor: CK_BYTE,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_INFO {
     pub cryptokiVersion: CK_VERSION,
@@ -1109,6 +1051,7 @@ pub struct CK_INFO {
     pub libraryVersion: CK_VERSION,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_INTERFACE {
     pub pInterfaceName: *mut CK_CHAR,
@@ -1125,6 +1068,7 @@ impl Default for CK_INTERFACE {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_MECHANISM {
     pub mechanism: CK_MECHANISM_TYPE,
@@ -1141,6 +1085,7 @@ impl Default for CK_MECHANISM {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_MECHANISM_INFO {
     pub ulMinKeySize: CK_ULONG,
@@ -1148,6 +1093,7 @@ pub struct CK_MECHANISM_INFO {
     pub flags: CK_FLAGS,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_SESSION_INFO {
     pub slotID: CK_SLOT_ID,
@@ -1156,6 +1102,7 @@ pub struct CK_SESSION_INFO {
     pub ulDeviceError: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SLOT_INFO {
     pub slotDescription: [CK_UTF8CHAR; 64usize],
@@ -1174,6 +1121,7 @@ impl Default for CK_SLOT_INFO {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_TOKEN_INFO {
     pub label: [CK_UTF8CHAR; 32usize],
@@ -1195,137 +1143,13 @@ pub struct CK_TOKEN_INFO {
     pub firmwareVersion: CK_VERSION,
     pub utcTime: [CK_CHAR; 16usize],
 }
-pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_AES_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_AES_CBC_ENCRYPT_DATA_PARAMS_PTR_PTR = *mut *mut CK_AES_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_AES_CCM_PARAMS_PTR = *mut CK_AES_CCM_PARAMS;
-pub type CK_AES_CCM_PARAMS_PTR_PTR = *mut *mut CK_AES_CCM_PARAMS;
-pub type CK_AES_CTR_PARAMS_PTR = *mut CK_AES_CTR_PARAMS;
-pub type CK_AES_CTR_PARAMS_PTR_PTR = *mut *mut CK_AES_CTR_PARAMS;
-pub type CK_AES_GCM_PARAMS_PTR = *mut CK_AES_GCM_PARAMS;
-pub type CK_AES_GCM_PARAMS_PTR_PTR = *mut *mut CK_AES_GCM_PARAMS;
-pub type CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_ARIA_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_ARIA_CBC_ENCRYPT_DATA_PARAMS_PTR_PTR = *mut *mut CK_ARIA_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS_PTR_PTR =
-    *mut *mut CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_CAMELLIA_CTR_PARAMS_PTR = *mut CK_CAMELLIA_CTR_PARAMS;
-pub type CK_CAMELLIA_CTR_PARAMS_PTR_PTR = *mut *mut CK_CAMELLIA_CTR_PARAMS;
-pub type CK_CCM_MESSAGE_PARAMS_PTR = *mut CK_CCM_MESSAGE_PARAMS;
-pub type CK_CCM_MESSAGE_PARAMS_PTR_PTR = *mut *mut CK_CCM_MESSAGE_PARAMS;
-pub type CK_CCM_PARAMS_PTR = *mut CK_CCM_PARAMS;
-pub type CK_CCM_PARAMS_PTR_PTR = *mut *mut CK_CCM_PARAMS;
-pub type CK_CHACHA20_PARAMS_PTR = *mut CK_CHACHA20_PARAMS;
-pub type CK_CHACHA20_PARAMS_PTR_PTR = *mut *mut CK_CHACHA20_PARAMS;
-pub type CK_CMS_SIG_PARAMS_PTR = *mut CK_CMS_SIG_PARAMS;
-pub type CK_CMS_SIG_PARAMS_PTR_PTR = *mut *mut CK_CMS_SIG_PARAMS;
-pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_DES_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_DES_CBC_ENCRYPT_DATA_PARAMS_PTR_PTR = *mut *mut CK_DES_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_DSA_PARAMETER_GEN_PARAM_PTR = *mut CK_DSA_PARAMETER_GEN_PARAM;
-pub type CK_DSA_PARAMETER_GEN_PARAM_PTR_PTR = *mut *mut CK_DSA_PARAMETER_GEN_PARAM;
-pub type CK_ECDH_AES_KEY_WRAP_PARAMS_PTR = *mut CK_ECDH_AES_KEY_WRAP_PARAMS;
-pub type CK_ECDH_AES_KEY_WRAP_PARAMS_PTR_PTR = *mut *mut CK_ECDH_AES_KEY_WRAP_PARAMS;
-pub type CK_ECDH1_DERIVE_PARAMS_PTR = *mut CK_ECDH1_DERIVE_PARAMS;
-pub type CK_ECDH1_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_ECDH1_DERIVE_PARAMS;
-pub type CK_ECDH2_DERIVE_PARAMS_PTR = *mut CK_ECDH2_DERIVE_PARAMS;
-pub type CK_ECDH2_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_ECDH2_DERIVE_PARAMS;
-pub type CK_ECMQV_DERIVE_PARAMS_PTR = *mut CK_ECMQV_DERIVE_PARAMS;
-pub type CK_ECMQV_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_ECMQV_DERIVE_PARAMS;
-pub type CK_EDDSA_PARAMS_PTR = *mut CK_EDDSA_PARAMS;
-pub type CK_EDDSA_PARAMS_PTR_PTR = *mut *mut CK_EDDSA_PARAMS;
-pub type CK_GCM_MESSAGE_PARAMS_PTR = *mut CK_GCM_MESSAGE_PARAMS;
-pub type CK_GCM_MESSAGE_PARAMS_PTR_PTR = *mut *mut CK_GCM_MESSAGE_PARAMS;
-pub type CK_GCM_PARAMS_PTR = *mut CK_GCM_PARAMS;
-pub type CK_GCM_PARAMS_PTR_PTR = *mut *mut CK_GCM_PARAMS;
-pub type CK_GOSTR3410_DERIVE_PARAMS_PTR = *mut CK_GOSTR3410_DERIVE_PARAMS;
-pub type CK_GOSTR3410_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_GOSTR3410_DERIVE_PARAMS;
-pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR = *mut CK_GOSTR3410_KEY_WRAP_PARAMS;
-pub type CK_GOSTR3410_KEY_WRAP_PARAMS_PTR_PTR = *mut *mut CK_GOSTR3410_KEY_WRAP_PARAMS;
-pub type CK_HKDF_PARAMS_PTR = *mut CK_HKDF_PARAMS;
-pub type CK_HKDF_PARAMS_PTR_PTR = *mut *mut CK_HKDF_PARAMS;
-pub type CK_KEA_DERIVE_PARAMS_PTR = *mut CK_KEA_DERIVE_PARAMS;
-pub type CK_KEA_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_KEA_DERIVE_PARAMS;
-pub type CK_KEY_DERIVATION_STRING_DATA_PTR = *mut CK_KEY_DERIVATION_STRING_DATA;
-pub type CK_KEY_DERIVATION_STRING_DATA_PTR_PTR = *mut *mut CK_KEY_DERIVATION_STRING_DATA;
-pub type CK_KEY_WRAP_SET_OAEP_PARAMS_PTR = *mut CK_KEY_WRAP_SET_OAEP_PARAMS;
-pub type CK_KEY_WRAP_SET_OAEP_PARAMS_PTR_PTR = *mut *mut CK_KEY_WRAP_SET_OAEP_PARAMS;
-pub type CK_KIP_PARAMS_PTR = *mut CK_KIP_PARAMS;
-pub type CK_KIP_PARAMS_PTR_PTR = *mut *mut CK_KIP_PARAMS;
-pub type CK_OTP_PARAM_PTR = *mut CK_OTP_PARAM;
-pub type CK_OTP_PARAM_PTR_PTR = *mut *mut CK_OTP_PARAM;
-pub type CK_OTP_PARAMS_PTR = *mut CK_OTP_PARAMS;
-pub type CK_OTP_PARAMS_PTR_PTR = *mut *mut CK_OTP_PARAMS;
-pub type CK_OTP_SIGNATURE_INFO_PTR = *mut CK_OTP_SIGNATURE_INFO;
-pub type CK_OTP_SIGNATURE_INFO_PTR_PTR = *mut *mut CK_OTP_SIGNATURE_INFO;
-pub type CK_PBE_PARAMS_PTR = *mut CK_PBE_PARAMS;
-pub type CK_PBE_PARAMS_PTR_PTR = *mut *mut CK_PBE_PARAMS;
-pub type CK_PKCS5_PBKD2_PARAMS_PTR = *mut CK_PKCS5_PBKD2_PARAMS;
-pub type CK_PKCS5_PBKD2_PARAMS_PTR_PTR = *mut *mut CK_PKCS5_PBKD2_PARAMS;
-pub type CK_PKCS5_PBKD2_PARAMS2_PTR = *mut CK_PKCS5_PBKD2_PARAMS2;
-pub type CK_PKCS5_PBKD2_PARAMS2_PTR_PTR = *mut *mut CK_PKCS5_PBKD2_PARAMS2;
-pub type CK_PRF_DATA_PARAM_PTR = *mut CK_PRF_DATA_PARAM;
-pub type CK_PRF_DATA_PARAM_PTR_PTR = *mut *mut CK_PRF_DATA_PARAM;
-pub type CK_RC2_CBC_PARAMS_PTR = *mut CK_RC2_CBC_PARAMS;
-pub type CK_RC2_CBC_PARAMS_PTR_PTR = *mut *mut CK_RC2_CBC_PARAMS;
-pub type CK_RC2_MAC_GENERAL_PARAMS_PTR = *mut CK_RC2_MAC_GENERAL_PARAMS;
-pub type CK_RC2_MAC_GENERAL_PARAMS_PTR_PTR = *mut *mut CK_RC2_MAC_GENERAL_PARAMS;
-pub type CK_RC5_CBC_PARAMS_PTR = *mut CK_RC5_CBC_PARAMS;
-pub type CK_RC5_CBC_PARAMS_PTR_PTR = *mut *mut CK_RC5_CBC_PARAMS;
-pub type CK_RC5_MAC_GENERAL_PARAMS_PTR = *mut CK_RC5_MAC_GENERAL_PARAMS;
-pub type CK_RC5_MAC_GENERAL_PARAMS_PTR_PTR = *mut *mut CK_RC5_MAC_GENERAL_PARAMS;
-pub type CK_RC5_PARAMS_PTR = *mut CK_RC5_PARAMS;
-pub type CK_RC5_PARAMS_PTR_PTR = *mut *mut CK_RC5_PARAMS;
-pub type CK_RSA_AES_KEY_WRAP_PARAMS_PTR = *mut CK_RSA_AES_KEY_WRAP_PARAMS;
-pub type CK_RSA_AES_KEY_WRAP_PARAMS_PTR_PTR = *mut *mut CK_RSA_AES_KEY_WRAP_PARAMS;
-pub type CK_RSA_PKCS_OAEP_PARAMS_PTR = *mut CK_RSA_PKCS_OAEP_PARAMS;
-pub type CK_RSA_PKCS_OAEP_PARAMS_PTR_PTR = *mut *mut CK_RSA_PKCS_OAEP_PARAMS;
-pub type CK_RSA_PKCS_PSS_PARAMS_PTR = *mut CK_RSA_PKCS_PSS_PARAMS;
-pub type CK_RSA_PKCS_PSS_PARAMS_PTR_PTR = *mut *mut CK_RSA_PKCS_PSS_PARAMS;
-pub type CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS_PTR = *mut CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS;
-pub type CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS_PTR_PTR =
-    *mut *mut CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS;
-pub type CK_SALSA20_CHACHA20_POLY1305_PARAMS_PTR = *mut CK_SALSA20_CHACHA20_POLY1305_PARAMS;
-pub type CK_SALSA20_CHACHA20_POLY1305_PARAMS_PTR_PTR =
-    *mut *mut CK_SALSA20_CHACHA20_POLY1305_PARAMS;
-pub type CK_SALSA20_PARAMS_PTR = *mut CK_SALSA20_PARAMS;
-pub type CK_SALSA20_PARAMS_PTR_PTR = *mut *mut CK_SALSA20_PARAMS;
-pub type CK_SEED_CBC_ENCRYPT_DATA_PARAMS_PTR = *mut CK_SEED_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_SEED_CBC_ENCRYPT_DATA_PARAMS_PTR_PTR = *mut *mut CK_SEED_CBC_ENCRYPT_DATA_PARAMS;
-pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR = *mut CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
-pub type CK_SKIPJACK_PRIVATE_WRAP_PARAMS_PTR_PTR = *mut *mut CK_SKIPJACK_PRIVATE_WRAP_PARAMS;
-pub type CK_SKIPJACK_RELAYX_PARAMS_PTR = *mut CK_SKIPJACK_RELAYX_PARAMS;
-pub type CK_SKIPJACK_RELAYX_PARAMS_PTR_PTR = *mut *mut CK_SKIPJACK_RELAYX_PARAMS;
-pub type CK_SP800_108_COUNTER_FORMAT_PTR = *mut CK_SP800_108_COUNTER_FORMAT;
-pub type CK_SP800_108_COUNTER_FORMAT_PTR_PTR = *mut *mut CK_SP800_108_COUNTER_FORMAT;
-pub type CK_SP800_108_DKM_LENGTH_FORMAT_PTR = *mut CK_SP800_108_DKM_LENGTH_FORMAT;
-pub type CK_SP800_108_DKM_LENGTH_FORMAT_PTR_PTR = *mut *mut CK_SP800_108_DKM_LENGTH_FORMAT;
-pub type CK_SP800_108_FEEDBACK_KDF_PARAMS_PTR = *mut CK_SP800_108_FEEDBACK_KDF_PARAMS;
-pub type CK_SP800_108_FEEDBACK_KDF_PARAMS_PTR_PTR = *mut *mut CK_SP800_108_FEEDBACK_KDF_PARAMS;
-pub type CK_SP800_108_KDF_PARAMS_PTR = *mut CK_SP800_108_KDF_PARAMS;
-pub type CK_SP800_108_KDF_PARAMS_PTR_PTR = *mut *mut CK_SP800_108_KDF_PARAMS;
-pub type CK_X2RATCHET_INITIALIZE_PARAMS_PTR = *mut CK_X2RATCHET_INITIALIZE_PARAMS;
-pub type CK_X2RATCHET_INITIALIZE_PARAMS_PTR_PTR = *mut *mut CK_X2RATCHET_INITIALIZE_PARAMS;
-pub type CK_X2RATCHET_RESPOND_PARAMS_PTR = *mut CK_X2RATCHET_RESPOND_PARAMS;
-pub type CK_X2RATCHET_RESPOND_PARAMS_PTR_PTR = *mut *mut CK_X2RATCHET_RESPOND_PARAMS;
-pub type CK_X3DH_INITIATE_PARAMS_PTR = *mut CK_X3DH_INITIATE_PARAMS;
-pub type CK_X3DH_INITIATE_PARAMS_PTR_PTR = *mut *mut CK_X3DH_INITIATE_PARAMS;
-pub type CK_X3DH_RESPOND_PARAMS_PTR = *mut CK_X3DH_RESPOND_PARAMS;
-pub type CK_X3DH_RESPOND_PARAMS_PTR_PTR = *mut *mut CK_X3DH_RESPOND_PARAMS;
-pub type CK_X9_42_DH1_DERIVE_PARAMS_PTR = *mut CK_X9_42_DH1_DERIVE_PARAMS;
-pub type CK_X9_42_DH1_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_X9_42_DH1_DERIVE_PARAMS;
-pub type CK_X9_42_DH2_DERIVE_PARAMS_PTR = *mut CK_X9_42_DH2_DERIVE_PARAMS;
-pub type CK_X9_42_DH2_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_X9_42_DH2_DERIVE_PARAMS;
-pub type CK_X9_42_MQV_DERIVE_PARAMS_PTR = *mut CK_X9_42_MQV_DERIVE_PARAMS;
-pub type CK_X9_42_MQV_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_X9_42_MQV_DERIVE_PARAMS;
-pub type CK_XEDDSA_PARAMS_PTR = *mut CK_XEDDSA_PARAMS;
-pub type CK_XEDDSA_PARAMS_PTR_PTR = *mut *mut CK_XEDDSA_PARAMS;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct specifiedParams {
     _unused: [u8; 0],
 }
-pub type specifiedParams_PTR = *mut specifiedParams;
-pub type specifiedParams_PTR_PTR = *mut *mut specifiedParams;
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_AES_CBC_ENCRYPT_DATA_PARAMS {
     pub iv: [CK_BYTE; 16usize],
@@ -1342,6 +1166,7 @@ impl Default for CK_AES_CBC_ENCRYPT_DATA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_AES_CCM_PARAMS {
     pub ulDataLen: CK_ULONG,
@@ -1361,12 +1186,14 @@ impl Default for CK_AES_CCM_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_AES_CTR_PARAMS {
     pub ulCounterBits: CK_ULONG,
     pub cb: [CK_BYTE; 16usize],
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_AES_GCM_PARAMS {
     pub pIv: *mut CK_BYTE,
@@ -1386,6 +1213,7 @@ impl Default for CK_AES_GCM_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ARIA_CBC_ENCRYPT_DATA_PARAMS {
     pub iv: [CK_BYTE; 16usize],
@@ -1402,6 +1230,7 @@ impl Default for CK_ARIA_CBC_ENCRYPT_DATA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS {
     pub iv: [CK_BYTE; 16usize],
@@ -1418,12 +1247,14 @@ impl Default for CK_CAMELLIA_CBC_ENCRYPT_DATA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_CAMELLIA_CTR_PARAMS {
     pub ulCounterBits: CK_ULONG,
     pub cb: [CK_BYTE; 16usize],
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_CCM_MESSAGE_PARAMS {
     pub ulDataLen: CK_ULONG,
@@ -1444,6 +1275,7 @@ impl Default for CK_CCM_MESSAGE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_CCM_PARAMS {
     pub ulDataLen: CK_ULONG,
@@ -1463,6 +1295,7 @@ impl Default for CK_CCM_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_CHACHA20_PARAMS {
     pub pBlockCounter: *mut CK_BYTE,
@@ -1480,6 +1313,7 @@ impl Default for CK_CHACHA20_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_CMS_SIG_PARAMS {
     pub certificateHandle: CK_OBJECT_HANDLE,
@@ -1501,6 +1335,7 @@ impl Default for CK_CMS_SIG_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_DES_CBC_ENCRYPT_DATA_PARAMS {
     pub iv: [CK_BYTE; 8usize],
@@ -1517,6 +1352,7 @@ impl Default for CK_DES_CBC_ENCRYPT_DATA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_DSA_PARAMETER_GEN_PARAM {
     pub hash: CK_MECHANISM_TYPE,
@@ -1534,6 +1370,7 @@ impl Default for CK_DSA_PARAMETER_GEN_PARAM {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ECDH_AES_KEY_WRAP_PARAMS {
     pub ulAESKeyBits: CK_ULONG,
@@ -1551,6 +1388,7 @@ impl Default for CK_ECDH_AES_KEY_WRAP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ECDH1_DERIVE_PARAMS {
     pub kdf: CK_EC_KDF_TYPE,
@@ -1569,6 +1407,7 @@ impl Default for CK_ECDH1_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ECDH2_DERIVE_PARAMS {
     pub kdf: CK_EC_KDF_TYPE,
@@ -1591,6 +1430,7 @@ impl Default for CK_ECDH2_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_ECMQV_DERIVE_PARAMS {
     pub kdf: CK_EC_KDF_TYPE,
@@ -1614,6 +1454,7 @@ impl Default for CK_ECMQV_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_EDDSA_PARAMS {
     pub phFlag: CK_BBOOL,
@@ -1630,6 +1471,7 @@ impl Default for CK_EDDSA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_GCM_MESSAGE_PARAMS {
     pub pIv: *mut CK_BYTE,
@@ -1649,6 +1491,7 @@ impl Default for CK_GCM_MESSAGE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_GCM_PARAMS {
     pub pIv: *mut CK_BYTE,
@@ -1668,6 +1511,7 @@ impl Default for CK_GCM_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_GOSTR3410_DERIVE_PARAMS {
     pub kdf: CK_EC_KDF_TYPE,
@@ -1686,6 +1530,7 @@ impl Default for CK_GOSTR3410_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_GOSTR3410_KEY_WRAP_PARAMS {
     pub pWrapOID: *mut CK_BYTE,
@@ -1704,6 +1549,7 @@ impl Default for CK_GOSTR3410_KEY_WRAP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_HKDF_PARAMS {
     pub bExtract: CK_BBOOL,
@@ -1726,6 +1572,7 @@ impl Default for CK_HKDF_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_KEA_DERIVE_PARAMS {
     pub isSender: CK_BBOOL,
@@ -1745,6 +1592,7 @@ impl Default for CK_KEA_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_KEY_DERIVATION_STRING_DATA {
     pub pData: *mut CK_BYTE,
@@ -1760,6 +1608,7 @@ impl Default for CK_KEY_DERIVATION_STRING_DATA {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_KEY_WRAP_SET_OAEP_PARAMS {
     pub bBC: CK_BYTE,
@@ -1776,6 +1625,7 @@ impl Default for CK_KEY_WRAP_SET_OAEP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_KIP_PARAMS {
     pub pMechanism: *mut CK_MECHANISM,
@@ -1793,6 +1643,7 @@ impl Default for CK_KIP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_PARAM {
     pub type_: CK_OTP_PARAM_TYPE,
@@ -1809,6 +1660,7 @@ impl Default for CK_OTP_PARAM {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_PARAMS {
     pub pParams: *mut CK_OTP_PARAM,
@@ -1824,6 +1676,7 @@ impl Default for CK_OTP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_OTP_SIGNATURE_INFO {
     pub pParams: *mut CK_OTP_PARAM,
@@ -1839,6 +1692,7 @@ impl Default for CK_OTP_SIGNATURE_INFO {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_PBE_PARAMS {
     pub pInitVector: *mut CK_BYTE,
@@ -1858,6 +1712,7 @@ impl Default for CK_PBE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_PKCS5_PBKD2_PARAMS {
     pub saltSource: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE,
@@ -1880,6 +1735,7 @@ impl Default for CK_PKCS5_PBKD2_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_PKCS5_PBKD2_PARAMS2 {
     pub saltSource: CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE,
@@ -1902,6 +1758,7 @@ impl Default for CK_PKCS5_PBKD2_PARAMS2 {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_PRF_DATA_PARAM {
     pub type_: CK_PRF_DATA_TYPE,
@@ -1918,18 +1775,21 @@ impl Default for CK_PRF_DATA_PARAM {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_RC2_CBC_PARAMS {
     pub ulEffectiveBits: CK_ULONG,
     pub iv: [CK_BYTE; 8usize],
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_RC2_MAC_GENERAL_PARAMS {
     pub ulEffectiveBits: CK_ULONG,
     pub ulMacLength: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_RC5_CBC_PARAMS {
     pub ulWordsize: CK_ULONG,
@@ -1947,6 +1807,7 @@ impl Default for CK_RC5_CBC_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_RC5_MAC_GENERAL_PARAMS {
     pub ulWordsize: CK_ULONG,
@@ -1954,12 +1815,14 @@ pub struct CK_RC5_MAC_GENERAL_PARAMS {
     pub ulMacLength: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_RC5_PARAMS {
     pub ulWordsize: CK_ULONG,
     pub ulRounds: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_RSA_AES_KEY_WRAP_PARAMS {
     pub ulAESKeyBits: CK_ULONG,
@@ -1975,6 +1838,7 @@ impl Default for CK_RSA_AES_KEY_WRAP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_RSA_PKCS_OAEP_PARAMS {
     pub hashAlg: CK_MECHANISM_TYPE,
@@ -1993,6 +1857,7 @@ impl Default for CK_RSA_PKCS_OAEP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_RSA_PKCS_PSS_PARAMS {
     pub hashAlg: CK_MECHANISM_TYPE,
@@ -2000,6 +1865,7 @@ pub struct CK_RSA_PKCS_PSS_PARAMS {
     pub sLen: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS {
     pub pNonce: *mut CK_BYTE,
@@ -2016,6 +1882,7 @@ impl Default for CK_SALSA20_CHACHA20_POLY1305_MSG_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SALSA20_CHACHA20_POLY1305_PARAMS {
     pub pNonce: *mut CK_BYTE,
@@ -2033,6 +1900,7 @@ impl Default for CK_SALSA20_CHACHA20_POLY1305_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SALSA20_PARAMS {
     pub pBlockCounter: *mut CK_BYTE,
@@ -2049,6 +1917,7 @@ impl Default for CK_SALSA20_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SEED_CBC_ENCRYPT_DATA_PARAMS {
     pub iv: [CK_BYTE; 16usize],
@@ -2065,6 +1934,7 @@ impl Default for CK_SEED_CBC_ENCRYPT_DATA_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SKIPJACK_PRIVATE_WRAP_PARAMS {
     pub ulPasswordLen: CK_ULONG,
@@ -2089,6 +1959,7 @@ impl Default for CK_SKIPJACK_PRIVATE_WRAP_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SKIPJACK_RELAYX_PARAMS {
     pub ulOldWrappedXLen: CK_ULONG,
@@ -2116,12 +1987,14 @@ impl Default for CK_SKIPJACK_RELAYX_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_SP800_108_COUNTER_FORMAT {
     pub bLittleEndian: CK_BBOOL,
     pub ulWidthInBits: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_SP800_108_DKM_LENGTH_FORMAT {
     pub dkmLengthMethod: CK_SP800_108_DKM_LENGTH_METHOD,
@@ -2130,6 +2003,7 @@ pub struct CK_SP800_108_DKM_LENGTH_FORMAT {
 }
 pub type CK_SP800_108_PRF_TYPE = CK_MECHANISM_TYPE;
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SP800_108_FEEDBACK_KDF_PARAMS {
     pub prfType: CK_SP800_108_PRF_TYPE,
@@ -2150,6 +2024,7 @@ impl Default for CK_SP800_108_FEEDBACK_KDF_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SP800_108_KDF_PARAMS {
     pub prfType: CK_SP800_108_PRF_TYPE,
@@ -2168,6 +2043,7 @@ impl Default for CK_SP800_108_KDF_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X2RATCHET_INITIALIZE_PARAMS {
     pub sk: *mut CK_BYTE,
@@ -2189,6 +2065,7 @@ impl Default for CK_X2RATCHET_INITIALIZE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X2RATCHET_RESPOND_PARAMS {
     pub sk: *mut CK_BYTE,
@@ -2210,6 +2087,7 @@ impl Default for CK_X2RATCHET_RESPOND_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X3DH_INITIATE_PARAMS {
     pub kdf: CK_X3DH_KDF_TYPE,
@@ -2230,6 +2108,7 @@ impl Default for CK_X3DH_INITIATE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X3DH_RESPOND_PARAMS {
     pub kdf: CK_X3DH_KDF_TYPE,
@@ -2249,6 +2128,7 @@ impl Default for CK_X3DH_RESPOND_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X9_42_DH1_DERIVE_PARAMS {
     pub kdf: CK_X9_42_DH_KDF_TYPE,
@@ -2267,6 +2147,7 @@ impl Default for CK_X9_42_DH1_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X9_42_DH2_DERIVE_PARAMS {
     pub kdf: CK_X9_42_DH_KDF_TYPE,
@@ -2289,6 +2170,7 @@ impl Default for CK_X9_42_DH2_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_X9_42_MQV_DERIVE_PARAMS {
     pub kdf: CK_X9_42_DH_KDF_TYPE,
@@ -2312,39 +2194,13 @@ impl Default for CK_X9_42_MQV_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_XEDDSA_PARAMS {
     pub hash: CK_XEDDSA_HASH_TYPE,
 }
-pub type CK_SSL3_KEY_MAT_OUT_PTR = *mut CK_SSL3_KEY_MAT_OUT;
-pub type CK_SSL3_KEY_MAT_OUT_PTR_PTR = *mut *mut CK_SSL3_KEY_MAT_OUT;
-pub type CK_SSL3_KEY_MAT_PARAMS_PTR = *mut CK_SSL3_KEY_MAT_PARAMS;
-pub type CK_SSL3_KEY_MAT_PARAMS_PTR_PTR = *mut *mut CK_SSL3_KEY_MAT_PARAMS;
-pub type CK_SSL3_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_SSL3_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_SSL3_MASTER_KEY_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_SSL3_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_SSL3_RANDOM_DATA_PTR = *mut CK_SSL3_RANDOM_DATA;
-pub type CK_SSL3_RANDOM_DATA_PTR_PTR = *mut *mut CK_SSL3_RANDOM_DATA;
-pub type CK_TLS_KDF_PARAMS_PTR = *mut CK_TLS_KDF_PARAMS;
-pub type CK_TLS_KDF_PARAMS_PTR_PTR = *mut *mut CK_TLS_KDF_PARAMS;
-pub type CK_TLS_MAC_PARAMS_PTR = *mut CK_TLS_MAC_PARAMS;
-pub type CK_TLS_MAC_PARAMS_PTR_PTR = *mut *mut CK_TLS_MAC_PARAMS;
-pub type CK_TLS_PRF_PARAMS_PTR = *mut CK_TLS_PRF_PARAMS;
-pub type CK_TLS_PRF_PARAMS_PTR_PTR = *mut *mut CK_TLS_PRF_PARAMS;
-pub type CK_TLS12_KEY_MAT_PARAMS_PTR = *mut CK_TLS12_KEY_MAT_PARAMS;
-pub type CK_TLS12_KEY_MAT_PARAMS_PTR_PTR = *mut *mut CK_TLS12_KEY_MAT_PARAMS;
-pub type CK_TLS12_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_TLS12_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_TLS12_MASTER_KEY_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_TLS12_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_WTLS_KEY_MAT_OUT_PTR = *mut CK_WTLS_KEY_MAT_OUT;
-pub type CK_WTLS_KEY_MAT_OUT_PTR_PTR = *mut *mut CK_WTLS_KEY_MAT_OUT;
-pub type CK_WTLS_KEY_MAT_PARAMS_PTR = *mut CK_WTLS_KEY_MAT_PARAMS;
-pub type CK_WTLS_KEY_MAT_PARAMS_PTR_PTR = *mut *mut CK_WTLS_KEY_MAT_PARAMS;
-pub type CK_WTLS_MASTER_KEY_DERIVE_PARAMS_PTR = *mut CK_WTLS_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_WTLS_MASTER_KEY_DERIVE_PARAMS_PTR_PTR = *mut *mut CK_WTLS_MASTER_KEY_DERIVE_PARAMS;
-pub type CK_WTLS_PRF_PARAMS_PTR = *mut CK_WTLS_PRF_PARAMS;
-pub type CK_WTLS_PRF_PARAMS_PTR_PTR = *mut *mut CK_WTLS_PRF_PARAMS;
-pub type CK_WTLS_RANDOM_DATA_PTR = *mut CK_WTLS_RANDOM_DATA;
-pub type CK_WTLS_RANDOM_DATA_PTR_PTR = *mut *mut CK_WTLS_RANDOM_DATA;
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SSL3_KEY_MAT_OUT {
     pub hClientMacSecret: CK_OBJECT_HANDLE,
@@ -2364,6 +2220,7 @@ impl Default for CK_SSL3_KEY_MAT_OUT {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SSL3_RANDOM_DATA {
     pub pClientRandom: *mut CK_BYTE,
@@ -2381,6 +2238,7 @@ impl Default for CK_SSL3_RANDOM_DATA {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SSL3_KEY_MAT_PARAMS {
     pub ulMacSizeInBits: CK_ULONG,
@@ -2400,6 +2258,7 @@ impl Default for CK_SSL3_KEY_MAT_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_SSL3_MASTER_KEY_DERIVE_PARAMS {
     pub RandomInfo: CK_SSL3_RANDOM_DATA,
@@ -2415,6 +2274,7 @@ impl Default for CK_SSL3_MASTER_KEY_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_TLS_KDF_PARAMS {
     pub prfMechanism: CK_MECHANISM_TYPE,
@@ -2434,6 +2294,7 @@ impl Default for CK_TLS_KDF_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_TLS_MAC_PARAMS {
     pub prfHashMechanism: CK_MECHANISM_TYPE,
@@ -2441,6 +2302,7 @@ pub struct CK_TLS_MAC_PARAMS {
     pub ulServerOrClient: CK_ULONG,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_TLS_PRF_PARAMS {
     pub pSeed: *mut CK_BYTE,
@@ -2460,6 +2322,7 @@ impl Default for CK_TLS_PRF_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_TLS12_KEY_MAT_PARAMS {
     pub ulMacSizeInBits: CK_ULONG,
@@ -2480,6 +2343,7 @@ impl Default for CK_TLS12_KEY_MAT_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_TLS12_MASTER_KEY_DERIVE_PARAMS {
     pub RandomInfo: CK_SSL3_RANDOM_DATA,
@@ -2496,6 +2360,7 @@ impl Default for CK_TLS12_MASTER_KEY_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_WTLS_KEY_MAT_OUT {
     pub hMacSecret: CK_OBJECT_HANDLE,
@@ -2512,6 +2377,7 @@ impl Default for CK_WTLS_KEY_MAT_OUT {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_WTLS_RANDOM_DATA {
     pub pClientRandom: *mut CK_BYTE,
@@ -2529,6 +2395,7 @@ impl Default for CK_WTLS_RANDOM_DATA {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_WTLS_KEY_MAT_PARAMS {
     pub DigestMechanism: CK_MECHANISM_TYPE,
@@ -2550,6 +2417,7 @@ impl Default for CK_WTLS_KEY_MAT_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_WTLS_MASTER_KEY_DERIVE_PARAMS {
     pub DigestMechanism: CK_MECHANISM_TYPE,
@@ -2566,6 +2434,7 @@ impl Default for CK_WTLS_MASTER_KEY_DERIVE_PARAMS {
     }
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Copy, Clone)]
 pub struct CK_WTLS_PRF_PARAMS {
     pub DigestMechanism: CK_MECHANISM_TYPE,
@@ -3173,6 +3042,7 @@ pub type CK_C_VerifyMessageNext = ::std::option::Option<
 pub type CK_C_MessageVerifyFinal =
     ::std::option::Option<unsafe extern "C" fn(arg1: CK_SESSION_HANDLE) -> CK_RV>;
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_FUNCTION_LIST_3_0 {
     pub version: CK_VERSION,
@@ -3270,6 +3140,7 @@ pub struct CK_FUNCTION_LIST_3_0 {
     pub C_MessageVerifyFinal: CK_C_MessageVerifyFinal,
 }
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 #[derive(Debug, Default, Copy, Clone)]
 pub struct CK_FUNCTION_LIST {
     pub version: CK_VERSION,
