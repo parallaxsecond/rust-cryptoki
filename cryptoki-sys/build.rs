@@ -103,7 +103,10 @@ mod generate {
             .derive_debug(true)
             // Derive the `Default` trait for the generated structs where possible.
             .derive_default(true)
-            .parse_callbacks(Box::new(CargoCallbacks));
+            .parse_callbacks(Box::new(CargoCallbacks))
+            // Support function like macros
+            // https://github.com/parallaxsecond/rust-cryptoki/issues/240
+            .clang_macro_fallback();
 
         let bindings = builder.generate().expect("Unable to generate bindings");
 
