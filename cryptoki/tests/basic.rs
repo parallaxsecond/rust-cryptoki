@@ -7,6 +7,7 @@ use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::GcmParams;
+use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
 use cryptoki::mechanism::{Mechanism, MechanismType};
 use cryptoki::object::{
@@ -72,7 +73,7 @@ fn sign_verify() -> TestResult {
 
 #[test]
 #[serial]
-fn sign_verify_ed25519() -> TestResult {
+fn sign_verify_eddsa() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_rw_session(slot)?;
@@ -99,9 +100,111 @@ fn sign_verify_ed25519() -> TestResult {
 
     let data = [0xFF, 0x55, 0xDD];
 
-    let signature = session.sign(&Mechanism::Eddsa, private, &data)?;
+    let scheme = EddsaSignatureScheme::Pure;
 
-    session.verify(&Mechanism::Eddsa, public, &data, &signature)?;
+    let params = EddsaParams::new(scheme);
+
+    let signature = session.sign(&Mechanism::Eddsa(params), private, &data)?;
+
+    session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
+
+    session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    let session = pkcs11.open_rw_session(slot)?;
+
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let mechanism = Mechanism::EccEdwardsKeyPairGen;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Verify(true),
+        // Ed25519 OID
+        // See: https://github.com/opendnssec/SoftHSMv2/blob/ac70dc398b236e4522101930e790008936489e2d/src/lib/test/SignVerifyTests.cpp#L173
+        Attribute::EcParams(vec![
+            0x13, 0x0c, 0x65, 0x64, 0x77, 0x61, 0x72, 0x64, 0x73, 0x32, 0x35, 0x35, 0x31, 0x39,
+        ]),
+    ];
+
+    let priv_key_template = vec![Attribute::Token(true)];
+
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let data = [0xFF, 0x55, 0xDD];
+
+    let schemes = [
+        EddsaSignatureScheme::Ed25519,
+        EddsaSignatureScheme::Ed25519ctx(b"context"),
+        EddsaSignatureScheme::Ed25519ph(&[]),
+        EddsaSignatureScheme::Ed25519ph(b"context"),
+    ];
+
+    for scheme in schemes {
+        let params = EddsaParams::new(scheme);
+
+        let signature = session.sign(&Mechanism::Eddsa(params), private, &data)?;
+
+        session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
+    }
+
+    session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    let session = pkcs11.open_rw_session(slot)?;
+
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let mechanism = Mechanism::EccEdwardsKeyPairGen;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Verify(true),
+        // Ed448 OID
+        // See: https://github.com/opendnssec/SoftHSMv2/blob/ac70dc398b236e4522101930e790008936489e2d/src/lib/test/SignVerifyTests.cpp#L173
+        Attribute::EcParams(vec![
+            0x13, 0x0a, 0x65, 0x64, 0x77, 0x61, 0x72, 0x64, 0x73, 0x34, 0x34, 0x38,
+        ]),
+    ];
+
+    let priv_key_template = vec![Attribute::Token(true)];
+
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let data = [0xFF, 0x55, 0xDD];
+
+    let schemes = [
+        EddsaSignatureScheme::Ed448(b"context"),
+        EddsaSignatureScheme::Ed448ph(b"context"),
+    ];
+
+    for scheme in schemes {
+        let params = EddsaParams::new(scheme);
+
+        let signature = session.sign(&Mechanism::Eddsa(params), private, &data)?;
+
+        session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
+    }
 
     session.destroy_object(public)?;
     session.destroy_object(private)?;
