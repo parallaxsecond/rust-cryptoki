@@ -1213,6 +1213,32 @@ impl KeyType {
     /// HKDF key
     pub const HKDF: KeyType = KeyType { val: CKK_HKDF };
 
+    /// Create vendor defined key type
+    ///
+    /// # Arguments
+    ///
+    /// * `val` - The value of vendor defined key type
+    ///
+    /// # Errors
+    ///
+    /// If `val` is less then `CKK_VENDOR_DEFINED`, a `Error::InvalidValue` will be returned
+    ///
+    /// # Examples
+    /// ```rust
+    /// use cryptoki::object::KeyType;
+    /// use cryptoki_sys::CKK_VENDOR_DEFINED;
+    ///
+    /// let some_key_type: KeyType =
+    ///     KeyType::new_vendor_defined(CKK_VENDOR_DEFINED | 0x14).unwrap();
+    /// ```
+    pub fn new_vendor_defined(val: CK_KEY_TYPE) -> Result<KeyType> {
+        if val < CKK_VENDOR_DEFINED {
+            Err(Error::InvalidValue)
+        } else {
+            Ok(KeyType { val })
+        }
+    }
+
     fn stringify(key_type: CK_KEY_TYPE) -> String {
         match key_type {
             CKK_RSA => String::from(stringify!(CKK_RSA)),
@@ -1259,6 +1285,7 @@ impl KeyType {
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
             CKK_EC_MONTGOMERY => String::from(stringify!(CKK_EC_MONTGOMERY)),
             CKK_HKDF => String::from(stringify!(CKK_HKDF)),
+            CKK_VENDOR_DEFINED..=MAX_CU_ULONG => String::from(stringify!(key_type)),
             _ => format!("unknown ({key_type:08x})"),
         }
     }
@@ -1333,6 +1360,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_HKDF => Ok(KeyType::HKDF),
+            CKK_VENDOR_DEFINED..=MAX_CU_ULONG => KeyType::new_vendor_defined(key_type),
             _ => {
                 error!("Key type {} is not supported.", key_type);
                 Err(Error::NotSupported)
