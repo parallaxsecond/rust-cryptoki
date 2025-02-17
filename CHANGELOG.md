@@ -1,5 +1,49 @@
 # Changelog
 
+## [cryptoki-0.9.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.9.0) (2025-02-17)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.3.0...cryptoki-0.9.0)
+
+## [cryptoki-sys-0.3.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.3.0) (2025-02-17)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.8.0...cryptoki-sys-0.3.0)
+
+**Implemented enhancements:**
+
+- PkcsOaepParams [\#195](https://github.com/parallaxsecond/rust-cryptoki/issues/195)
+- Digest [\#88](https://github.com/parallaxsecond/rust-cryptoki/issues/88)
+
+**Fixed bugs:**
+
+- Treat CK\*\_VENDOR\_DEFINED correctly [\#54](https://github.com/parallaxsecond/rust-cryptoki/issues/54)
+
+**Closed issues:**
+
+- Status access violation [\#240](https://github.com/parallaxsecond/rust-cryptoki/issues/240)
+- `clone()` and `is_initialized()` [\#151](https://github.com/parallaxsecond/rust-cryptoki/issues/151)
+- CKA\_PUBLIC\_KEY\_INFO getting TypeInvalid [\#142](https://github.com/parallaxsecond/rust-cryptoki/issues/142)
+- Function name as part of errors [\#135](https://github.com/parallaxsecond/rust-cryptoki/issues/135)
+- Missing constants for x86\_64-unknown-linux-gnu [\#134](https://github.com/parallaxsecond/rust-cryptoki/issues/134)
+- Session Pool Management [\#126](https://github.com/parallaxsecond/rust-cryptoki/issues/126)
+- Vendored mechanisms [\#105](https://github.com/parallaxsecond/rust-cryptoki/issues/105)
+- Remove psa\_crypto dependency [\#100](https://github.com/parallaxsecond/rust-cryptoki/issues/100)
+- Improvement to unreleased open\_session change? [\#97](https://github.com/parallaxsecond/rust-cryptoki/issues/97)
+- Add support for SHA-based KDFs for ECDH [\#92](https://github.com/parallaxsecond/rust-cryptoki/issues/92)
+- EDDSA contrib [\#87](https://github.com/parallaxsecond/rust-cryptoki/issues/87)
+- Document test dependencies/setup in contributor docs [\#71](https://github.com/parallaxsecond/rust-cryptoki/issues/71)
+
+**Merged pull requests:**
+
+- feat: add support for vendor defined key types [\#246](https://github.com/parallaxsecond/rust-cryptoki/pull/246) ([mcaneris](https://github.com/mcaneris))
+- Add pack pragma for struct padding back [\#245](https://github.com/parallaxsecond/rust-cryptoki/pull/245) ([jrozner](https://github.com/jrozner))
+- feat: revise EdDSA mechanism to support optional params [\#244](https://github.com/parallaxsecond/rust-cryptoki/pull/244) ([mcaneris](https://github.com/mcaneris))
+- chore: add dev information to the README [\#242](https://github.com/parallaxsecond/rust-cryptoki/pull/242) ([hug-dev](https://github.com/hug-dev))
+- Define CKD\_SHA256\_KDF transformation [\#239](https://github.com/parallaxsecond/rust-cryptoki/pull/239) ([hug-dev](https://github.com/hug-dev))
+- chore: remove dependency on psa-crypto [\#238](https://github.com/parallaxsecond/rust-cryptoki/pull/238) ([hug-dev](https://github.com/hug-dev))
+- Add support for vendor defined attributes [\#237](https://github.com/parallaxsecond/rust-cryptoki/pull/237) ([jrozner](https://github.com/jrozner))
+- fix: fix some clippy lints [\#236](https://github.com/parallaxsecond/rust-cryptoki/pull/236) ([hug-dev](https://github.com/hug-dev))
+- chore: update CHANGELOG [\#234](https://github.com/parallaxsecond/rust-cryptoki/pull/234) ([hug-dev](https://github.com/hug-dev))
+
 ## [cryptoki-0.8.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.8.0) (2024-11-14)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.2.0...cryptoki-0.8.0)
