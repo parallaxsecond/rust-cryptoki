@@ -91,8 +91,12 @@ mod generate {
             .dynamic_library_name("Pkcs11")
             // The PKCS11 library works in a slightly different way to most shared libraries. We have
             // to call `C_GetFunctionList`, which returns a list of pointers to the _actual_ library
-            // functions. This is the only function we need to create a binding for.
+            // functions (in PKCS #11 before 3.0). The PKCS #11 3.0 introduces the new functions
+            // `C_GetInterface` and `C_GetInterfaceList` to request the hew functions from 3.0 API.
+            // These are the only function we need to create a binding for.
             .allowlist_function("C_GetFunctionList")
+            .allowlist_function("C_GetInterfaceList")
+            .allowlist_function("C_GetInterface")
             // This is needed because no types will be generated if `allowlist_function` is used.
             // Unsure if this is a bug.
             .allowlist_type("*")
