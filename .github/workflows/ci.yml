@@ -41,6 +41,24 @@ jobs:
       - name: "Installs SoftHSM and execute tests"
         uses: ./.github/actions/ci_script
 
+  tests-kryoptic:
+    name: Run tests against Kryoptic
+    runs-on: ubuntu-latest
+    container: fedora:rawhide
+    steps:
+      - name: Install dependencies
+        run: dnf -y install git cargo clang-devel kryoptic
+      - uses: actions/checkout@v2
+      - name: Test script
+        env:
+          KRYOPTIC_CONF: /tmp/kryoptic.sql
+          TEST_PKCS11_MODULE: /usr/lib64/pkcs11/libkryoptic_pkcs11.so
+        run: |
+          RUST_BACKTRACE=1 cargo build &&
+          RUST_BACKTRACE=1 cargo build --all-features &&
+          RUST_BACKTRACE=1 cargo test
+
+
   build-msrv:
     name: MSRV - Execute CI script
     runs-on: ubuntu-latest
