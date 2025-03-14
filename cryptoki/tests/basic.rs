@@ -1295,7 +1295,7 @@ fn aes_gcm_no_aad() -> TestResult {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()));
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()).unwrap());
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
@@ -1326,7 +1326,7 @@ fn aes_gcm_with_aad() -> TestResult {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()));
+    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()).unwrap());
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
