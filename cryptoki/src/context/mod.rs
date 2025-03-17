@@ -44,12 +44,14 @@ pub(crate) struct Pkcs11Impl {
     // valid.
     _pkcs11_lib: cryptoki_sys::Pkcs11,
     pub(crate) function_list: cryptoki_sys::CK_FUNCTION_LIST,
+    pub(crate) function_list_30: Option<cryptoki_sys::CK_FUNCTION_LIST_3_0>,
 }
 
 impl fmt::Debug for Pkcs11Impl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Pkcs11Impl")
             .field("function_list", &self.function_list)
+            .field("function_list_30", &self.function_list_30)
             .finish()
     }
 }
@@ -111,6 +113,40 @@ impl Pkcs11 {
     }
 
     unsafe fn _new(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
+        /* First try the 3.0 API to get default interface. It might have some more functions than
+         * the 2.4 API */
+        let mut interface = mem::MaybeUninit::uninit();
+        if pkcs11_lib.C_GetInterface.is_ok() {
+            Rv::from(pkcs11_lib.C_GetInterface(
+                ptr::null_mut(),
+                ptr::null_mut(),
+                interface.as_mut_ptr(),
+                0,
+            ))
+            .into_result(Function::GetInterface)?;
+            if !interface.as_ptr().is_null() {
+                let ifce_ptr: *mut cryptoki_sys::CK_INTERFACE = *interface.as_ptr();
+                let ifce: cryptoki_sys::CK_INTERFACE = *ifce_ptr;
+
+                let list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST =
+                    ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST;
+                let list: cryptoki_sys::CK_FUNCTION_LIST = *list_ptr;
+                if list.version.major >= 3 {
+                    let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
+                        ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
+                    return Ok(Pkcs11 {
+                        impl_: Arc::new(Pkcs11Impl {
+                            _pkcs11_lib: pkcs11_lib,
+                            function_list: *list_ptr, /* the function list aliases */
+                            function_list_30: Some(*list30_ptr),
+                        }),
+                        initialized: Arc::new(RwLock::new(false)),
+                    });
+                }
+                /* fall back to the 2.* API */
+            }
+        }
+
         let mut list = mem::MaybeUninit::uninit();
 
         Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
@@ -122,6 +158,7 @@ impl Pkcs11 {
             impl_: Arc::new(Pkcs11Impl {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: *list_ptr,
+                function_list_30: None,
             }),
             initialized: Arc::new(RwLock::new(false)),
         })

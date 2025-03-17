@@ -44,6 +44,17 @@ macro_rules! check_fn {
     }};
 }
 
+macro_rules! check_30_fn {
+    ($pkcs11:expr, $func_name:ident) => {{
+        let func = paste! { $pkcs11
+            .impl_
+                .function_list_30
+                .map(|f| f.[<C_ $func_name>])
+        };
+        func.is_some()
+    }};
+}
+
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone)]
 /// Enumeration of all functions defined by the PKCS11 spec
@@ -116,6 +127,31 @@ pub enum Function {
     GetFunctionStatus,
     CancelFunction,
     WaitForSlotEvent,
+    /* PKCS #11 3.0 */
+    GetInterfaceList,
+    GetInterface,
+    LoginUser,
+    SessionCancel,
+    MessageEncryptInit,
+    EncryptMessage,
+    EncryptMessageBegin,
+    EncryptMessageNext,
+    MessageEncryptFinal,
+    MessageDecryptInit,
+    DecryptMessage,
+    DecryptMessageBegin,
+    DecryptMessageNext,
+    MessageDecryptFinal,
+    MessageSignInit,
+    SignMessage,
+    SignMessageBegin,
+    SignMessageNext,
+    MessageSignFinal,
+    MessageVerifyInit,
+    VerifyMessage,
+    VerifyMessageBegin,
+    VerifyMessageNext,
+    MessageVerifyFinal,
 }
 
 impl Display for Function {
@@ -195,5 +231,30 @@ pub(super) fn is_fn_supported(ctx: &Pkcs11, function: Function) -> bool {
         Function::GetFunctionStatus => check_fn!(ctx, GetFunctionStatus),
         Function::CancelFunction => check_fn!(ctx, CancelFunction),
         Function::WaitForSlotEvent => check_fn!(ctx, WaitForSlotEvent),
+        /* PKCS #11 3.0 */
+        Function::GetInterfaceList => check_30_fn!(ctx, GetInterfaceList),
+        Function::GetInterface => check_30_fn!(ctx, GetInterface),
+        Function::LoginUser => check_30_fn!(ctx, LoginUser),
+        Function::SessionCancel => check_30_fn!(ctx, SessionCancel),
+        Function::MessageEncryptInit => check_30_fn!(ctx, MessageEncryptInit),
+        Function::EncryptMessage => check_30_fn!(ctx, EncryptMessage),
+        Function::EncryptMessageBegin => check_30_fn!(ctx, EncryptMessageBegin),
+        Function::EncryptMessageNext => check_30_fn!(ctx, EncryptMessageNext),
+        Function::MessageEncryptFinal => check_30_fn!(ctx, MessageEncryptFinal),
+        Function::MessageDecryptInit => check_30_fn!(ctx, MessageDecryptInit),
+        Function::DecryptMessage => check_30_fn!(ctx, DecryptMessage),
+        Function::DecryptMessageBegin => check_30_fn!(ctx, DecryptMessageBegin),
+        Function::DecryptMessageNext => check_30_fn!(ctx, DecryptMessageNext),
+        Function::MessageDecryptFinal => check_30_fn!(ctx, MessageDecryptFinal),
+        Function::MessageSignInit => check_30_fn!(ctx, MessageSignInit),
+        Function::SignMessage => check_30_fn!(ctx, SignMessage),
+        Function::SignMessageBegin => check_30_fn!(ctx, SignMessageBegin),
+        Function::SignMessageNext => check_30_fn!(ctx, SignMessageNext),
+        Function::MessageSignFinal => check_30_fn!(ctx, MessageSignFinal),
+        Function::MessageVerifyInit => check_30_fn!(ctx, MessageVerifyInit),
+        Function::VerifyMessage => check_30_fn!(ctx, VerifyMessage),
+        Function::VerifyMessageBegin => check_30_fn!(ctx, VerifyMessageBegin),
+        Function::VerifyMessageNext => check_30_fn!(ctx, VerifyMessageNext),
+        Function::MessageVerifyFinal => check_30_fn!(ctx, MessageVerifyFinal),
     }
 }
