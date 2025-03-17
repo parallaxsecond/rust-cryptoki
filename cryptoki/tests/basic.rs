@@ -437,12 +437,13 @@ fn session_find_objects() -> testresult::TestResult {
             Attribute::Token(true),
             Attribute::Encrypt(true),
             Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
+            Attribute::ValueLen(32.into()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
         // generate a secret key
         let _key = session
-            .generate_key(&Mechanism::Des3KeyGen, &key_template)
+            .generate_key(&Mechanism::AesKeyGen, &key_template)
             .unwrap();
     });
 
@@ -451,7 +452,7 @@ fn session_find_objects() -> testresult::TestResult {
         Attribute::Token(true),
         Attribute::Id("12345678".as_bytes().to_vec()),
         Attribute::Class(ObjectClass::SECRET_KEY),
-        Attribute::KeyType(KeyType::DES3),
+        Attribute::KeyType(KeyType::AES),
     ];
 
     let mut found_keys = session.find_objects(&key_search_template)?;
@@ -486,12 +487,13 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
         let key_template = vec![
             Attribute::Token(true),
             Attribute::Encrypt(true),
+            Attribute::ValueLen(32.into()),
             Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
         // generate a secret key
-        session.generate_key(&Mechanism::Des3KeyGen, &key_template)?;
+        session.generate_key(&Mechanism::AesKeyGen, &key_template)?;
     }
 
     // retrieve these keys using this template
@@ -499,7 +501,7 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
         Attribute::Token(true),
         Attribute::Id("12345678".as_bytes().to_vec()),
         Attribute::Class(ObjectClass::SECRET_KEY),
-        Attribute::KeyType(KeyType::DES3),
+        Attribute::KeyType(KeyType::AES),
     ];
 
     // test iter_objects_with_cache_size()
@@ -575,6 +577,7 @@ fn wrap_and_unwrap_key() {
 
     let key_to_be_wrapped_template = vec![
         Attribute::Token(true),
+        Attribute::ValueLen(32.into()),
         // the key needs to be extractable to be suitable for being wrapped
         Attribute::Extractable(true),
         Attribute::Encrypt(true),
@@ -582,16 +585,15 @@ fn wrap_and_unwrap_key() {
 
     // generate a secret key that will be wrapped
     let key_to_be_wrapped = session
-        .generate_key(&Mechanism::Des3KeyGen, &key_to_be_wrapped_template)
+        .generate_key(&Mechanism::AesKeyGen, &key_to_be_wrapped_template)
         .unwrap();
 
-    // Des3Ecb input length must be a multiple of 8
-    // see: PKCS#11 spec Table 10-10, DES-ECB Key And Data Length Constraints
+    // AesEcb input length must be a multiple of 16
     let encrypted_with_original = session
         .encrypt(
-            &Mechanism::Des3Ecb,
+            &Mechanism::AesEcb,
             key_to_be_wrapped,
-            &[1, 2, 3, 4, 5, 6, 7, 8],
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         )
         .unwrap();
 
@@ -631,16 +633,16 @@ fn wrap_and_unwrap_key() {
                 Attribute::Private(true),
                 Attribute::Encrypt(true),
                 Attribute::Class(ObjectClass::SECRET_KEY),
-                Attribute::KeyType(KeyType::DES3),
+                Attribute::KeyType(KeyType::AES),
             ],
         )
         .unwrap();
 
     let encrypted_with_unwrapped = session
         .encrypt(
-            &Mechanism::Des3Ecb,
+            &Mechanism::AesEcb,
             unwrapped_key,
-            &[1, 2, 3, 4, 5, 6, 7, 8],
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         )
         .unwrap();
     assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
