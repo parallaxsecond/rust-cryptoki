@@ -1270,6 +1270,28 @@ fn sha256_digest() -> TestResult {
 
 #[test]
 #[serial]
+fn gcm_param_graceful_failure() -> TestResult {
+    // Try to generate GcmParams with max size IV (2^32-1)
+    // Verify that the ulIvBits doesn't cause failover
+    println!("start");
+    // setting this as a [u8] array causes stack overflow before operation has even begun
+    let mut iv = vec![0; 4294967295];
+    println!("iv");
+    let aad = [0; 16];
+    
+    let _gcm_params = match GcmParams::new(&mut iv, &aad, 96.into()) {
+        Ok(params) => params,
+        Err(e) => { 
+            println!("{e}");
+            return Err(e.into());
+        },
+    };
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 // Currently empty AAD crashes SoftHSM, see: https://github.com/opendnssec/SoftHSMv2/issues/605
 #[ignore]
 fn aes_gcm_no_aad() -> TestResult {
@@ -1326,7 +1348,14 @@ fn aes_gcm_with_aad() -> TestResult {
         Attribute::Encrypt(true),
     ];
     let key_handle = session.create_object(&template)?;
-    let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into()).unwrap());
+    let gcm_params = match GcmParams::new(&mut iv, &aad, 96.into()) {
+        Ok(params) => params,
+        Err(e) => { 
+            println!("{e}");
+            return Err(e.into());
+        },
+    };
+    let mechanism = Mechanism::AesGcm(gcm_params);
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
     Ok(())
