@@ -46,10 +46,11 @@ fn sign_verify() -> TestResult {
         Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     // generate a key pair
     let (public, private) =
@@ -93,7 +94,7 @@ fn sign_verify_eddsa() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -136,7 +137,7 @@ fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -186,7 +187,7 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -1353,9 +1354,16 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    let pub_key_template = [Attribute::ModulusBits(2048.into())];
-    let (pubkey, privkey) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let pub_key_template = [
+        Attribute::ModulusBits(2048.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = [Attribute::Decrypt(true)];
+    let (pubkey, privkey) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
     let oaep = PkcsOaepParams::new(
         MechanismType::SHA1,
         PkcsMgfType::MGF1_SHA1,
@@ -1380,9 +1388,16 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    let pub_key_template = [Attribute::ModulusBits(2048.into())];
-    let (pubkey, privkey) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let pub_key_template = [
+        Attribute::ModulusBits(2048.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = vec![Attribute::Decrypt(true)];
+    let (pubkey, privkey) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
     let oaep = PkcsOaepParams::new(
         MechanismType::SHA1,
         PkcsMgfType::MGF1_SHA1,
@@ -1523,6 +1538,7 @@ fn sign_verify_sha1_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1552,6 +1568,7 @@ fn sign_verify_sha224_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1581,6 +1598,7 @@ fn sign_verify_sha256_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1610,6 +1628,7 @@ fn sign_verify_sha384_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1639,6 +1658,7 @@ fn sign_verify_sha512_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
