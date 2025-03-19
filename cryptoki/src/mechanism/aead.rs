@@ -68,9 +68,9 @@ impl<'a> GcmParams<'a> {
                 ulIvBits: iv_bit_len.try_into().unwrap_or_default(),
                 pAAD: aad.as_ptr() as *mut _,
                 ulAADLen: match aad.len().try_into() {
-                        Ok(len) => len,
-                        Err(_e) => return Err("aad length does not fit in CK_ULONG"),
-                    },
+                    Ok(len) => len,
+                    Err(_e) => return Err("aad length does not fit in CK_ULONG"),
+                },
                 ulTagBits: tag_bits.into(),
             },
             _marker: PhantomData,

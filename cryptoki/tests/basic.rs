@@ -1275,9 +1275,7 @@ fn gcm_param_graceful_failure() -> TestResult {
     // Verify that the ulIvBits doesn't cause failover
     // setting this as a [u8] array causes stack overflow before operation has even begun
     let mut iv = vec![0; 4294967295];
-    
     let aad = [0; 16];
-    
     GcmParams::new(&mut iv, &aad, 96.into())?;
 
     Ok(())
