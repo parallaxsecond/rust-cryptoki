@@ -63,10 +63,7 @@ impl<'a> GcmParams<'a> {
                 },
                 // Since this field isn't universally used, set it to 0 if it doesn't fit in CK_ULONG.
                 // If the HSM doesn't require the field, it won't mind; and it it does, it would break anyways.
-                ulIvBits: match iv_bit_len.try_into() {
-                    Ok(len) => len,
-                    Err(_e) => 0,
-                },
+                ulIvBits: iv_bit_len.try_into().unwrap_or_default(),
                 pAAD: aad.as_ptr() as *mut _,
                 ulAADLen: match aad
                     .len()
