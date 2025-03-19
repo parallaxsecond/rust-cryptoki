@@ -31,7 +31,9 @@ impl<'a> GcmParams<'a> {
     /// `tag_bits` - The length, in **bits**, of the authentication tag.  Must
     /// be between 0 and 128.  The tag is appended to the end of the
     /// ciphertext.
-    ///
+    /// # Errors
+    /// This function returns an error if the length of `iv` or `aad` does not
+    /// fit into an [Ulong].
     pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Result<Self, &'a str> {
         // The ulIvBits parameter seems to be missing from the 2.40 spec,
         // although it is included in the header file.  In [1], OASIS clarified
@@ -52,7 +54,7 @@ impl<'a> GcmParams<'a> {
 
         let iv_len = iv.len();
         // Some HSMs may require the ulIvBits field to be populated, while others don't pay attention to it.
-        let iv_bit_len = iv_len*8;
+        let iv_bit_len = iv_len * 8;
 
         Ok(GcmParams {
             inner: CK_GCM_PARAMS {
@@ -65,9 +67,7 @@ impl<'a> GcmParams<'a> {
                 // If the HSM doesn't require the field, it won't mind; and it it does, it would break anyways.
                 ulIvBits: iv_bit_len.try_into().unwrap_or_default(),
                 pAAD: aad.as_ptr() as *mut _,
-                ulAADLen: match aad
-                    .len()
-                    .try_into() {
+                ulAADLen: match aad.len().try_into() {
                         Ok(len) => len,
                         Err(_e) => return Err("aad length does not fit in CK_ULONG"),
                     },
