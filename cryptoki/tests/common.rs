@@ -11,12 +11,17 @@ pub static USER_PIN: &str = "fedcba";
 // The default SO pin
 pub static SO_PIN: &str = "abcdef";
 
+fn get_pkcs11_path() -> String {
+    env::var("TEST_PKCS11_MODULE")
+        .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
+}
+
+pub fn is_softhsm() -> bool {
+    get_pkcs11_path().contains("softhsm")
+}
+
 pub fn get_pkcs11() -> Pkcs11 {
-    Pkcs11::new(
-        env::var("TEST_PKCS11_MODULE")
-            .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
-    )
-    .unwrap()
+    Pkcs11::new(get_pkcs11_path()).unwrap()
 }
 
 pub fn init_pins() -> (Pkcs11, Slot) {

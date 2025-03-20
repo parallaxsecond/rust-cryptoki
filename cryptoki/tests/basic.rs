@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_pkcs11, SO_PIN, USER_PIN};
+use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -411,7 +411,7 @@ fn import_export() -> TestResult {
 fn get_token_info() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
-    assert_eq!("SoftHSM project", info.manufacturer_id());
+    assert_ne!("", info.manufacturer_id());
 
     Ok(())
 }
@@ -698,9 +698,14 @@ fn get_info_test() -> TestResult {
     let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
-    assert_eq!(info.cryptoki_version().major(), 2);
-    assert_eq!(info.cryptoki_version().minor(), 40);
-    assert_eq!(info.manufacturer_id(), String::from("SoftHSM"));
+    assert_ne!("", info.manufacturer_id());
+    if is_softhsm() {
+        assert_eq!(info.cryptoki_version().major(), 2);
+        assert_eq!(info.cryptoki_version().minor(), 40);
+    } else {
+        assert_eq!(info.cryptoki_version().major(), 3);
+        assert_eq!(info.cryptoki_version().minor(), 0);
+    }
     Ok(())
 }
 
@@ -712,7 +717,7 @@ fn get_slot_info_test() -> TestResult {
     assert!(slot_info.token_present());
     assert!(!slot_info.hardware_slot());
     assert!(!slot_info.removable_device());
-    assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
+    assert_ne!("", slot_info.manufacturer_id());
     Ok(())
 }
 
@@ -1286,9 +1291,13 @@ fn gcm_param_graceful_failure() -> TestResult {
 
 #[test]
 #[serial]
-// Currently empty AAD crashes SoftHSM, see: https://github.com/opendnssec/SoftHSMv2/issues/605
-#[ignore]
 fn aes_gcm_no_aad() -> TestResult {
+    // Currently empty AAD crashes SoftHSM, see: https://github.com/opendnssec/SoftHSMv2/issues/605
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     // Encrypt two blocks of zeros with AES-128-GCM
     let key = vec![0; 16];
     let mut iv = [0; 12];
@@ -1384,8 +1393,13 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore] // it's not clear why the test with data specified fails
 fn rsa_pkcs_oaep_with_data() -> TestResult {
+    /* SoftHSM does not support additional OAEP Source */
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
@@ -1418,11 +1432,16 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
 #[test]
 #[serial]
 fn get_slot_event() -> TestResult {
-    // Not implemented in SoftHSMv2
-    // https://github.com/opendnssec/SoftHSMv2/issues/370
     let (pkcs11, _slot) = init_pins();
-    let event = pkcs11.get_slot_event()?;
-    assert_eq!(None, event);
+    if is_softhsm() {
+        // Not implemented in SoftHSMv2
+        // https://github.com/opendnssec/SoftHSMv2/issues/370
+        let event = pkcs11.get_slot_event()?;
+        assert_eq!(None, event);
+    } else {
+        // Not implemented in Kryoptic
+        pkcs11.get_slot_event().unwrap_err();
+    }
     Ok(())
 }
 
