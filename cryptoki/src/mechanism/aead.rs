@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! AEAD block cipher mechanism types
 
+use crate::error::Error;
 use crate::types::Ulong;
 use cryptoki_sys::*;
 use std::convert::TryInto;
@@ -34,7 +35,7 @@ impl<'a> GcmParams<'a> {
     /// # Errors
     /// This function returns an error if the length of `iv` or `aad` does not
     /// fit into an [Ulong].
-    pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Result<Self, &'a str> {
+    pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Result<Self, Error> {
         // The ulIvBits parameter seems to be missing from the 2.40 spec,
         // although it is included in the header file.  In [1], OASIS clarified
         // that the header file is normative.  In 3.0, they added the parameter
@@ -59,18 +60,12 @@ impl<'a> GcmParams<'a> {
         Ok(GcmParams {
             inner: CK_GCM_PARAMS {
                 pIv: iv.as_mut_ptr(),
-                ulIvLen: match iv_len.try_into() {
-                    Ok(len) => len,
-                    Err(_e) => return Err("iv length does not fit in CK_ULONG"),
-                },
+                ulIvLen: iv_len.try_into()?,
                 // Since this field isn't universally used, set it to 0 if it doesn't fit in CK_ULONG.
                 // If the HSM doesn't require the field, it won't mind; and it it does, it would break anyways.
                 ulIvBits: iv_bit_len.try_into().unwrap_or_default(),
                 pAAD: aad.as_ptr() as *mut _,
-                ulAADLen: match aad.len().try_into() {
-                    Ok(len) => len,
-                    Err(_e) => return Err("aad length does not fit in CK_ULONG"),
-                },
+                ulAADLen: aad.len().try_into()?,
                 ulTagBits: tag_bits.into(),
             },
             _marker: PhantomData,
