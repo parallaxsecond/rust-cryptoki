@@ -454,7 +454,11 @@ impl Session {
                 ))
             } {
                 Rv::Ok => {
-                    results.push(AttributeInfo::Available(template[0].ulValueLen.try_into()?))
+                    if template[0].ulValueLen == CK_UNAVAILABLE_INFORMATION {
+                        results.push(AttributeInfo::Unavailable)
+                    } else {
+                        results.push(AttributeInfo::Available(template[0].ulValueLen.try_into()?))
+                    }
                 }
                 Rv::Error(RvError::AttributeSensitive) => results.push(AttributeInfo::Sensitive),
                 Rv::Error(RvError::AttributeTypeInvalid) => {
