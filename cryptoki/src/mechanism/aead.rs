@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! AEAD block cipher mechanism types
 
+use crate::error::Error;
 use crate::types::Ulong;
 use cryptoki_sys::*;
 use std::convert::TryInto;
@@ -31,12 +32,10 @@ impl<'a> GcmParams<'a> {
     /// `tag_bits` - The length, in **bits**, of the authentication tag.  Must
     /// be between 0 and 128.  The tag is appended to the end of the
     /// ciphertext.
-    ///
-    /// # Panics
-    ///
-    /// This function panics if the length of `iv` or `aad` does not
+    /// # Errors
+    /// This function returns an error if the length of `iv` or `aad` does not
     /// fit into an [Ulong].
-    pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Self {
+    pub fn new(iv: &'a mut [u8], aad: &'a [u8], tag_bits: Ulong) -> Result<Self, Error> {
         // The ulIvBits parameter seems to be missing from the 2.40 spec,
         // although it is included in the header file.  In [1], OASIS clarified
         // that the header file is normative.  In 3.0, they added the parameter
@@ -53,23 +52,24 @@ impl<'a> GcmParams<'a> {
         // set it to zero.
         //
         // [1]: https://www.oasis-open.org/committees/document.php?document_id=58032&wg_abbrev=pkcs11
-        GcmParams {
+
+        let iv_len = iv.len();
+        // Some HSMs may require the ulIvBits field to be populated, while others don't pay attention to it.
+        let iv_bit_len = iv_len * 8;
+
+        Ok(GcmParams {
             inner: CK_GCM_PARAMS {
                 pIv: iv.as_mut_ptr(),
-                ulIvLen: iv
-                    .len()
-                    .try_into()
-                    .expect("iv length does not fit in CK_ULONG"),
-                ulIvBits: 0,
+                ulIvLen: iv_len.try_into()?,
+                // Since this field isn't universally used, set it to 0 if it doesn't fit in CK_ULONG.
+                // If the HSM doesn't require the field, it won't mind; and it it does, it would break anyways.
+                ulIvBits: iv_bit_len.try_into().unwrap_or_default(),
                 pAAD: aad.as_ptr() as *mut _,
-                ulAADLen: aad
-                    .len()
-                    .try_into()
-                    .expect("aad length does not fit in CK_ULONG"),
+                ulAADLen: aad.len().try_into()?,
                 ulTagBits: tag_bits.into(),
             },
             _marker: PhantomData,
-        }
+        })
     }
 
     /// The initialization vector.
