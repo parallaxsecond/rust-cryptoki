@@ -947,6 +947,18 @@ fn is_fn_supported_test() {
         pkcs11.is_fn_supported(Function::DigestFinal),
         "C_DigestFinal function reports as not supported"
     );
+    if is_softhsm() {
+        // the SoftHSM does not have PKCS#11 3.0 API so this function is not present
+        assert!(
+            !pkcs11.is_fn_supported(Function::MessageEncryptInit),
+            "C_MessageEncryptInit function reports supported for SoftHSM"
+        );
+    } else {
+        assert!(
+            pkcs11.is_fn_supported(Function::MessageEncryptInit),
+            "C_MessageEncryptInit function reports as not supported"
+        );
+    }
 }
 
 #[test]
