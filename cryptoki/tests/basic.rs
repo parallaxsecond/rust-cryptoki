@@ -1306,6 +1306,143 @@ fn sha256_digest() -> TestResult {
 
 #[test]
 #[serial]
+fn sha256_digest_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session
+    let session = pkcs11.open_ro_session(slot)?;
+
+    // Log into the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to digest
+    let data1 = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+    let data2 = vec![0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
+
+    // Digest data in parts
+    session.digest_initialize(&Mechanism::Sha256)?;
+    session.digest_update(&data1)?;
+    session.digest_update(&data2)?;
+
+    let have = session.digest_finalize()?;
+    let want = vec![
+        0x8c, 0x18, 0xb1, 0x5f, 0x01, 0x47, 0x13, 0x2a, 0x03, 0xc2, 0xe3, 0xfd, 0x4f, 0x29, 0xb7,
+        0x75, 0x80, 0x19, 0xb5, 0x58, 0x5e, 0xfc, 0xeb, 0x45, 0x18, 0x33, 0x2b, 0x2f, 0xa7, 0xa4,
+        0x1f, 0x6e,
+    ];
+
+    assert_eq!(have, want);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_with_key() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // Log into the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Create a key to add to the digest
+    let key_template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen((256 / 8).into()),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let key = session.generate_key(&Mechanism::AesKeyGen, &key_template)?;
+
+    // Data and key bytes to digest
+    let mut data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let attributes = session.get_attributes(key, &[AttributeType::Value])?;
+    let key_data = attributes.first().unwrap();
+    let mut key_data = match key_data {
+        Attribute::Value(key_data) => key_data.to_owned(),
+        _ => unreachable!(),
+    };
+
+    // Digest data in parts
+    session.digest_initialize(&Mechanism::Sha256)?;
+    session.digest_update(&data)?;
+    session.digest_key(key)?;
+
+    // Create digests to compare
+    let have = session.digest_finalize()?;
+
+    data.append(&mut key_data);
+    let want = session.digest(&Mechanism::Sha256, &data)?;
+
+    assert_eq!(have, want);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session
+    let session = pkcs11.open_ro_session(slot)?;
+
+    // Log into the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to digest
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    // Attempt to update digest without an operation having been initialized
+    let result = session.digest_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestUpdate)
+    ));
+
+    // Attempt to finalize digest without an operation having been initialized
+    let result = session.digest_finalize();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session
+    let session = pkcs11.open_ro_session(slot)?;
+
+    // Log into the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Initialize digesting operation twice in a row
+    session.digest_initialize(&Mechanism::Sha256)?;
+    let result = session.digest_initialize(&Mechanism::Sha256);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::DigestInit)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn gcm_param_graceful_failure() -> TestResult {
     // Try to generate GcmParams with max size IV (2^32-1)
     // Verify that the ulIvBits doesn't cause failover
