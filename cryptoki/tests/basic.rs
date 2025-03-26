@@ -1351,6 +1351,7 @@ fn sha256_digest_multipart_with_key() -> TestResult {
     let key_template = vec![
         Attribute::Token(true),
         Attribute::ValueLen((256 / 8).into()),
+        // Key must be non-sensitive and extractable to get its bytes and digest them directly, for comparison
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
     ];
