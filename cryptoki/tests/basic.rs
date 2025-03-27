@@ -215,6 +215,170 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
 
 #[test]
 #[serial]
+fn sign_verify_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
+    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    // Data to sign
+    let data = vec![0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+
+    // Sign data in parts (standard RsaPkcs doesn't support this)
+    session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    for part in data.chunks(3) {
+        session.sign_update(part)?;
+    }
+    let signature = session.sign_finalize()?;
+
+    // Verify signature in parts (standard RsaPkcs doesn't support this)
+    session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    for part in data.chunks(3) {
+        session.verify_update(part)?;
+    }
+    session.verify_finalize(&signature)?;
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to sign/verify
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+    let signature = vec![0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
+
+    // Attempt to update signing without an operation having been initialized
+    let result = session.sign_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignUpdate)
+    ));
+
+    // Attempt to finalize signing without an operation having been initialized
+    let result = session.sign_finalize();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignFinal)
+    ));
+
+    // Attempt to update verification without an operation having been initialized
+    let result = session.verify_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyUpdate)
+    ));
+
+    // Attempt to finalize verification without an operation having been initialized
+    let result = session.verify_finalize(&signature);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
+    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    // Initialize signing operation twice in a row
+    session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    let result = session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::SignInit)
+    ));
+
+    // Make sure signing operation is over before trying same with verification
+    session.sign_finalize()?;
+
+    // Initialize verification operation twice in a row
+    session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    let result = session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::VerifyInit)
+    ));
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn encrypt_decrypt() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
