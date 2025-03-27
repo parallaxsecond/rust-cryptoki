@@ -431,8 +431,6 @@ fn encrypt_decrypt() -> TestResult {
 
 #[test]
 #[serial]
-// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
-#[ignore]
 fn encrypt_decrypt_multipart() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
@@ -440,28 +438,24 @@ fn encrypt_decrypt_multipart() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    // Define parameters for keypair
-    let public_exponent = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
-
-    let pub_key_template = vec![
+    // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
+    let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::PublicExponent(public_exponent),
-        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::ValueLen((128 / 8).into()),
         Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true), Attribute::Decrypt(true)];
-
-    // Generate keypair
-    let (pub_key, priv_key) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &priv_key_template)?;
+    let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
     // Data to encrypt
-    let data = vec![0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+    let data = vec![
+        0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
+        0x77,
+    ];
 
     // Encrypt data in parts
-    session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key)?;
+    session.encrypt_initialize(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
     for part in data.chunks(3) {
@@ -470,7 +464,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     encrypted_data.extend(session.encrypt_finalize()?);
 
     // Decrypt data in parts
-    session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key)?;
+    session.decrypt_initialize(&Mechanism::AesEcb, key)?;
 
     let mut decrypted_data = vec![];
     for part in encrypted_data.chunks(3) {
@@ -480,26 +474,26 @@ fn encrypt_decrypt_multipart() -> TestResult {
 
     assert_eq!(data, decrypted_data);
 
-    // Delete keys
-    session.destroy_object(pub_key)?;
-    session.destroy_object(priv_key)?;
+    // Delete key
+    session.destroy_object(key)?;
 
     Ok(())
 }
 
 #[test]
 #[serial]
-// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
-#[ignore]
 fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
-    let session = pkcs11.open_rw_session(slot)?;
+    let session = pkcs11.open_ro_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Data to encrypt/decrypt
-    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+    let data = vec![
+        0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
+        0x77,
+    ];
 
     // Attempt to update encryption without an operation having been initialized
     let result = session.encrypt_update(&data);
@@ -542,8 +536,6 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
 
 #[test]
 #[serial]
-// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
-#[ignore]
 fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
@@ -551,26 +543,19 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    // Define parameters for keypair
-    let public_exponent = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
-
-    let pub_key_template = vec![
+    // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
+    let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::PublicExponent(public_exponent),
-        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::ValueLen((128 / 8).into()),
         Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true), Attribute::Decrypt(true)];
-
-    // Generate keypair
-    let (pub_key, priv_key) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &priv_key_template)?;
+    let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
     // Initialize encryption operation twice in a row
-    session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key)?;
-    let result = session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key);
+    session.encrypt_initialize(&Mechanism::AesEcb, key)?;
+    let result = session.encrypt_initialize(&Mechanism::AesEcb, key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -578,9 +563,12 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::EncryptInit)
     ));
 
+    // Make sure encryption operation is over before trying same with decryption
+    session.encrypt_finalize()?;
+
     // Initialize encryption operation twice in a row
-    session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key)?;
-    let result = session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key);
+    session.decrypt_initialize(&Mechanism::AesEcb, key)?;
+    let result = session.decrypt_initialize(&Mechanism::AesEcb, key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -588,9 +576,8 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::DecryptInit)
     ));
 
-    // Delete keys
-    session.destroy_object(pub_key)?;
-    session.destroy_object(priv_key)?;
+    // Delete key
+    session.destroy_object(key)?;
 
     Ok(())
 }
@@ -1644,7 +1631,9 @@ fn sha256_digest_multipart() -> TestResult {
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Data to digest
-    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
+    let data = vec![
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11,
+    ];
 
     // Digest data in parts
     session.digest_initialize(&Mechanism::Sha256)?;
