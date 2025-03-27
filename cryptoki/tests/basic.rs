@@ -267,6 +267,172 @@ fn encrypt_decrypt() -> TestResult {
 
 #[test]
 #[serial]
+// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
+#[ignore]
+fn encrypt_decrypt_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Decrypt(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) =
+        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &priv_key_template)?;
+
+    // Data to encrypt
+    let data = vec![0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+
+    // Encrypt data in parts
+    session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key)?;
+
+    let mut encrypted_data = vec![];
+    for part in data.chunks(3) {
+        encrypted_data.extend(session.encrypt_update(part)?);
+    }
+    encrypted_data.extend(session.encrypt_finalize()?);
+
+    // Decrypt data in parts
+    session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key)?;
+
+    let mut decrypted_data = vec![];
+    for part in encrypted_data.chunks(3) {
+        decrypted_data.extend(session.decrypt_update(part)?);
+    }
+    decrypted_data.extend(session.decrypt_finalize()?);
+
+    assert_eq!(data, decrypted_data);
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
+#[ignore]
+fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to encrypt/decrypt
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    // Attempt to update encryption without an operation having been initialized
+    let result = session.encrypt_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptUpdate)
+    ));
+
+    // Attempt to finalize encryption without an operation having been initialized
+    let result = session.encrypt_finalize();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptFinal)
+    ));
+
+    // Attempt to update decryption without an operation having been initialized
+    let result = session.decrypt_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptUpdate)
+    ));
+
+    // Attempt to finalize decryption without an operation having been initialized
+    let result = session.decrypt_finalize();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+// Currently SoftHSM doesn't support EncryptUpdate/DecryptUpdate
+#[ignore]
+fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Decrypt(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) =
+        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &priv_key_template)?;
+
+    // Initialize encryption operation twice in a row
+    session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key)?;
+    let result = session.encrypt_initialize(&Mechanism::RsaPkcs, pub_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::EncryptInit)
+    ));
+
+    // Initialize encryption operation twice in a row
+    session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key)?;
+    let result = session.decrypt_initialize(&Mechanism::RsaPkcs, priv_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::DecryptInit)
+    ));
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn derive_key() -> TestResult {
     /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/184 */
     if !is_softhsm() {
