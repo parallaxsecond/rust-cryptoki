@@ -228,12 +228,10 @@ fn sign_verify_multipart() -> TestResult {
 
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
-        Attribute::Verify(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+    let priv_key_template = vec![Attribute::Token(true)];
 
     // Generate keypair
     let (pub_key, priv_key) = session.generate_key_pair(
@@ -333,12 +331,10 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
 
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
-        Attribute::Verify(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+    let priv_key_template = vec![Attribute::Token(true)];
 
     // Generate keypair
     let (pub_key, priv_key) = session.generate_key_pair(
@@ -441,10 +437,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
     let template = vec![
         Attribute::Token(true),
-        Attribute::Private(false),
         Attribute::ValueLen((128 / 8).into()),
-        Attribute::Encrypt(true),
-        Attribute::Decrypt(true),
     ];
     let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
@@ -546,10 +539,7 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
     let template = vec![
         Attribute::Token(true),
-        Attribute::Private(false),
         Attribute::ValueLen((128 / 8).into()),
-        Attribute::Encrypt(true),
-        Attribute::Decrypt(true),
     ];
     let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
