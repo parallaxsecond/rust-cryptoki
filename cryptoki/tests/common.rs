@@ -13,7 +13,7 @@ pub static SO_PIN: &str = "abcdef";
 
 pub fn get_pkcs11() -> Pkcs11 {
     Pkcs11::new(
-        env::var("PKCS11_SOFTHSM2_MODULE")
+        env::var("TEST_PKCS11_MODULE")
             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     )
     .unwrap()

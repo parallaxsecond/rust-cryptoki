@@ -39,7 +39,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 ///
 /// # fn main() -> testresult::TestResult {
 /// # let pkcs11 = Pkcs11::new(
-/// #    env::var("PKCS11_SOFTHSM2_MODULE")
+/// #    env::var("TEST_PKCS11_MODULE")
 /// #        .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
 /// # )?;
 /// #
@@ -282,7 +282,7 @@ impl Session {
     /// # use cryptoki::object::{Attribute, AttributeType, CertificateType, ObjectClass, ObjectHandle};
     /// #
     /// # let mut client = Pkcs11::new(
-    /// #    std::env::var("PKCS11_SOFTHSM2_MODULE")
+    /// #    std::env::var("TEST_PKCS11_MODULE")
     /// #       .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     /// # )?;
     /// # client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
@@ -401,7 +401,7 @@ impl Session {
     /// use std::env;
     ///
     /// let mut pkcs11 = Pkcs11::new(
-    ///         env::var("PKCS11_SOFTHSM2_MODULE")
+    ///         env::var("TEST_PKCS11_MODULE")
     ///             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     ///     )
     ///     .unwrap();

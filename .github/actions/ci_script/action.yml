@@ -30,7 +30,7 @@ runs:
 
     - name: Test script
       env:
-        PKCS11_SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
+        TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
         SOFTHSM2_CONF: /tmp/softhsm2.conf
       run: ./ci.sh
       shell: bash

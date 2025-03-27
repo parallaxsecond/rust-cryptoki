@@ -15,7 +15,7 @@ pub static SO_PIN: &str = "abcdef";
 fn main() -> testresult::TestResult {
     // initialize a new Pkcs11 object using the module from the env variable
     let pkcs11 = Pkcs11::new(
-        env::var("PKCS11_SOFTHSM2_MODULE")
+        env::var("TEST_PKCS11_MODULE")
             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     )?;
 
