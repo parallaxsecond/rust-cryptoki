@@ -1309,20 +1309,18 @@ fn sha256_digest() -> TestResult {
 fn sha256_digest_multipart() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
-    // Open a session
+    // Open a session and log in
     let session = pkcs11.open_ro_session(slot)?;
-
-    // Log into the session
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Data to digest
-    let data1 = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
-    let data2 = vec![0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
 
     // Digest data in parts
     session.digest_initialize(&Mechanism::Sha256)?;
-    session.digest_update(&data1)?;
-    session.digest_update(&data2)?;
+    for part in data.chunks(3) {
+        session.digest_update(part)?;
+    }
 
     let have = session.digest_finalize()?;
     let want = vec![
@@ -1341,10 +1339,8 @@ fn sha256_digest_multipart() -> TestResult {
 fn sha256_digest_multipart_with_key() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
-    // Open a session
+    // Open a session and log in
     let session = pkcs11.open_rw_session(slot)?;
-
-    // Log into the session
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Create a key to add to the digest
@@ -1380,6 +1376,9 @@ fn sha256_digest_multipart_with_key() -> TestResult {
 
     assert_eq!(have, want);
 
+    // Delete key
+    session.destroy_object(key)?;
+
     Ok(())
 }
 
@@ -1388,10 +1387,8 @@ fn sha256_digest_multipart_with_key() -> TestResult {
 fn sha256_digest_multipart_not_initialized() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
-    // Open a session
+    // Open a session and log in
     let session = pkcs11.open_ro_session(slot)?;
-
-    // Log into the session
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Data to digest
@@ -1423,10 +1420,8 @@ fn sha256_digest_multipart_not_initialized() -> TestResult {
 fn sha256_digest_multipart_already_initialized() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
-    // Open a session
+    // Open a session and log in
     let session = pkcs11.open_ro_session(slot)?;
-
-    // Log into the session
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Initialize digesting operation twice in a row
