@@ -241,7 +241,7 @@ fn sign_verify_multipart() -> TestResult {
     )?;
 
     // Data to sign
-    let data = vec![0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+    let data = [0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
 
     // Sign data in parts (standard RsaPkcs doesn't support this)
     session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
@@ -1621,7 +1621,7 @@ fn sha256_digest_multipart() -> TestResult {
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Data to digest
-    let data = vec![
+    let data = [
         0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11,
     ];
 
