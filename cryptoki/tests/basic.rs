@@ -215,6 +215,166 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
 
 #[test]
 #[serial]
+fn sign_verify_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+    ];
+    let priv_key_template = vec![Attribute::Token(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    // Data to sign
+    let data = [0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+
+    // Sign data in parts (standard RsaPkcs doesn't support this)
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    for part in data.chunks(3) {
+        session.sign_update(part)?;
+    }
+    let signature = session.sign_final()?;
+
+    // Verify signature in parts (standard RsaPkcs doesn't support this)
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    for part in data.chunks(3) {
+        session.verify_update(part)?;
+    }
+    session.verify_final(&signature)?;
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to sign/verify
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+    let signature = vec![0x66, 0x55, 0x44, 0x33, 0x22, 0x11];
+
+    // Attempt to update signing without an operation having been initialized
+    let result = session.sign_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignUpdate)
+    ));
+
+    // Attempt to finalize signing without an operation having been initialized
+    let result = session.sign_final();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignFinal)
+    ));
+
+    // Attempt to update verification without an operation having been initialized
+    let result = session.verify_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyUpdate)
+    ));
+
+    // Attempt to finalize verification without an operation having been initialized
+    let result = session.verify_final(&signature);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sign_verify_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 1024;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+    ];
+    let priv_key_template = vec![Attribute::Token(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    // Initialize signing operation twice in a row
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    let result = session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::SignInit)
+    ));
+
+    // Make sure signing operation is over before trying same with verification
+    session.sign_final()?;
+
+    // Initialize verification operation twice in a row
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    let result = session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::VerifyInit)
+    ));
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn encrypt_decrypt() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
@@ -261,6 +421,153 @@ fn encrypt_decrypt() -> TestResult {
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
+    let template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen((128 / 8).into()),
+    ];
+    let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
+
+    // Data to encrypt
+    let data = vec![
+        0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
+        0x77,
+    ];
+
+    // Encrypt data in parts
+    session.encrypt_init(&Mechanism::AesEcb, key)?;
+
+    let mut encrypted_data = vec![];
+    for part in data.chunks(3) {
+        encrypted_data.extend(session.encrypt_update(part)?);
+    }
+    encrypted_data.extend(session.encrypt_final()?);
+
+    // Decrypt data in parts
+    session.decrypt_init(&Mechanism::AesEcb, key)?;
+
+    let mut decrypted_data = vec![];
+    for part in encrypted_data.chunks(3) {
+        decrypted_data.extend(session.decrypt_update(part)?);
+    }
+    decrypted_data.extend(session.decrypt_final()?);
+
+    assert_eq!(data, decrypted_data);
+
+    // Delete key
+    session.destroy_object(key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to encrypt/decrypt
+    let data = vec![
+        0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
+        0x77,
+    ];
+
+    // Attempt to update encryption without an operation having been initialized
+    let result = session.encrypt_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptUpdate)
+    ));
+
+    // Attempt to finalize encryption without an operation having been initialized
+    let result = session.encrypt_final();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptFinal)
+    ));
+
+    // Attempt to update decryption without an operation having been initialized
+    let result = session.decrypt_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptUpdate)
+    ));
+
+    // Attempt to finalize decryption without an operation having been initialized
+    let result = session.decrypt_final();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
+    let template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen((128 / 8).into()),
+    ];
+    let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
+
+    // Initialize encryption operation twice in a row
+    session.encrypt_init(&Mechanism::AesEcb, key)?;
+    let result = session.encrypt_init(&Mechanism::AesEcb, key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::EncryptInit)
+    ));
+
+    // Make sure encryption operation is over before trying same with decryption
+    session.encrypt_final()?;
+
+    // Initialize encryption operation twice in a row
+    session.decrypt_init(&Mechanism::AesEcb, key)?;
+    let result = session.decrypt_init(&Mechanism::AesEcb, key);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::DecryptInit)
+    ));
+
+    // Delete key
+    session.destroy_object(key)?;
 
     Ok(())
 }
@@ -1300,6 +1607,141 @@ fn sha256_digest() -> TestResult {
     ];
     let have = session.digest(&Mechanism::Sha256, &data)?;
     assert_eq!(want[..], have[..]);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to digest
+    let data = [
+        0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11,
+    ];
+
+    // Digest data in parts
+    session.digest_init(&Mechanism::Sha256)?;
+    for part in data.chunks(3) {
+        session.digest_update(part)?;
+    }
+
+    let have = session.digest_final()?;
+    let want = vec![
+        0x8c, 0x18, 0xb1, 0x5f, 0x01, 0x47, 0x13, 0x2a, 0x03, 0xc2, 0xe3, 0xfd, 0x4f, 0x29, 0xb7,
+        0x75, 0x80, 0x19, 0xb5, 0x58, 0x5e, 0xfc, 0xeb, 0x45, 0x18, 0x33, 0x2b, 0x2f, 0xa7, 0xa4,
+        0x1f, 0x6e,
+    ];
+
+    assert_eq!(have, want);
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_with_key() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Create a key to add to the digest
+    let key_template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen((256 / 8).into()),
+        // Key must be non-sensitive and extractable to get its bytes and digest them directly, for comparison
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let key = session.generate_key(&Mechanism::AesKeyGen, &key_template)?;
+
+    // Data and key bytes to digest
+    let mut data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let attributes = session.get_attributes(key, &[AttributeType::Value])?;
+    let key_data = attributes.first().unwrap();
+    let mut key_data = match key_data {
+        Attribute::Value(key_data) => key_data.to_owned(),
+        _ => unreachable!(),
+    };
+
+    // Digest data in parts
+    session.digest_init(&Mechanism::Sha256)?;
+    session.digest_update(&data)?;
+    session.digest_key(key)?;
+
+    // Create digests to compare
+    let have = session.digest_final()?;
+
+    data.append(&mut key_data);
+    let want = session.digest(&Mechanism::Sha256, &data)?;
+
+    assert_eq!(have, want);
+
+    // Delete key
+    session.destroy_object(key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_not_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Data to digest
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    // Attempt to update digest without an operation having been initialized
+    let result = session.digest_update(&data);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestUpdate)
+    ));
+
+    // Attempt to finalize digest without an operation having been initialized
+    let result = session.digest_final();
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestFinal)
+    ));
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_multipart_already_initialized() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_ro_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Initialize digesting operation twice in a row
+    session.digest_init(&Mechanism::Sha256)?;
+    let result = session.digest_init(&Mechanism::Sha256);
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::OperationActive, Function::DigestInit)
+    ));
 
     Ok(())
 }
