@@ -55,7 +55,7 @@ impl Session {
     }
 
     /// Starts new multi-part digesting operation
-    pub fn digest_initialize(&self, m: &Mechanism) -> Result<()> {
+    pub fn digest_init(&self, m: &Mechanism) -> Result<()> {
         let mut mechanism: CK_MECHANISM = m.into();
 
         unsafe {
@@ -69,7 +69,8 @@ impl Session {
         Ok(())
     }
 
-    /// Continues an ongoing multi-part digesting operation
+    /// Continues an ongoing multi-part digesting operation,
+    /// taking in the next part of the data to digest
     pub fn digest_update(&self, data: &[u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_DigestUpdate)(
@@ -83,7 +84,8 @@ impl Session {
         Ok(())
     }
 
-    /// Continues an ongoing multi-part digesting operation, using the value of a secret key as input
+    /// Continues an ongoing multi-part digesting operation,
+    /// using the value of a secret key as input
     pub fn digest_key(&self, key: ObjectHandle) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_DigestKey)(
@@ -96,8 +98,9 @@ impl Session {
         Ok(())
     }
 
-    /// Finalizes ongoing multi-part digest operation
-    pub fn digest_finalize(&self) -> Result<Vec<u8>> {
+    /// Finalizes ongoing multi-part digest operation,
+    /// returning the digest 
+    pub fn digest_final(&self) -> Result<Vec<u8>> {
         let mut digest_len = 0;
 
         // Get the output buffer length

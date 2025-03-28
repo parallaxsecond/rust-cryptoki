@@ -61,7 +61,7 @@ impl Session {
     }
 
     /// Starts new multi-part encryption operation
-    pub fn encrypt_initialize(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
+    pub fn encrypt_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 
         unsafe {
@@ -76,7 +76,8 @@ impl Session {
         Ok(())
     }
 
-    /// Continues an ongoing multi-part encryption operation
+    /// Continues an ongoing multi-part encryption operation,
+    /// taking in the next part of the data and returning its encryption
     pub fn encrypt_update(&self, data: &[u8]) -> Result<Vec<u8>> {
         let mut encrypted_data_len = 0;
 
@@ -108,8 +109,9 @@ impl Session {
         Ok(encrypted_data)
     }
 
-    /// Finalizes ongoing multi-part encryption operation
-    pub fn encrypt_finalize(&self) -> Result<Vec<u8>> {
+    /// Finalizes ongoing multi-part encryption operation,
+    /// returning any remaining bytes in the encrypted data
+    pub fn encrypt_final(&self) -> Result<Vec<u8>> {
         let mut encrypted_data_len = 0;
 
         // Get the output buffer length

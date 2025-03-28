@@ -244,18 +244,18 @@ fn sign_verify_multipart() -> TestResult {
     let data = vec![0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
 
     // Sign data in parts (standard RsaPkcs doesn't support this)
-    session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
     for part in data.chunks(3) {
         session.sign_update(part)?;
     }
-    let signature = session.sign_finalize()?;
+    let signature = session.sign_final()?;
 
     // Verify signature in parts (standard RsaPkcs doesn't support this)
-    session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
     for part in data.chunks(3) {
         session.verify_update(part)?;
     }
-    session.verify_finalize(&signature)?;
+    session.verify_final(&signature)?;
 
     // Delete keys
     session.destroy_object(pub_key)?;
@@ -287,7 +287,7 @@ fn sign_verify_multipart_not_initialized() -> TestResult {
     ));
 
     // Attempt to finalize signing without an operation having been initialized
-    let result = session.sign_finalize();
+    let result = session.sign_final();
 
     assert!(result.is_err());
     assert!(matches!(
@@ -305,7 +305,7 @@ fn sign_verify_multipart_not_initialized() -> TestResult {
     ));
 
     // Attempt to finalize verification without an operation having been initialized
-    let result = session.verify_finalize(&signature);
+    let result = session.verify_final(&signature);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -344,8 +344,8 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
     )?;
 
     // Initialize signing operation twice in a row
-    session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key)?;
-    let result = session.sign_initialize(&Mechanism::Sha256RsaPkcs, priv_key);
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    let result = session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -354,11 +354,11 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
     ));
 
     // Make sure signing operation is over before trying same with verification
-    session.sign_finalize()?;
+    session.sign_final()?;
 
     // Initialize verification operation twice in a row
-    session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key)?;
-    let result = session.verify_initialize(&Mechanism::Sha256RsaPkcs, pub_key);
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    let result = session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -448,22 +448,22 @@ fn encrypt_decrypt_multipart() -> TestResult {
     ];
 
     // Encrypt data in parts
-    session.encrypt_initialize(&Mechanism::AesEcb, key)?;
+    session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
     for part in data.chunks(3) {
         encrypted_data.extend(session.encrypt_update(part)?);
     }
-    encrypted_data.extend(session.encrypt_finalize()?);
+    encrypted_data.extend(session.encrypt_final()?);
 
     // Decrypt data in parts
-    session.decrypt_initialize(&Mechanism::AesEcb, key)?;
+    session.decrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut decrypted_data = vec![];
     for part in encrypted_data.chunks(3) {
         decrypted_data.extend(session.decrypt_update(part)?);
     }
-    decrypted_data.extend(session.decrypt_finalize()?);
+    decrypted_data.extend(session.decrypt_final()?);
 
     assert_eq!(data, decrypted_data);
 
@@ -498,7 +498,7 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
     ));
 
     // Attempt to finalize encryption without an operation having been initialized
-    let result = session.encrypt_finalize();
+    let result = session.encrypt_final();
 
     assert!(result.is_err());
     assert!(matches!(
@@ -516,7 +516,7 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
     ));
 
     // Attempt to finalize decryption without an operation having been initialized
-    let result = session.decrypt_finalize();
+    let result = session.decrypt_final();
 
     assert!(result.is_err());
     assert!(matches!(
@@ -544,8 +544,8 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
     // Initialize encryption operation twice in a row
-    session.encrypt_initialize(&Mechanism::AesEcb, key)?;
-    let result = session.encrypt_initialize(&Mechanism::AesEcb, key);
+    session.encrypt_init(&Mechanism::AesEcb, key)?;
+    let result = session.encrypt_init(&Mechanism::AesEcb, key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -554,11 +554,11 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     ));
 
     // Make sure encryption operation is over before trying same with decryption
-    session.encrypt_finalize()?;
+    session.encrypt_final()?;
 
     // Initialize encryption operation twice in a row
-    session.decrypt_initialize(&Mechanism::AesEcb, key)?;
-    let result = session.decrypt_initialize(&Mechanism::AesEcb, key);
+    session.decrypt_init(&Mechanism::AesEcb, key)?;
+    let result = session.decrypt_init(&Mechanism::AesEcb, key);
 
     assert!(result.is_err());
     assert!(matches!(
@@ -1626,12 +1626,12 @@ fn sha256_digest_multipart() -> TestResult {
     ];
 
     // Digest data in parts
-    session.digest_initialize(&Mechanism::Sha256)?;
+    session.digest_init(&Mechanism::Sha256)?;
     for part in data.chunks(3) {
         session.digest_update(part)?;
     }
 
-    let have = session.digest_finalize()?;
+    let have = session.digest_final()?;
     let want = vec![
         0x8c, 0x18, 0xb1, 0x5f, 0x01, 0x47, 0x13, 0x2a, 0x03, 0xc2, 0xe3, 0xfd, 0x4f, 0x29, 0xb7,
         0x75, 0x80, 0x19, 0xb5, 0x58, 0x5e, 0xfc, 0xeb, 0x45, 0x18, 0x33, 0x2b, 0x2f, 0xa7, 0xa4,
@@ -1673,12 +1673,12 @@ fn sha256_digest_multipart_with_key() -> TestResult {
     };
 
     // Digest data in parts
-    session.digest_initialize(&Mechanism::Sha256)?;
+    session.digest_init(&Mechanism::Sha256)?;
     session.digest_update(&data)?;
     session.digest_key(key)?;
 
     // Create digests to compare
-    let have = session.digest_finalize()?;
+    let have = session.digest_final()?;
 
     data.append(&mut key_data);
     let want = session.digest(&Mechanism::Sha256, &data)?;
@@ -1713,7 +1713,7 @@ fn sha256_digest_multipart_not_initialized() -> TestResult {
     ));
 
     // Attempt to finalize digest without an operation having been initialized
-    let result = session.digest_finalize();
+    let result = session.digest_final();
 
     assert!(result.is_err());
     assert!(matches!(
@@ -1734,8 +1734,8 @@ fn sha256_digest_multipart_already_initialized() -> TestResult {
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
     // Initialize digesting operation twice in a row
-    session.digest_initialize(&Mechanism::Sha256)?;
-    let result = session.digest_initialize(&Mechanism::Sha256);
+    session.digest_init(&Mechanism::Sha256)?;
+    let result = session.digest_init(&Mechanism::Sha256);
 
     assert!(result.is_err());
     assert!(matches!(

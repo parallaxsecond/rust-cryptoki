@@ -57,7 +57,7 @@ impl Session {
     }
 
     /// Starts new multi-part signing operation
-    pub fn sign_initialize(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
+    pub fn sign_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 
         unsafe {
@@ -72,7 +72,8 @@ impl Session {
         Ok(())
     }
 
-    /// Continues an ongoing multi-part signing operation
+    /// Continues an ongoing multi-part signing operation,
+    /// taking in the next part of the data to sign
     pub fn sign_update(&self, data: &[u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_SignUpdate)(
@@ -86,8 +87,9 @@ impl Session {
         Ok(())
     }
 
-    /// Finalizes ongoing multi-part signing operation
-    pub fn sign_finalize(&self) -> Result<Vec<u8>> {
+    /// Finalizes ongoing multi-part signing operation,
+    /// returning the signature
+    pub fn sign_final(&self) -> Result<Vec<u8>> {
         let mut signature_len = 0;
 
         // Get the output buffer length
@@ -148,7 +150,7 @@ impl Session {
     }
 
     /// Starts new multi-part verifying operation
-    pub fn verify_initialize(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
+    pub fn verify_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 
         unsafe {
@@ -163,7 +165,8 @@ impl Session {
         Ok(())
     }
 
-    /// Continues an ongoing multi-part verifying operation
+    /// Continues an ongoing multi-part verifying operation,
+    /// taking in the next part of the data to verify
     pub fn verify_update(&self, data: &[u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_VerifyUpdate)(
@@ -177,8 +180,9 @@ impl Session {
         Ok(())
     }
 
-    /// Finalizes ongoing multi-part verifying operation
-    pub fn verify_finalize(&self, signature: &[u8]) -> Result<()> {
+    /// Finalizes ongoing multi-part verifying operation,
+    /// returning Ok only if the signature verifies
+    pub fn verify_final(&self, signature: &[u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_VerifyFinal)(
                 self.handle(),
