@@ -99,7 +99,7 @@ impl Session {
     }
 
     /// Finalizes ongoing multi-part digest operation,
-    /// returning the digest 
+    /// returning the digest
     pub fn digest_final(&self) -> Result<Vec<u8>> {
         let mut digest_len = 0;
 
