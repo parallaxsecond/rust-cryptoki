@@ -22,7 +22,7 @@ You can follow the installation steps directly in the repository's README but he
 sudo apt install libsofthsm2
 mkdir /tmp/tokens
 echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
-export PKCS11_SOFTHSM2_MODULE="/usr/lib/softhsm/libsofthsm2.so"
+export TEST_PKCS11_MODULE="/usr/lib/softhsm/libsofthsm2.so"
 export SOFTHSM2_CONF="/tmp/softhsm2.conf"
 cargo run --example generate_key_pair
 ```
@@ -43,7 +43,7 @@ use std::env;
 
 // initialize a new Pkcs11 object using the module from the env variable
 let pkcs11 = Pkcs11::new(
-    env::var("PKCS11_SOFTHSM2_MODULE")
+    env::var("TEST_PKCS11_MODULE")
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
 )?;
 

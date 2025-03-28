@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_pkcs11, SO_PIN, USER_PIN};
+use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -46,10 +46,11 @@ fn sign_verify() -> TestResult {
         Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     // generate a key pair
     let (public, private) =
@@ -93,7 +94,7 @@ fn sign_verify_eddsa() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -136,7 +137,7 @@ fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -186,7 +187,7 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
         ]),
     ];
 
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
@@ -267,6 +268,11 @@ fn encrypt_decrypt() -> TestResult {
 #[test]
 #[serial]
 fn derive_key() -> TestResult {
+    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/184 */
+    if !is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -410,7 +416,7 @@ fn import_export() -> TestResult {
 fn get_token_info() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
-    assert_eq!("SoftHSM project", info.manufacturer_id());
+    assert_ne!("", info.manufacturer_id());
 
     Ok(())
 }
@@ -436,12 +442,13 @@ fn session_find_objects() -> testresult::TestResult {
             Attribute::Token(true),
             Attribute::Encrypt(true),
             Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
+            Attribute::ValueLen(32.into()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
         // generate a secret key
         let _key = session
-            .generate_key(&Mechanism::Des3KeyGen, &key_template)
+            .generate_key(&Mechanism::AesKeyGen, &key_template)
             .unwrap();
     });
 
@@ -450,7 +457,7 @@ fn session_find_objects() -> testresult::TestResult {
         Attribute::Token(true),
         Attribute::Id("12345678".as_bytes().to_vec()),
         Attribute::Class(ObjectClass::SECRET_KEY),
-        Attribute::KeyType(KeyType::DES3),
+        Attribute::KeyType(KeyType::AES),
     ];
 
     let mut found_keys = session.find_objects(&key_search_template)?;
@@ -485,12 +492,13 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
         let key_template = vec![
             Attribute::Token(true),
             Attribute::Encrypt(true),
+            Attribute::ValueLen(32.into()),
             Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
         // generate a secret key
-        session.generate_key(&Mechanism::Des3KeyGen, &key_template)?;
+        session.generate_key(&Mechanism::AesKeyGen, &key_template)?;
     }
 
     // retrieve these keys using this template
@@ -498,7 +506,7 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
         Attribute::Token(true),
         Attribute::Id("12345678".as_bytes().to_vec()),
         Attribute::Class(ObjectClass::SECRET_KEY),
-        Attribute::KeyType(KeyType::DES3),
+        Attribute::KeyType(KeyType::AES),
     ];
 
     // test iter_objects_with_cache_size()
@@ -563,6 +571,12 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
 #[test]
 #[serial]
 fn wrap_and_unwrap_key() {
+    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/184 */
+    if !is_softhsm() {
+        /* return Ignore(); */
+        return;
+    }
+
     let (pkcs11, slot) = init_pins();
     // open a session
     let session = pkcs11.open_rw_session(slot).unwrap();
@@ -574,6 +588,7 @@ fn wrap_and_unwrap_key() {
 
     let key_to_be_wrapped_template = vec![
         Attribute::Token(true),
+        Attribute::ValueLen(32.into()),
         // the key needs to be extractable to be suitable for being wrapped
         Attribute::Extractable(true),
         Attribute::Encrypt(true),
@@ -581,16 +596,15 @@ fn wrap_and_unwrap_key() {
 
     // generate a secret key that will be wrapped
     let key_to_be_wrapped = session
-        .generate_key(&Mechanism::Des3KeyGen, &key_to_be_wrapped_template)
+        .generate_key(&Mechanism::AesKeyGen, &key_to_be_wrapped_template)
         .unwrap();
 
-    // Des3Ecb input length must be a multiple of 8
-    // see: PKCS#11 spec Table 10-10, DES-ECB Key And Data Length Constraints
+    // AesEcb input length must be a multiple of 16
     let encrypted_with_original = session
         .encrypt(
-            &Mechanism::Des3Ecb,
+            &Mechanism::AesEcb,
             key_to_be_wrapped,
-            &[1, 2, 3, 4, 5, 6, 7, 8],
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         )
         .unwrap();
 
@@ -630,16 +644,16 @@ fn wrap_and_unwrap_key() {
                 Attribute::Private(true),
                 Attribute::Encrypt(true),
                 Attribute::Class(ObjectClass::SECRET_KEY),
-                Attribute::KeyType(KeyType::DES3),
+                Attribute::KeyType(KeyType::AES),
             ],
         )
         .unwrap();
 
     let encrypted_with_unwrapped = session
         .encrypt(
-            &Mechanism::Des3Ecb,
+            &Mechanism::AesEcb,
             unwrapped_key,
-            &[1, 2, 3, 4, 5, 6, 7, 8],
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         )
         .unwrap();
     assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
@@ -695,9 +709,14 @@ fn get_info_test() -> TestResult {
     let (pkcs11, _) = init_pins();
     let info = pkcs11.get_library_info()?;
 
-    assert_eq!(info.cryptoki_version().major(), 2);
-    assert_eq!(info.cryptoki_version().minor(), 40);
-    assert_eq!(info.manufacturer_id(), String::from("SoftHSM"));
+    assert_ne!("", info.manufacturer_id());
+    if is_softhsm() {
+        assert_eq!(info.cryptoki_version().major(), 2);
+        assert_eq!(info.cryptoki_version().minor(), 40);
+    } else {
+        assert_eq!(info.cryptoki_version().major(), 3);
+        assert_eq!(info.cryptoki_version().minor(), 0);
+    }
     Ok(())
 }
 
@@ -709,7 +728,7 @@ fn get_slot_info_test() -> TestResult {
     assert!(slot_info.token_present());
     assert!(!slot_info.hardware_slot());
     assert!(!slot_info.removable_device());
-    assert_eq!(slot_info.manufacturer_id(), String::from("SoftHSM project"));
+    assert_ne!("", slot_info.manufacturer_id());
     Ok(())
 }
 
@@ -928,6 +947,18 @@ fn is_fn_supported_test() {
         pkcs11.is_fn_supported(Function::DigestFinal),
         "C_DigestFinal function reports as not supported"
     );
+    if is_softhsm() {
+        // the SoftHSM does not have PKCS#11 3.0 API so this function is not present
+        assert!(
+            !pkcs11.is_fn_supported(Function::MessageEncryptInit),
+            "C_MessageEncryptInit function reports supported for SoftHSM"
+        );
+    } else {
+        assert!(
+            pkcs11.is_fn_supported(Function::MessageEncryptInit),
+            "C_MessageEncryptInit function reports as not supported"
+        );
+    }
 }
 
 #[test]
@@ -988,6 +1019,11 @@ fn test_clone_initialize() {
 #[test]
 #[serial]
 fn aes_key_attributes_test() -> TestResult {
+    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/182 */
+    if !is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -1283,9 +1319,13 @@ fn gcm_param_graceful_failure() -> TestResult {
 
 #[test]
 #[serial]
-// Currently empty AAD crashes SoftHSM, see: https://github.com/opendnssec/SoftHSMv2/issues/605
-#[ignore]
 fn aes_gcm_no_aad() -> TestResult {
+    // Currently empty AAD crashes SoftHSM, see: https://github.com/opendnssec/SoftHSMv2/issues/605
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     // Encrypt two blocks of zeros with AES-128-GCM
     let key = vec![0; 16];
     let mut iv = [0; 12];
@@ -1353,9 +1393,16 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    let pub_key_template = [Attribute::ModulusBits(2048.into())];
-    let (pubkey, privkey) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let pub_key_template = [
+        Attribute::ModulusBits(2048.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = [Attribute::Decrypt(true)];
+    let (pubkey, privkey) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
     let oaep = PkcsOaepParams::new(
         MechanismType::SHA1,
         PkcsMgfType::MGF1_SHA1,
@@ -1374,15 +1421,27 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore] // it's not clear why the test with data specified fails
 fn rsa_pkcs_oaep_with_data() -> TestResult {
+    /* SoftHSM does not support additional OAEP Source */
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    let pub_key_template = [Attribute::ModulusBits(2048.into())];
-    let (pubkey, privkey) =
-        session.generate_key_pair(&Mechanism::RsaPkcsKeyPairGen, &pub_key_template, &[])?;
+    let pub_key_template = [
+        Attribute::ModulusBits(2048.into()),
+        Attribute::Encrypt(true),
+    ];
+    let priv_key_template = vec![Attribute::Decrypt(true)];
+    let (pubkey, privkey) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
     let oaep = PkcsOaepParams::new(
         MechanismType::SHA1,
         PkcsMgfType::MGF1_SHA1,
@@ -1401,11 +1460,16 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
 #[test]
 #[serial]
 fn get_slot_event() -> TestResult {
-    // Not implemented in SoftHSMv2
-    // https://github.com/opendnssec/SoftHSMv2/issues/370
     let (pkcs11, _slot) = init_pins();
-    let event = pkcs11.get_slot_event()?;
-    assert_eq!(None, event);
+    if is_softhsm() {
+        // Not implemented in SoftHSMv2
+        // https://github.com/opendnssec/SoftHSMv2/issues/370
+        let event = pkcs11.get_slot_event()?;
+        assert_eq!(None, event);
+    } else {
+        // Not implemented in Kryoptic
+        pkcs11.get_slot_event().unwrap_err();
+    }
     Ok(())
 }
 
@@ -1523,6 +1587,7 @@ fn sign_verify_sha1_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1552,6 +1617,7 @@ fn sign_verify_sha224_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1581,6 +1647,7 @@ fn sign_verify_sha256_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1610,6 +1677,7 @@ fn sign_verify_sha384_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
@@ -1639,6 +1707,7 @@ fn sign_verify_sha512_hmac() -> TestResult {
         Attribute::Private(true),
         Attribute::Sensitive(true),
         Attribute::Sign(true),
+        Attribute::Verify(true),
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
