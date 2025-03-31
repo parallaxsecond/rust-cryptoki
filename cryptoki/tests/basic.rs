@@ -283,36 +283,40 @@ fn sign_verify_multipart_not_initialized() -> TestResult {
     let result = session.sign_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignUpdate)
+        Error::Pkcs11(_, Function::SignUpdate)
     ));
 
     // Attempt to finalize signing without an operation having been initialized
     let result = session.sign_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignFinal)
+        Error::Pkcs11(_, Function::SignFinal)
     ));
 
     // Attempt to update verification without an operation having been initialized
     let result = session.verify_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyUpdate)
+        Error::Pkcs11(_, Function::VerifyUpdate)
     ));
 
     // Attempt to finalize verification without an operation having been initialized
     let result = session.verify_final(&signature);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyFinal)
+        Error::Pkcs11(_, Function::VerifyFinal)
     ));
 
     Ok(())
@@ -499,36 +503,40 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
     let result = session.encrypt_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptUpdate)
+        Error::Pkcs11(_, Function::EncryptUpdate)
     ));
 
     // Attempt to finalize encryption without an operation having been initialized
     let result = session.encrypt_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptFinal)
+        Error::Pkcs11(_, Function::EncryptFinal)
     ));
 
     // Attempt to update decryption without an operation having been initialized
     let result = session.decrypt_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptUpdate)
+        Error::Pkcs11(_, Function::DecryptUpdate)
     ));
 
     // Attempt to finalize decryption without an operation having been initialized
     let result = session.decrypt_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptFinal)
+        Error::Pkcs11(_, Function::DecryptFinal)
     ));
 
     Ok(())
@@ -1718,18 +1726,20 @@ fn sha256_digest_multipart_not_initialized() -> TestResult {
     let result = session.digest_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestUpdate)
+        Error::Pkcs11(_, Function::DigestUpdate)
     ));
 
     // Attempt to finalize digest without an operation having been initialized
     let result = session.digest_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestFinal)
+        Error::Pkcs11(_, Function::DigestFinal)
     ));
 
     Ok(())
