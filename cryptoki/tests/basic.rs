@@ -464,7 +464,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
         0x33, 0x99, 0x77,
     ];
 
-    // // Encrypt data in parts
+    // Encrypt data in parts
     session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
