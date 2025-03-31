@@ -23,6 +23,8 @@ use std::thread;
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
+const AES128_BLOCK_SIZE: usize = 128 / 8;
+
 #[test]
 #[serial]
 fn sign_verify() -> TestResult {
@@ -446,7 +448,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((128 / 8).into()),
+        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -455,14 +457,16 @@ fn encrypt_decrypt_multipart() -> TestResult {
     // Data to encrypt
     let data = vec![
         0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
-        0x77,
+        0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33,
+        0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB,
+        0x33, 0x99, 0x77,
     ];
 
-    // Encrypt data in parts
+    // // Encrypt data in parts
     session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
-    for part in data.chunks(3) {
+    for part in data.chunks(AES128_BLOCK_SIZE) {
         encrypted_data.extend(session.encrypt_update(part)?);
     }
     encrypted_data.extend(session.encrypt_final()?);
@@ -471,7 +475,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     session.decrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut decrypted_data = vec![];
-    for part in encrypted_data.chunks(3) {
+    for part in encrypted_data.chunks(AES128_BLOCK_SIZE) {
         decrypted_data.extend(session.decrypt_update(part)?);
     }
     decrypted_data.extend(session.decrypt_final()?);
@@ -555,7 +559,7 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((128 / 8).into()),
+        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
