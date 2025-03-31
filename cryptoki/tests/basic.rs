@@ -363,8 +363,10 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::SignInit)
     ));
 
-    // Make sure signing operation is over before trying same with verification
-    session.sign_final()?;
+    // Make sure signing operation is over before trying same with verification.
+    // Some backends will reset the ongoing operation after the failed 2nd call to
+    // sign_init(), so we should not unwrap the result of this call.
+    let _ = session.sign_final();
 
     // Initialize verification operation twice in a row
     session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
@@ -575,8 +577,10 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::EncryptInit)
     ));
 
-    // Make sure encryption operation is over before trying same with decryption
-    session.encrypt_final()?;
+    // Make sure encryption operation is over before trying same with decryption.
+    // Some backends will reset the ongoing operation after the failed 2nd call to
+    // encrypt_init(), so we should not unwrap the result of this call.
+    let _ = session.encrypt_final();
 
     // Initialize encryption operation twice in a row
     session.decrypt_init(&Mechanism::AesEcb, key)?;
