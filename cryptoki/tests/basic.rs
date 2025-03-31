@@ -1671,6 +1671,8 @@ fn sha256_digest_multipart() -> TestResult {
 
 #[test]
 #[serial]
+// Not all backends support extracting a secret key value, needed to validate this test
+#[ignore]
 fn sha256_digest_multipart_with_key() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
