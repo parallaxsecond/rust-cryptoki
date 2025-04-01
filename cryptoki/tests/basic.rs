@@ -1671,9 +1671,12 @@ fn sha256_digest_multipart() -> TestResult {
 
 #[test]
 #[serial]
-// Not all backends support extracting a secret key value, needed to validate this test
-#[ignore]
 fn sha256_digest_multipart_with_key() -> TestResult {
+    // FIXME: Getting value from sensitive objects is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/193
+    if !is_softhsm() {
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
