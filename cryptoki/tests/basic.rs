@@ -23,6 +23,8 @@ use std::thread;
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
+const AES128_BLOCK_SIZE: usize = 128 / 8;
+
 #[test]
 #[serial]
 fn sign_verify() -> TestResult {
@@ -228,10 +230,12 @@ fn sign_verify_multipart() -> TestResult {
 
     let pub_key_template = vec![
         Attribute::Token(true),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     // Generate keypair
     let (pub_key, priv_key) = session.generate_key_pair(
@@ -281,36 +285,40 @@ fn sign_verify_multipart_not_initialized() -> TestResult {
     let result = session.sign_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignUpdate)
+        Error::Pkcs11(_, Function::SignUpdate)
     ));
 
     // Attempt to finalize signing without an operation having been initialized
     let result = session.sign_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::SignFinal)
+        Error::Pkcs11(_, Function::SignFinal)
     ));
 
     // Attempt to update verification without an operation having been initialized
     let result = session.verify_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyUpdate)
+        Error::Pkcs11(_, Function::VerifyUpdate)
     ));
 
     // Attempt to finalize verification without an operation having been initialized
     let result = session.verify_final(&signature);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::VerifyFinal)
+        Error::Pkcs11(_, Function::VerifyFinal)
     ));
 
     Ok(())
@@ -331,10 +339,12 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
 
     let pub_key_template = vec![
         Attribute::Token(true),
+        Attribute::Private(false),
         Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
     ];
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
 
     // Generate keypair
     let (pub_key, priv_key) = session.generate_key_pair(
@@ -353,8 +363,10 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::SignInit)
     ));
 
-    // Make sure signing operation is over before trying same with verification
-    session.sign_final()?;
+    // Make sure signing operation is over before trying same with verification.
+    // Some backends will reset the ongoing operation after the failed 2nd call to
+    // sign_init(), so we should not unwrap the result of this call.
+    let _ = session.sign_final();
 
     // Initialize verification operation twice in a row
     session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
@@ -437,21 +449,26 @@ fn encrypt_decrypt_multipart() -> TestResult {
     // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
     let template = vec![
         Attribute::Token(true),
-        Attribute::ValueLen((128 / 8).into()),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
     ];
     let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
     // Data to encrypt
     let data = vec![
         0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
-        0x77,
+        0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33,
+        0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB,
+        0x33, 0x99, 0x77,
     ];
 
     // Encrypt data in parts
     session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
-    for part in data.chunks(3) {
+    for part in data.chunks(AES128_BLOCK_SIZE) {
         encrypted_data.extend(session.encrypt_update(part)?);
     }
     encrypted_data.extend(session.encrypt_final()?);
@@ -460,7 +477,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     session.decrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut decrypted_data = vec![];
-    for part in encrypted_data.chunks(3) {
+    for part in encrypted_data.chunks(AES128_BLOCK_SIZE) {
         decrypted_data.extend(session.decrypt_update(part)?);
     }
     decrypted_data.extend(session.decrypt_final()?);
@@ -492,36 +509,40 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
     let result = session.encrypt_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptUpdate)
+        Error::Pkcs11(_, Function::EncryptUpdate)
     ));
 
     // Attempt to finalize encryption without an operation having been initialized
     let result = session.encrypt_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::EncryptFinal)
+        Error::Pkcs11(_, Function::EncryptFinal)
     ));
 
     // Attempt to update decryption without an operation having been initialized
     let result = session.decrypt_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptUpdate)
+        Error::Pkcs11(_, Function::DecryptUpdate)
     ));
 
     // Attempt to finalize decryption without an operation having been initialized
     let result = session.decrypt_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DecryptFinal)
+        Error::Pkcs11(_, Function::DecryptFinal)
     ));
 
     Ok(())
@@ -539,7 +560,10 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     // Generate key (currently SoftHSM only supports multi-part encrypt/decrypt for symmetric crypto)
     let template = vec![
         Attribute::Token(true),
-        Attribute::ValueLen((128 / 8).into()),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
     ];
     let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
 
@@ -553,8 +577,10 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
         Error::Pkcs11(RvError::OperationActive, Function::EncryptInit)
     ));
 
-    // Make sure encryption operation is over before trying same with decryption
-    session.encrypt_final()?;
+    // Make sure encryption operation is over before trying same with decryption.
+    // Some backends will reset the ongoing operation after the failed 2nd call to
+    // encrypt_init(), so we should not unwrap the result of this call.
+    let _ = session.encrypt_final();
 
     // Initialize encryption operation twice in a row
     session.decrypt_init(&Mechanism::AesEcb, key)?;
@@ -1646,6 +1672,11 @@ fn sha256_digest_multipart() -> TestResult {
 #[test]
 #[serial]
 fn sha256_digest_multipart_with_key() -> TestResult {
+    // FIXME: Getting value from sensitive objects is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/193
+    if !is_softhsm() {
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
@@ -1655,7 +1686,8 @@ fn sha256_digest_multipart_with_key() -> TestResult {
     // Create a key to add to the digest
     let key_template = vec![
         Attribute::Token(true),
-        Attribute::ValueLen((256 / 8).into()),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
         // Key must be non-sensitive and extractable to get its bytes and digest them directly, for comparison
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
@@ -1707,18 +1739,20 @@ fn sha256_digest_multipart_not_initialized() -> TestResult {
     let result = session.digest_update(&data);
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestUpdate)
+        Error::Pkcs11(_, Function::DigestUpdate)
     ));
 
     // Attempt to finalize digest without an operation having been initialized
     let result = session.digest_final();
 
     assert!(result.is_err());
+    // The exact error returned is inconsistent between backends, so we only match on the function
     assert!(matches!(
         result.unwrap_err(),
-        Error::Pkcs11(RvError::OperationNotInitialized, Function::DigestFinal)
+        Error::Pkcs11(_, Function::DigestFinal)
     ));
 
     Ok(())
