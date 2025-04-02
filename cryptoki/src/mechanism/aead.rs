@@ -80,7 +80,7 @@ impl<'a> GcmParams<'a> {
 
     /// The additional authenticated data.
     pub fn aad(&self) -> &'a [u8] {
-        // SAEFTY: In the constructor, the AAD always comes from a &'a [u8]
+        // SAFETY: In the constructor, the AAD always comes from a &'a [u8]
         unsafe { slice::from_raw_parts(self.inner.pAAD, self.inner.ulAADLen as _) }
     }
 
