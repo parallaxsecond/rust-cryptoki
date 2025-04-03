@@ -37,19 +37,8 @@ macro_rules! check_fn {
     ($pkcs11:expr, $func_name:ident) => {{
         let func = paste! { $pkcs11
             .impl_
-                .function_list
+                .get_function_list()
                 .[<C_ $func_name>]
-        };
-        func.is_some()
-    }};
-}
-
-macro_rules! check_30_fn {
-    ($pkcs11:expr, $func_name:ident) => {{
-        let func = paste! { $pkcs11
-            .impl_
-                .function_list_30
-                .map(|f| f.[<C_ $func_name>])
         };
         func.is_some()
     }};
@@ -232,29 +221,29 @@ pub(super) fn is_fn_supported(ctx: &Pkcs11, function: Function) -> bool {
         Function::CancelFunction => check_fn!(ctx, CancelFunction),
         Function::WaitForSlotEvent => check_fn!(ctx, WaitForSlotEvent),
         /* PKCS #11 3.0 */
-        Function::GetInterfaceList => check_30_fn!(ctx, GetInterfaceList),
-        Function::GetInterface => check_30_fn!(ctx, GetInterface),
-        Function::LoginUser => check_30_fn!(ctx, LoginUser),
-        Function::SessionCancel => check_30_fn!(ctx, SessionCancel),
-        Function::MessageEncryptInit => check_30_fn!(ctx, MessageEncryptInit),
-        Function::EncryptMessage => check_30_fn!(ctx, EncryptMessage),
-        Function::EncryptMessageBegin => check_30_fn!(ctx, EncryptMessageBegin),
-        Function::EncryptMessageNext => check_30_fn!(ctx, EncryptMessageNext),
-        Function::MessageEncryptFinal => check_30_fn!(ctx, MessageEncryptFinal),
-        Function::MessageDecryptInit => check_30_fn!(ctx, MessageDecryptInit),
-        Function::DecryptMessage => check_30_fn!(ctx, DecryptMessage),
-        Function::DecryptMessageBegin => check_30_fn!(ctx, DecryptMessageBegin),
-        Function::DecryptMessageNext => check_30_fn!(ctx, DecryptMessageNext),
-        Function::MessageDecryptFinal => check_30_fn!(ctx, MessageDecryptFinal),
-        Function::MessageSignInit => check_30_fn!(ctx, MessageSignInit),
-        Function::SignMessage => check_30_fn!(ctx, SignMessage),
-        Function::SignMessageBegin => check_30_fn!(ctx, SignMessageBegin),
-        Function::SignMessageNext => check_30_fn!(ctx, SignMessageNext),
-        Function::MessageSignFinal => check_30_fn!(ctx, MessageSignFinal),
-        Function::MessageVerifyInit => check_30_fn!(ctx, MessageVerifyInit),
-        Function::VerifyMessage => check_30_fn!(ctx, VerifyMessage),
-        Function::VerifyMessageBegin => check_30_fn!(ctx, VerifyMessageBegin),
-        Function::VerifyMessageNext => check_30_fn!(ctx, VerifyMessageNext),
-        Function::MessageVerifyFinal => check_30_fn!(ctx, MessageVerifyFinal),
+        Function::GetInterfaceList => check_fn!(ctx, GetInterfaceList),
+        Function::GetInterface => check_fn!(ctx, GetInterface),
+        Function::LoginUser => check_fn!(ctx, LoginUser),
+        Function::SessionCancel => check_fn!(ctx, SessionCancel),
+        Function::MessageEncryptInit => check_fn!(ctx, MessageEncryptInit),
+        Function::EncryptMessage => check_fn!(ctx, EncryptMessage),
+        Function::EncryptMessageBegin => check_fn!(ctx, EncryptMessageBegin),
+        Function::EncryptMessageNext => check_fn!(ctx, EncryptMessageNext),
+        Function::MessageEncryptFinal => check_fn!(ctx, MessageEncryptFinal),
+        Function::MessageDecryptInit => check_fn!(ctx, MessageDecryptInit),
+        Function::DecryptMessage => check_fn!(ctx, DecryptMessage),
+        Function::DecryptMessageBegin => check_fn!(ctx, DecryptMessageBegin),
+        Function::DecryptMessageNext => check_fn!(ctx, DecryptMessageNext),
+        Function::MessageDecryptFinal => check_fn!(ctx, MessageDecryptFinal),
+        Function::MessageSignInit => check_fn!(ctx, MessageSignInit),
+        Function::SignMessage => check_fn!(ctx, SignMessage),
+        Function::SignMessageBegin => check_fn!(ctx, SignMessageBegin),
+        Function::SignMessageNext => check_fn!(ctx, SignMessageNext),
+        Function::MessageSignFinal => check_fn!(ctx, MessageSignFinal),
+        Function::MessageVerifyInit => check_fn!(ctx, MessageVerifyInit),
+        Function::VerifyMessage => check_fn!(ctx, VerifyMessage),
+        Function::VerifyMessageBegin => check_fn!(ctx, VerifyMessageBegin),
+        Function::VerifyMessageNext => check_fn!(ctx, VerifyMessageNext),
+        Function::MessageVerifyFinal => check_fn!(ctx, MessageVerifyFinal),
     }
 }
