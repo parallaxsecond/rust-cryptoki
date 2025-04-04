@@ -7,6 +7,7 @@ pub mod eddsa;
 pub mod ekdf;
 pub mod elliptic_curve;
 pub mod hkdf;
+pub mod kbkdf;
 mod mechanism_info;
 pub mod rsa;
 pub mod vendor_defined;
@@ -325,6 +326,20 @@ impl MechanismType {
     };
     /// HKDF-DATA mechanism
     pub const HKDF_DATA: MechanismType = MechanismType { val: CKM_HKDF_DATA };
+
+    // NIST SP 800-108 KDF (aka KBKDF)
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in counter-mode
+    pub const SP800_108_COUNTER_KDF: MechanismType = MechanismType {
+        val: CKM_SP800_108_COUNTER_KDF,
+    };
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in feedback-mode
+    pub const SP800_108_FEEDBACK_KDF: MechanismType = MechanismType {
+        val: CKM_SP800_108_FEEDBACK_KDF,
+    };
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
+    pub const SP800_108_DOUBLE_PIPELINE_KDF: MechanismType = MechanismType {
+        val: CKM_SP800_108_DOUBLE_PIPELINE_KDF,
+    };
 
     /// Create vendor defined mechanism
     ///
@@ -715,6 +730,11 @@ impl MechanismType {
             CKM_HKDF_KEY_GEN => String::from(stringify!(CKM_HKDF_KEY_GEN)),
             CKM_HKDF_DERIVE => String::from(stringify!(CKM_HKDF_DERIVE)),
             CKM_HKDF_DATA => String::from(stringify!(CKM_HKDF_DATA)),
+            CKM_SP800_108_COUNTER_KDF => String::from(stringify!(CKM_SP800_108_COUNTER_KDF)),
+            CKM_SP800_108_FEEDBACK_KDF => String::from(stringify!(CKM_SP800_108_FEEDBACK_KDF)),
+            CKM_SP800_108_DOUBLE_PIPELINE_KDF => {
+                String::from(stringify!(CKM_SP800_108_DOUBLE_PIPELINE_KDF))
+            }
             _ => format!("unknown {mech:08x}"),
         }
     }
@@ -799,6 +819,9 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_HKDF_KEY_GEN => Ok(MechanismType::HKDF_KEY_GEN),
             CKM_HKDF_DERIVE => Ok(MechanismType::HKDF_DERIVE),
             CKM_HKDF_DATA => Ok(MechanismType::HKDF_DATA),
+            CKM_SP800_108_COUNTER_KDF => Ok(MechanismType::SP800_108_COUNTER_KDF),
+            CKM_SP800_108_FEEDBACK_KDF => Ok(MechanismType::SP800_108_FEEDBACK_KDF),
+            CKM_SP800_108_DOUBLE_PIPELINE_KDF => Ok(MechanismType::SP800_108_DOUBLE_PIPELINE_KDF),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -1021,6 +1044,14 @@ pub enum Mechanism<'a> {
     /// HKDF-DATA mechanism
     HkdfData(hkdf::HkdfParams<'a>),
 
+    // NIST SP 800-108 KDF (aka KBKDF)
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in counter-mode
+    KbkdfCounter(kbkdf::KbkdfCounterParams<'a>),
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in feedback-mode
+    KbkdfFeedback(kbkdf::KbkdfFeedbackParams<'a>),
+    /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
+    KbkdfDoublePipeline(kbkdf::KbkdfDoublePipelineParams<'a>),
+
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),
 }
@@ -1102,6 +1133,10 @@ impl Mechanism<'_> {
             Mechanism::HkdfDerive(_) => MechanismType::HKDF_DERIVE,
             Mechanism::HkdfData(_) => MechanismType::HKDF_DATA,
 
+            Mechanism::KbkdfCounter(_) => MechanismType::SP800_108_COUNTER_KDF,
+            Mechanism::KbkdfFeedback(_) => MechanismType::SP800_108_FEEDBACK_KDF,
+            Mechanism::KbkdfDoublePipeline(_) => MechanismType::SP800_108_DOUBLE_PIPELINE_KDF,
+
             Mechanism::VendorDefined(vm) => MechanismType {
                 val: vm.inner.mechanism,
             },
@@ -1154,6 +1189,9 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::HkdfDerive(params) | Mechanism::HkdfData(params) => {
                 make_mechanism(mechanism, params)
             }
+            Mechanism::KbkdfCounter(params) => make_mechanism(mechanism, params),
+            Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params),
+            Mechanism::KbkdfDoublePipeline(params) => make_mechanism(mechanism, params),
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
