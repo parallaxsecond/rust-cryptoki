@@ -12,7 +12,6 @@ mod mechanism_info;
 pub mod rsa;
 pub mod vendor_defined;
 
-use crate::error::Error;
 use cryptoki_sys::*;
 use log::error;
 use std::convert::{TryFrom, TryInto};
@@ -23,7 +22,9 @@ use std::ops::Deref;
 use std::ptr::null_mut;
 use vendor_defined::VendorDefinedMechanism;
 
+use crate::error::Error;
 use crate::mechanism::rsa::PkcsOaepParams;
+use crate::object::ObjectHandle;
 pub use mechanism_info::MechanismInfo;
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -1281,5 +1282,27 @@ impl MessageParam<'_> {
                 .try_into()
                 .expect("usize can not fit in CK_ULONG"),
         }
+    }
+}
+
+/// Trait for mechanism types that define additional keys to be derived in their parameters
+pub trait HasAdditionalDerivedKeys {
+    /// Get the object handles for the additional keys that were derived
+    fn additional_derived_keys(&self) -> Vec<ObjectHandle>;
+}
+
+impl HasAdditionalDerivedKeys for &Mechanism<'_> {
+    fn additional_derived_keys(&self) -> Vec<ObjectHandle> {
+        let additional_derived_keys = match self {
+            Mechanism::KbkdfCounter(params) => params.additional_derived_keys(),
+            Mechanism::KbkdfFeedback(params) => params.additional_derived_keys(),
+            Mechanism::KbkdfDoublePipeline(params) => params.additional_derived_keys(),
+            _ => unimplemented!("The given mechanism doesn't define additional keys to derive"), // TODO: this or return an option?
+        };
+
+        additional_derived_keys
+            .into_iter()
+            .map(ObjectHandle::new)
+            .collect()
     }
 }

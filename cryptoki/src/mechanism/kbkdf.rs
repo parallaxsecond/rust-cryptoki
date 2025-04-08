@@ -3,7 +3,7 @@
 //! Mechanisms of NIST key-based key derive functions (SP 800-108, informally KBKDF)
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061446>
 
-use std::{convert::TryInto, marker::PhantomData, ptr};
+use core::{convert::TryInto, marker::PhantomData, ptr, slice};
 
 use cryptoki_sys::{
     CK_ATTRIBUTE, CK_ATTRIBUTE_PTR, CK_DERIVED_KEY, CK_DERIVED_KEY_PTR, CK_OBJECT_HANDLE,
@@ -158,14 +158,12 @@ impl<'a> KbkdfCounterParams<'a> {
     pub fn new(
         prf_mechanism: MechanismType,
         prf_data_params: Vec<PrfDataParam<'a>>,
-        additional_derived_keys: Vec<DerivedKey<'a>>,
+        mut additional_derived_keys: Vec<DerivedKey<'a>>,
     ) -> Self {
         let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.into_iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> = additional_derived_keys
-            .into_iter()
-            .map(Into::into)
-            .collect();
+            prf_data_params.iter().map(Into::into).collect();
+        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
+            additional_derived_keys.iter_mut().map(Into::into).collect();
 
         Self {
             inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
@@ -182,6 +180,23 @@ impl<'a> KbkdfCounterParams<'a> {
                 pAdditionalDerivedKeys: additional_derived_keys.as_ptr() as CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
+        }
+    }
+
+    /// The additional keys derived by the KDF, as per the params
+    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+        let derived_keys = unsafe {
+            slice::from_raw_parts(
+                self.inner.pAdditionalDerivedKeys,
+                self.inner.ulAdditionalDerivedKeys as _,
+            )
+        };
+
+        unsafe {
+            derived_keys
+                .iter()
+                .map(|derived_key| *derived_key.phKey)
+                .collect()
         }
     }
 }
@@ -214,14 +229,12 @@ impl<'a> KbkdfFeedbackParams<'a> {
         prf_mechanism: MechanismType,
         prf_data_params: Vec<PrfDataParam<'a>>,
         iv: Option<&'a [u8]>,
-        additional_derived_keys: Vec<DerivedKey<'a>>,
+        mut additional_derived_keys: Vec<DerivedKey<'a>>,
     ) -> Self {
         let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.into_iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> = additional_derived_keys
-            .into_iter()
-            .map(Into::into)
-            .collect();
+            prf_data_params.iter().map(Into::into).collect();
+        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
+            additional_derived_keys.iter_mut().map(Into::into).collect();
 
         Self {
             inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
@@ -244,6 +257,23 @@ impl<'a> KbkdfFeedbackParams<'a> {
                 pAdditionalDerivedKeys: additional_derived_keys.as_ptr() as CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
+        }
+    }
+
+    /// The additional keys derived by the KDF, as per the params
+    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+        let derived_keys = unsafe {
+            slice::from_raw_parts(
+                self.inner.pAdditionalDerivedKeys,
+                self.inner.ulAdditionalDerivedKeys as _,
+            )
+        };
+
+        unsafe {
+            derived_keys
+                .iter()
+                .map(|derived_key| *derived_key.phKey)
+                .collect()
         }
     }
 }
@@ -273,14 +303,12 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
     pub fn new(
         prf_mechanism: MechanismType,
         prf_data_params: Vec<PrfDataParam<'a>>,
-        additional_derived_keys: Vec<DerivedKey<'a>>,
+        mut additional_derived_keys: Vec<DerivedKey<'a>>,
     ) -> Self {
         let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.into_iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> = additional_derived_keys
-            .into_iter()
-            .map(Into::into)
-            .collect();
+            prf_data_params.iter().map(Into::into).collect();
+        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
+            additional_derived_keys.iter_mut().map(Into::into).collect();
 
         Self {
             inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
@@ -299,10 +327,27 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
             _marker: PhantomData,
         }
     }
+
+    /// The additional keys derived by the KDF, as per the params
+    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+        let derived_keys = unsafe {
+            slice::from_raw_parts(
+                self.inner.pAdditionalDerivedKeys,
+                self.inner.ulAdditionalDerivedKeys as _,
+            )
+        };
+
+        unsafe {
+            derived_keys
+                .iter()
+                .map(|derived_key| *derived_key.phKey)
+                .collect()
+        }
+    }
 }
 
-impl<'a> From<PrfDataParam<'a>> for CK_PRF_DATA_PARAM {
-    fn from(value: PrfDataParam<'a>) -> Self {
+impl<'a> From<&PrfDataParam<'a>> for CK_PRF_DATA_PARAM {
+    fn from(value: &PrfDataParam<'a>) -> Self {
         Self {
             type_: match value {
                 PrfDataParam::IterationVariable => CK_SP800_108_ITERATION_VARIABLE,
@@ -312,8 +357,8 @@ impl<'a> From<PrfDataParam<'a>> for CK_PRF_DATA_PARAM {
             },
             pValue: match value {
                 PrfDataParam::IterationVariable => ptr::null_mut(),
-                PrfDataParam::Counter(inner) => &inner as *const _ as *mut _,
-                PrfDataParam::DkmLength(inner) => &inner as *const _ as *mut _,
+                PrfDataParam::Counter(inner) => inner as *const _ as *mut _,
+                PrfDataParam::DkmLength(inner) => inner as *const _ as *mut _,
                 PrfDataParam::ByteArray(data) => data.as_ptr() as *mut _,
             },
             ulValueLen: match value {
@@ -331,8 +376,8 @@ impl<'a> From<PrfDataParam<'a>> for CK_PRF_DATA_PARAM {
     }
 }
 
-impl<'a> From<PrfCounterDataParam<'a>> for CK_PRF_DATA_PARAM {
-    fn from(value: PrfCounterDataParam<'a>) -> Self {
+impl<'a> From<&PrfCounterDataParam<'a>> for CK_PRF_DATA_PARAM {
+    fn from(value: &PrfCounterDataParam<'a>) -> Self {
         Self {
             type_: match value {
                 PrfCounterDataParam::IterationVariable(_) => CK_SP800_108_ITERATION_VARIABLE,
@@ -340,8 +385,8 @@ impl<'a> From<PrfCounterDataParam<'a>> for CK_PRF_DATA_PARAM {
                 PrfCounterDataParam::ByteArray(_) => CK_SP800_108_BYTE_ARRAY,
             },
             pValue: match value {
-                PrfCounterDataParam::IterationVariable(inner) => &inner as *const _ as *mut _,
-                PrfCounterDataParam::DkmLength(inner) => &inner as *const _ as *mut _,
+                PrfCounterDataParam::IterationVariable(inner) => inner as *const _ as *mut _,
+                PrfCounterDataParam::DkmLength(inner) => inner as *const _ as *mut _,
                 PrfCounterDataParam::ByteArray(data) => data.as_ptr() as *mut _,
             },
             ulValueLen: match value {
@@ -360,9 +405,9 @@ impl<'a> From<PrfCounterDataParam<'a>> for CK_PRF_DATA_PARAM {
     }
 }
 
-impl<'a> From<DerivedKey<'a>> for CK_DERIVED_KEY {
-    fn from(mut value: DerivedKey<'a>) -> Self {
-        let template: Vec<CK_ATTRIBUTE> = value.template.iter().map(|attr| attr.into()).collect();
+impl<'a> From<&mut DerivedKey<'a>> for CK_DERIVED_KEY {
+    fn from(value: &mut DerivedKey<'a>) -> Self {
+        let template: Vec<CK_ATTRIBUTE> = value.template.iter().map(Into::into).collect();
 
         Self {
             pTemplate: template.as_ptr() as CK_ATTRIBUTE_PTR,
