@@ -1293,16 +1293,11 @@ pub trait HasAdditionalDerivedKeys {
 
 impl HasAdditionalDerivedKeys for &Mechanism<'_> {
     fn additional_derived_keys(&self) -> Vec<ObjectHandle> {
-        let additional_derived_keys = match self {
-            Mechanism::KbkdfCounter(params) => params.additional_derived_keys(),
-            Mechanism::KbkdfFeedback(params) => params.additional_derived_keys(),
-            Mechanism::KbkdfDoublePipeline(params) => params.additional_derived_keys(),
+        match self {
+            Mechanism::KbkdfCounter(params) => params.additional_derived_keys().unwrap_or_default(),
+            Mechanism::KbkdfFeedback(params) => params.additional_derived_keys().unwrap_or_default(),
+            Mechanism::KbkdfDoublePipeline(params) => params.additional_derived_keys().unwrap_or_default(),
             _ => unimplemented!("The given mechanism doesn't define additional keys to derive"), // TODO: this or return an option?
-        };
-
-        additional_derived_keys
-            .into_iter()
-            .map(ObjectHandle::new)
-            .collect()
+        }
     }
 }

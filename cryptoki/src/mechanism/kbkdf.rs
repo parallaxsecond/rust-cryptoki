@@ -5,7 +5,7 @@
 
 use core::{convert::TryInto, marker::PhantomData, ptr, slice};
 
-use crate::object::Attribute;
+use crate::object::{Attribute, ObjectHandle};
 
 use super::MechanismType;
 
@@ -273,7 +273,7 @@ impl<'a> KbkdfCounterParams<'a> {
     pub fn new(
         prf_mechanism: MechanismType,
         prf_data_params: &'a [PrfCounterDataParam<'a>],
-        additional_derived_keys: &'a mut [DerivedKey<'a>],
+        additional_derived_keys: Option<&'a mut [DerivedKey<'a>]>,
     ) -> Self {
         Self {
             inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
@@ -283,31 +283,41 @@ impl<'a> KbkdfCounterParams<'a> {
                     .try_into()
                     .expect("number of data parameters does not fit in CK_ULONG"),
                 pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
-                ulAdditionalDerivedKeys: additional_derived_keys
-                    .len()
-                    .try_into()
-                    .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
-                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
+                ulAdditionalDerivedKeys: additional_derived_keys.as_ref().map_or(0, |keys| {
+                    keys.len()
+                        .try_into()
+                        .expect("number of additional derived keys does not fit in CK_ULONG")
+                }),
+                pAdditionalDerivedKeys: additional_derived_keys.map_or(ptr::null_mut(), |keys| {
+                    keys.as_mut_ptr() as cryptoki_sys::CK_DERIVED_KEY_PTR
+                }),
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
-        let derived_keys = unsafe {
-            slice::from_raw_parts(
-                self.inner.pAdditionalDerivedKeys,
-                self.inner.ulAdditionalDerivedKeys as _,
-            )
-        };
+    pub(crate) fn additional_derived_keys(&self) -> Option<Vec<ObjectHandle>> {
+        if self.inner.ulAdditionalDerivedKeys == 0 {
+            None
+        } else {
+            // SAFETY: if the number of derived keys > 0, then at least one was explicitly provided during construction
+            let derived_keys = unsafe {
+                slice::from_raw_parts(
+                    self.inner.pAdditionalDerivedKeys,
+                    self.inner.ulAdditionalDerivedKeys as _,
+                )
+            };
 
-        unsafe {
-            derived_keys
-                .iter()
-                .map(|derived_key| *derived_key.phKey)
-                .collect()
+            Some(
+                derived_keys
+                    .iter()
+                    .map(|derived_key| {
+                        // SAFETY: a value is always provided during construction
+                        ObjectHandle::new(unsafe { *derived_key.phKey })
+                    })
+                    .collect(),
+            )
         }
     }
 }
@@ -340,7 +350,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
         prf_mechanism: MechanismType,
         prf_data_params: &'a [PrfDataParam<'a>],
         iv: Option<&'a [u8]>,
-        additional_derived_keys: &'a mut [DerivedKey<'a>],
+        additional_derived_keys: Option<&'a mut [DerivedKey<'a>]>,
     ) -> Self {
         Self {
             inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
@@ -356,31 +366,41 @@ impl<'a> KbkdfFeedbackParams<'a> {
                         .expect("IV length does not fit in CK_ULONG")
                 }),
                 pIV: iv.map_or(ptr::null_mut(), |iv| iv.as_ptr() as *mut _),
-                ulAdditionalDerivedKeys: additional_derived_keys
-                    .len()
-                    .try_into()
-                    .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
-                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
+                ulAdditionalDerivedKeys: additional_derived_keys.as_ref().map_or(0, |keys| {
+                    keys.len()
+                        .try_into()
+                        .expect("number of additional derived keys does not fit in CK_ULONG")
+                }),
+                pAdditionalDerivedKeys: additional_derived_keys.map_or(ptr::null_mut(), |keys| {
+                    keys.as_mut_ptr() as cryptoki_sys::CK_DERIVED_KEY_PTR
+                }),
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
-        let derived_keys = unsafe {
-            slice::from_raw_parts(
-                self.inner.pAdditionalDerivedKeys,
-                self.inner.ulAdditionalDerivedKeys as _,
-            )
-        };
+    pub(crate) fn additional_derived_keys(&self) -> Option<Vec<ObjectHandle>> {
+        if self.inner.ulAdditionalDerivedKeys == 0 {
+            None
+        } else {
+            // SAFETY: if the number of derived keys > 0, then at least one was explicitly provided during construction
+            let derived_keys = unsafe {
+                slice::from_raw_parts(
+                    self.inner.pAdditionalDerivedKeys,
+                    self.inner.ulAdditionalDerivedKeys as _,
+                )
+            };
 
-        unsafe {
-            derived_keys
-                .iter()
-                .map(|derived_key| *derived_key.phKey)
-                .collect()
+            Some(
+                derived_keys
+                    .iter()
+                    .map(|derived_key| {
+                        // SAFETY: a value is always provided during construction
+                        ObjectHandle::new(unsafe { *derived_key.phKey })
+                    })
+                    .collect(),
+            )
         }
     }
 }
@@ -410,7 +430,7 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
     pub fn new(
         prf_mechanism: MechanismType,
         prf_data_params: &'a [PrfDataParam<'a>],
-        additional_derived_keys: &'a mut [DerivedKey<'a>],
+        additional_derived_keys: Option<&'a mut [DerivedKey<'a>]>,
     ) -> Self {
         Self {
             inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
@@ -420,31 +440,41 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
                     .try_into()
                     .expect("number of data parameters does not fit in CK_ULONG"),
                 pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
-                ulAdditionalDerivedKeys: additional_derived_keys
-                    .len()
-                    .try_into()
-                    .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
-                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
+                ulAdditionalDerivedKeys: additional_derived_keys.as_ref().map_or(0, |keys| {
+                    keys.len()
+                        .try_into()
+                        .expect("number of additional derived keys does not fit in CK_ULONG")
+                }),
+                pAdditionalDerivedKeys: additional_derived_keys.map_or(ptr::null_mut(), |keys| {
+                    keys.as_mut_ptr() as cryptoki_sys::CK_DERIVED_KEY_PTR
+                }),
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
-        let derived_keys = unsafe {
-            slice::from_raw_parts(
-                self.inner.pAdditionalDerivedKeys,
-                self.inner.ulAdditionalDerivedKeys as _,
-            )
-        };
+    pub(crate) fn additional_derived_keys(&self) -> Option<Vec<ObjectHandle>> {
+        if self.inner.ulAdditionalDerivedKeys == 0 {
+            None
+        } else {
+            // SAFETY: if the number of derived keys > 0, then at least one was explicitly provided during construction
+            let derived_keys = unsafe {
+                slice::from_raw_parts(
+                    self.inner.pAdditionalDerivedKeys,
+                    self.inner.ulAdditionalDerivedKeys as _,
+                )
+            };
 
-        unsafe {
-            derived_keys
-                .iter()
-                .map(|derived_key| *derived_key.phKey)
-                .collect()
+            Some(
+                derived_keys
+                    .iter()
+                    .map(|derived_key| {
+                        // SAFETY: a value is always provided during construction
+                        ObjectHandle::new(unsafe { *derived_key.phKey })
+                    })
+                    .collect(),
+            )
         }
     }
 }
