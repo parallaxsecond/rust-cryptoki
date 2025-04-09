@@ -6,11 +6,12 @@
 use core::{convert::TryInto, marker::PhantomData, ptr, slice};
 
 use cryptoki_sys::{
-    CK_ATTRIBUTE, CK_ATTRIBUTE_PTR, CK_DERIVED_KEY, CK_DERIVED_KEY_PTR, CK_OBJECT_HANDLE,
+    CK_ATTRIBUTE_PTR, CK_DERIVED_KEY, CK_DERIVED_KEY_PTR, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE_PTR,
     CK_PRF_DATA_PARAM, CK_PRF_DATA_PARAM_PTR, CK_SP800_108_BYTE_ARRAY, CK_SP800_108_COUNTER,
     CK_SP800_108_COUNTER_FORMAT, CK_SP800_108_DKM_LENGTH, CK_SP800_108_DKM_LENGTH_FORMAT,
     CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS, CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
-    CK_SP800_108_ITERATION_VARIABLE, CK_ULONG,
+    CK_SP800_108_FEEDBACK_KDF_PARAMS, CK_SP800_108_ITERATION_VARIABLE, CK_SP800_108_KDF_PARAMS,
+    CK_ULONG,
 };
 
 use crate::object::Attribute;
@@ -28,21 +29,29 @@ pub enum Endianness {
 
 /// Defines encoding format for a counter value.
 ///
-/// Corresponds to CK_SP800_108_COUNTER_FORMAT.
+/// This structure wraps a `CK_SP800_108_COUNTER_FORMAT` structure.
 #[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 pub struct KbkdfCounterFormat {
-    endianness: Endianness,
-    width_in_bits: usize,
+    inner: CK_SP800_108_COUNTER_FORMAT,
 }
 
-impl From<KbkdfCounterFormat> for CK_SP800_108_COUNTER_FORMAT {
-    fn from(value: KbkdfCounterFormat) -> Self {
+impl KbkdfCounterFormat {
+    /// Construct encoding format for KDF's internal counter variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `endianness` - The endianness of the counter's bit representation.
+    ///
+    /// * `width_in_bits` - The number of bits used to represent the counter value.
+    pub fn new(endianness: Endianness, width_in_bits: usize) -> Self {
         Self {
-            bLittleEndian: (value.endianness == Endianness::Little).into(),
-            ulWidthInBits: value
-                .width_in_bits
+            inner: CK_SP800_108_COUNTER_FORMAT {
+                bLittleEndian: (endianness == Endianness::Little).into(),
+                ulWidthInBits: width_in_bits
                 .try_into()
                 .expect("bit width of KBKDF internal counter does not fit in CK_ULONG"),
+            },
         }
     }
 }
@@ -60,41 +69,112 @@ pub enum DkmLengthMethod {
 
 /// Defines encoding format for DKM (derived key material).
 ///
-/// Corresponds to CK_SP800_108_DKM_LENGTH_FORMAT.
+/// This structure wraps a `CK_SP800_108_DKM_LENGTH_FORMAT` structure.
 #[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 pub struct KbkdfDkmLengthFormat {
+    inner: CK_SP800_108_DKM_LENGTH_FORMAT,
+}
+
+impl KbkdfDkmLengthFormat {
+    /// Construct encoding format for length value of DKM (derived key material) from KDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `dkm_length_method` - The method used to calculate the DKM length value.
+    ///
+    /// * `endianness` - The endianness of the DKM length value's bit representation.
+    ///
+    /// * `width_in_bits` - The number of bits used to represent the DKM length value.
+    pub fn new(
     dkm_length_method: DkmLengthMethod,
     endianness: Endianness,
     width_in_bits: usize,
-}
-
-impl From<KbkdfDkmLengthFormat> for CK_SP800_108_DKM_LENGTH_FORMAT {
-    fn from(value: KbkdfDkmLengthFormat) -> Self {
+    ) -> Self {
         Self {
-            dkmLengthMethod: match value.dkm_length_method {
+            inner: CK_SP800_108_DKM_LENGTH_FORMAT {
+                dkmLengthMethod: match dkm_length_method {
                 DkmLengthMethod::SumOfKeys => CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
                 DkmLengthMethod::SumOfSegments => CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
+                },
+                bLittleEndian: (endianness == Endianness::Little).into(),
+                ulWidthInBits: width_in_bits.try_into().expect(
+                    "bit width of KBKDF derived key material length value does not fit in CK_ULONG",
+                ),
             },
-            bLittleEndian: (value.endianness == Endianness::Little).into(),
-            ulWidthInBits: value
-                .width_in_bits
-                .try_into()
-                .expect("bit width of KBKDF derived key material does not fit in CK_ULONG"),
         }
     }
+}
+
+/// The type of a segment of input data for the PRF, for a KBKDF operating in feedback- or double pipeline-mode.
+#[derive(Debug, Clone, Copy)]
+pub enum PrfDataParamType<'a> {
+    /// Identifies location of predefined iteration variable in constructed PRF input data.
+    IterationVariable,
+    /// Identifies location of counter in constructed PRF input data.
+    Counter(&'a KbkdfCounterFormat),
+    /// Identifies location of DKM (derived key material) length in constructed PRF input data.
+    DkmLength(&'a KbkdfDkmLengthFormat),
+    /// Identifies location and value of byte array of data in constructed PRF input data.
+    ByteArray(&'a [u8]),
 }
 
 /// A segment of input data for the PRF, to be used to construct a sequence of input.
 ///
 /// Corresponds to CK_PRF_DATA_PARAM in the specific cases of the KDF operating in feedback- or double pipeline-mode.
 #[derive(Debug, Clone, Copy)]
-pub enum PrfDataParam<'a> {
-    /// Identifies location of predefined iteration variable in constructed PRF input data.
-    IterationVariable,
-    /// Identifies location of counter in constructed PRF input data.
-    Counter(KbkdfCounterFormat),
+#[repr(transparent)]
+pub struct PrfDataParam<'a> {
+    inner: CK_PRF_DATA_PARAM,
+    /// Marker type to ensure we don't outlive the data
+    _marker: PhantomData<&'a [u8]>,
+}
+
+impl<'a> PrfDataParam<'a> {
+    /// Construct data parameter for input of the PRF internal to the KBKDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `type_` - The specific type and parameters for the data parameter.
+    pub fn new(type_: PrfDataParamType<'a>) -> Self {
+        Self {
+            inner: match type_ {
+                PrfDataParamType::IterationVariable => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_ITERATION_VARIABLE,
+                    pValue: ptr::null_mut(),
+                    ulValueLen: 0,
+                },
+                PrfDataParamType::Counter(counter_format) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_COUNTER,
+                    pValue: &counter_format.inner as *const _ as *mut _,
+                    ulValueLen: size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG,
+                },
+                PrfDataParamType::DkmLength(dkm_length_format) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_DKM_LENGTH,
+                    pValue: &dkm_length_format.inner as *const _ as *mut _,
+                    ulValueLen: size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG,
+                },
+                PrfDataParamType::ByteArray(data) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_BYTE_ARRAY,
+                    pValue: data.as_ptr() as *mut _,
+                    ulValueLen: data
+                        .len()
+                        .try_into()
+                        .expect("length of data parameter does not fit in CK_ULONG"),
+                },
+            },
+            _marker: PhantomData,
+        }
+    }
+}
+
+/// The type of a segment of input data for the PRF, for a KBKDF operating in counter-mode.
+#[derive(Debug, Clone, Copy)]
+pub enum PrfCounterDataParamType<'a> {
+    /// Identifies location of iteration variable (a counter in this case) in constructed PRF input data.
+    IterationVariable(&'a KbkdfCounterFormat),
     /// Identifies location of DKM (derived key material) length in constructed PRF input data.
-    DkmLength(KbkdfDkmLengthFormat),
+    DkmLength(&'a KbkdfDkmLengthFormat),
     /// Identifies location and value of byte array of data in constructed PRF input data.
     ByteArray(&'a [u8]),
 }
@@ -103,20 +183,53 @@ pub enum PrfDataParam<'a> {
 ///
 /// Corresponds to CK_PRF_DATA_PARAM in the specific case of the KDF operating in counter-mode.
 #[derive(Debug, Clone, Copy)]
-pub enum PrfCounterDataParam<'a> {
-    /// Identifies location of iteration variable (a counter in this case) in constructed PRF input data.
-    IterationVariable(KbkdfCounterFormat),
-    /// Identifies location of DKM (derived key material) length in constructed PRF input data.
-    DkmLength(KbkdfDkmLengthFormat),
-    /// Identifies location and value of byte array of data in constructed PRF input data.
-    ByteArray(&'a [u8]),
+#[repr(transparent)]
+pub struct PrfCounterDataParam<'a> {
+    inner: CK_PRF_DATA_PARAM,
+    /// Marker type to ensure we don't outlive the data
+    _marker: PhantomData<&'a [u8]>,
+}
+
+impl<'a> PrfCounterDataParam<'a> {
+    /// Construct data parameter for input of the PRF internal to the KBKDF.
+    ///
+    /// # Arguments
+    ///
+    /// * `type_` - The specific type and parameters for the data parameter.
+    pub fn new(type_: PrfCounterDataParamType<'a>) -> Self {
+        Self {
+            inner: match type_ {
+                PrfCounterDataParamType::IterationVariable(counter_format) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_ITERATION_VARIABLE,
+                    pValue: &counter_format.inner as *const _ as *mut _,
+                    ulValueLen: size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG,
+                },
+                PrfCounterDataParamType::DkmLength(dkm_length_format) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_DKM_LENGTH,
+                    pValue: &dkm_length_format.inner as *const _ as *mut _,
+                    ulValueLen: size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG,
+                },
+                PrfCounterDataParamType::ByteArray(data) => CK_PRF_DATA_PARAM {
+                    type_: CK_SP800_108_BYTE_ARRAY,
+                    pValue: data.as_ptr() as *mut _,
+                    ulValueLen: data
+                        .len()
+                        .try_into()
+                        .expect("length of data parameter does not fit in CK_ULONG"),
+                },
+            },
+            _marker: PhantomData,
+        }
+    }
 }
 
 /// Parameters for additional key to be derived from base key.
 #[derive(Debug, Clone, Copy)]
+#[repr(transparent)]
 pub struct DerivedKey<'a> {
-    template: &'a [Attribute],
-    object_handle: CK_OBJECT_HANDLE,
+    inner: CK_DERIVED_KEY,
+    /// Marker type to ensure we don't outlive the data
+    _marker: PhantomData<&'a [u8]>,
 }
 
 impl<'a> DerivedKey<'a> {
@@ -125,10 +238,19 @@ impl<'a> DerivedKey<'a> {
     /// # Arguments
     ///
     /// * `template` - The template for the key to be derived.
-    pub fn new(template: &'a [Attribute]) -> Self {
+    ///
+    /// * `handle` - The location into which will be written the handle of the new derived key.
+    pub fn new(template: &'a [Attribute], handle: &'a mut u64) -> Self {
         Self {
-            template,
-            object_handle: 0,
+            inner: CK_DERIVED_KEY {
+                pTemplate: template.as_ptr() as CK_ATTRIBUTE_PTR,
+                ulAttributeCount: template
+                    .len()
+                    .try_into()
+                    .expect("number of attributes in template does not fit in CK_ULONG"),
+                phKey: handle as CK_OBJECT_HANDLE_PTR,
+            },
+            _marker: PhantomData,
         }
     }
 }
@@ -139,7 +261,7 @@ impl<'a> DerivedKey<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfCounterParams<'a> {
-    inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS,
+    inner: CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -157,16 +279,11 @@ impl<'a> KbkdfCounterParams<'a> {
     /// * `additional_derived_keys` - Any additional keys to be generated by the KDF from the base key.
     pub fn new(
         prf_mechanism: MechanismType,
-        prf_data_params: Vec<PrfDataParam<'a>>,
-        mut additional_derived_keys: Vec<DerivedKey<'a>>,
+        prf_data_params: &'a [PrfCounterDataParam<'a>],
+        additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
-        let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
-            additional_derived_keys.iter_mut().map(Into::into).collect();
-
         Self {
-            inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
+            inner: CK_SP800_108_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
@@ -177,7 +294,7 @@ impl<'a> KbkdfCounterParams<'a> {
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
@@ -207,7 +324,7 @@ impl<'a> KbkdfCounterParams<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfFeedbackParams<'a> {
-    inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS,
+    inner: CK_SP800_108_FEEDBACK_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -220,24 +337,19 @@ impl<'a> KbkdfFeedbackParams<'a> {
     ///
     /// * `prf_mechanism` - The pseudorandom function that underlies the KBKDF operation.
     ///
-    /// * `prf_data_params` - The sequence of data segments used as input data for the PRF. Requires at least [`PrfCounterDataParam::IterationVariable`].
+    /// * `prf_data_params` - The sequence of data segments used as input data for the PRF. Requires at least [`PrfDataParam::IterationVariable`].
     ///
     /// * `iv` - The IV to be used for the feedback-mode KDF.
     ///
     /// * `additional_derived_keys` - Any additional keys to be generated by the KDF from the base key.
     pub fn new(
         prf_mechanism: MechanismType,
-        prf_data_params: Vec<PrfDataParam<'a>>,
+        prf_data_params: &'a [PrfDataParam<'a>],
         iv: Option<&'a [u8]>,
-        mut additional_derived_keys: Vec<DerivedKey<'a>>,
+        additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
-        let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
-            additional_derived_keys.iter_mut().map(Into::into).collect();
-
         Self {
-            inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
+            inner: CK_SP800_108_FEEDBACK_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
@@ -254,7 +366,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
@@ -284,7 +396,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfDoublePipelineParams<'a> {
-    inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS,
+    inner: CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -297,21 +409,16 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
     ///
     /// * `prf_mechanism` - The pseudorandom function that underlies the KBKDF operation.
     ///
-    /// * `prf_data_params` - The sequence of data segments used as input data for the PRF. Requires at least [`PrfCounterDataParam::IterationVariable`].
+    /// * `prf_data_params` - The sequence of data segments used as input data for the PRF. Requires at least [`PrfDataParam::IterationVariable`].
     ///
     /// * `additional_derived_keys` - Any additional keys to be generated by the KDF from the base key.
     pub fn new(
         prf_mechanism: MechanismType,
-        prf_data_params: Vec<PrfDataParam<'a>>,
-        mut additional_derived_keys: Vec<DerivedKey<'a>>,
+        prf_data_params: &'a [PrfDataParam<'a>],
+        additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
-        let prf_data_params: Vec<CK_PRF_DATA_PARAM> =
-            prf_data_params.iter().map(Into::into).collect();
-        let additional_derived_keys: Vec<CK_DERIVED_KEY> =
-            additional_derived_keys.iter_mut().map(Into::into).collect();
-
         Self {
-            inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
+            inner: CK_SP800_108_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
@@ -322,7 +429,7 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
@@ -342,80 +449,6 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
                 .iter()
                 .map(|derived_key| *derived_key.phKey)
                 .collect()
-        }
-    }
-}
-
-impl<'a> From<&PrfDataParam<'a>> for CK_PRF_DATA_PARAM {
-    fn from(value: &PrfDataParam<'a>) -> Self {
-        Self {
-            type_: match value {
-                PrfDataParam::IterationVariable => CK_SP800_108_ITERATION_VARIABLE,
-                PrfDataParam::Counter(_) => CK_SP800_108_COUNTER,
-                PrfDataParam::DkmLength(_) => CK_SP800_108_DKM_LENGTH,
-                PrfDataParam::ByteArray(_) => CK_SP800_108_BYTE_ARRAY,
-            },
-            pValue: match value {
-                PrfDataParam::IterationVariable => ptr::null_mut(),
-                PrfDataParam::Counter(inner) => inner as *const _ as *mut _,
-                PrfDataParam::DkmLength(inner) => inner as *const _ as *mut _,
-                PrfDataParam::ByteArray(data) => data.as_ptr() as *mut _,
-            },
-            ulValueLen: match value {
-                PrfDataParam::IterationVariable => 0,
-                PrfDataParam::Counter(_) => size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG,
-                PrfDataParam::DkmLength(_) => {
-                    size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG
-                }
-                PrfDataParam::ByteArray(data) => data
-                    .len()
-                    .try_into()
-                    .expect("length of data parameter does not fit in CK_ULONG"),
-            },
-        }
-    }
-}
-
-impl<'a> From<&PrfCounterDataParam<'a>> for CK_PRF_DATA_PARAM {
-    fn from(value: &PrfCounterDataParam<'a>) -> Self {
-        Self {
-            type_: match value {
-                PrfCounterDataParam::IterationVariable(_) => CK_SP800_108_ITERATION_VARIABLE,
-                PrfCounterDataParam::DkmLength(_) => CK_SP800_108_DKM_LENGTH,
-                PrfCounterDataParam::ByteArray(_) => CK_SP800_108_BYTE_ARRAY,
-            },
-            pValue: match value {
-                PrfCounterDataParam::IterationVariable(inner) => inner as *const _ as *mut _,
-                PrfCounterDataParam::DkmLength(inner) => inner as *const _ as *mut _,
-                PrfCounterDataParam::ByteArray(data) => data.as_ptr() as *mut _,
-            },
-            ulValueLen: match value {
-                PrfCounterDataParam::IterationVariable(_) => {
-                    size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG
-                }
-                PrfCounterDataParam::DkmLength(_) => {
-                    size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG
-                }
-                PrfCounterDataParam::ByteArray(data) => data
-                    .len()
-                    .try_into()
-                    .expect("length of data parameter does not fit in CK_ULONG"),
-            },
-        }
-    }
-}
-
-impl<'a> From<&mut DerivedKey<'a>> for CK_DERIVED_KEY {
-    fn from(value: &mut DerivedKey<'a>) -> Self {
-        let template: Vec<CK_ATTRIBUTE> = value.template.iter().map(Into::into).collect();
-
-        Self {
-            pTemplate: template.as_ptr() as CK_ATTRIBUTE_PTR,
-            ulAttributeCount: template
-                .len()
-                .try_into()
-                .expect("number of attributes in template does not fit in CK_ULONG"),
-            phKey: &mut value.object_handle,
         }
     }
 }
