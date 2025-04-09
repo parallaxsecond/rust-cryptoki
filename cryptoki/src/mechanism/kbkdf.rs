@@ -23,9 +23,7 @@ pub enum Endianness {
 /// This structure wraps a `CK_SP800_108_COUNTER_FORMAT` structure.
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
-pub struct KbkdfCounterFormat {
-    inner: cryptoki_sys::CK_SP800_108_COUNTER_FORMAT,
-}
+pub struct KbkdfCounterFormat(cryptoki_sys::CK_SP800_108_COUNTER_FORMAT);
 
 impl KbkdfCounterFormat {
     /// Construct encoding format for KDF's internal counter variable.
@@ -36,14 +34,12 @@ impl KbkdfCounterFormat {
     ///
     /// * `width_in_bits` - The number of bits used to represent the counter value.
     pub fn new(endianness: Endianness, width_in_bits: usize) -> Self {
-        Self {
-            inner: cryptoki_sys::CK_SP800_108_COUNTER_FORMAT {
-                bLittleEndian: (endianness == Endianness::Little).into(),
-                ulWidthInBits: width_in_bits
+        Self(cryptoki_sys::CK_SP800_108_COUNTER_FORMAT {
+            bLittleEndian: (endianness == Endianness::Little).into(),
+            ulWidthInBits: width_in_bits
                 .try_into()
                 .expect("bit width of KBKDF internal counter does not fit in CK_ULONG"),
-            },
-        }
+        })
     }
 }
 
@@ -63,9 +59,7 @@ pub enum DkmLengthMethod {
 /// This structure wraps a `CK_SP800_108_DKM_LENGTH_FORMAT` structure.
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
-pub struct KbkdfDkmLengthFormat {
-    inner: cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT,
-}
+pub struct KbkdfDkmLengthFormat(cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT);
 
 impl KbkdfDkmLengthFormat {
     /// Construct encoding format for length value of DKM (derived key material) from KDF.
@@ -78,24 +72,22 @@ impl KbkdfDkmLengthFormat {
     ///
     /// * `width_in_bits` - The number of bits used to represent the DKM length value.
     pub fn new(
-    dkm_length_method: DkmLengthMethod,
-    endianness: Endianness,
-    width_in_bits: usize,
+        dkm_length_method: DkmLengthMethod,
+        endianness: Endianness,
+        width_in_bits: usize,
     ) -> Self {
-        Self {
-            inner: cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT {
-                dkmLengthMethod: match dkm_length_method {
-                    DkmLengthMethod::SumOfKeys => cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
-                    DkmLengthMethod::SumOfSegments => {
-                        cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS
-                    }
-                },
-                bLittleEndian: (endianness == Endianness::Little).into(),
-                ulWidthInBits: width_in_bits.try_into().expect(
-                    "bit width of KBKDF derived key material length value does not fit in CK_ULONG",
-                ),
+        Self(cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT {
+            dkmLengthMethod: match dkm_length_method {
+                DkmLengthMethod::SumOfKeys => cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
+                DkmLengthMethod::SumOfSegments => {
+                    cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS
+                }
             },
-        }
+            bLittleEndian: (endianness == Endianness::Little).into(),
+            ulWidthInBits: width_in_bits.try_into().expect(
+                "bit width of KBKDF derived key material length value does not fit in CK_ULONG",
+            ),
+        })
     }
 }
 
@@ -139,13 +131,13 @@ impl<'a> PrfDataParam<'a> {
                 },
                 PrfDataParamType::Counter(counter_format) => cryptoki_sys::CK_PRF_DATA_PARAM {
                     type_: cryptoki_sys::CK_SP800_108_COUNTER,
-                    pValue: &counter_format.inner as *const _ as *mut _,
+                    pValue: counter_format as *const _ as *mut _,
                     ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_COUNTER_FORMAT>()
                         as cryptoki_sys::CK_ULONG,
                 },
                 PrfDataParamType::DkmLength(dkm_length_format) => cryptoki_sys::CK_PRF_DATA_PARAM {
                     type_: cryptoki_sys::CK_SP800_108_DKM_LENGTH,
-                    pValue: &dkm_length_format.inner as *const _ as *mut _,
+                    pValue: dkm_length_format as *const _ as *mut _,
                     ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT>()
                         as cryptoki_sys::CK_ULONG,
                 },
@@ -197,7 +189,7 @@ impl<'a> PrfCounterDataParam<'a> {
                 PrfCounterDataParamType::IterationVariable(counter_format) => {
                     cryptoki_sys::CK_PRF_DATA_PARAM {
                         type_: cryptoki_sys::CK_SP800_108_ITERATION_VARIABLE,
-                        pValue: &counter_format.inner as *const _ as *mut _,
+                        pValue: counter_format as *const _ as *mut _,
                         ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_COUNTER_FORMAT>()
                             as cryptoki_sys::CK_ULONG,
                     }
@@ -205,7 +197,7 @@ impl<'a> PrfCounterDataParam<'a> {
                 PrfCounterDataParamType::DkmLength(dkm_length_format) => {
                     cryptoki_sys::CK_PRF_DATA_PARAM {
                         type_: cryptoki_sys::CK_SP800_108_DKM_LENGTH,
-                        pValue: &dkm_length_format.inner as *const _ as *mut _,
+                        pValue: dkm_length_format as *const _ as *mut _,
                         ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT>()
                             as cryptoki_sys::CK_ULONG,
                     }
