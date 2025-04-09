@@ -5,15 +5,6 @@
 
 use core::{convert::TryInto, marker::PhantomData, ptr, slice};
 
-use cryptoki_sys::{
-    CK_ATTRIBUTE_PTR, CK_DERIVED_KEY, CK_DERIVED_KEY_PTR, CK_OBJECT_HANDLE, CK_OBJECT_HANDLE_PTR,
-    CK_PRF_DATA_PARAM, CK_PRF_DATA_PARAM_PTR, CK_SP800_108_BYTE_ARRAY, CK_SP800_108_COUNTER,
-    CK_SP800_108_COUNTER_FORMAT, CK_SP800_108_DKM_LENGTH, CK_SP800_108_DKM_LENGTH_FORMAT,
-    CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS, CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
-    CK_SP800_108_FEEDBACK_KDF_PARAMS, CK_SP800_108_ITERATION_VARIABLE, CK_SP800_108_KDF_PARAMS,
-    CK_ULONG,
-};
-
 use crate::object::Attribute;
 
 use super::MechanismType;
@@ -33,7 +24,7 @@ pub enum Endianness {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfCounterFormat {
-    inner: CK_SP800_108_COUNTER_FORMAT,
+    inner: cryptoki_sys::CK_SP800_108_COUNTER_FORMAT,
 }
 
 impl KbkdfCounterFormat {
@@ -46,7 +37,7 @@ impl KbkdfCounterFormat {
     /// * `width_in_bits` - The number of bits used to represent the counter value.
     pub fn new(endianness: Endianness, width_in_bits: usize) -> Self {
         Self {
-            inner: CK_SP800_108_COUNTER_FORMAT {
+            inner: cryptoki_sys::CK_SP800_108_COUNTER_FORMAT {
                 bLittleEndian: (endianness == Endianness::Little).into(),
                 ulWidthInBits: width_in_bits
                 .try_into()
@@ -73,7 +64,7 @@ pub enum DkmLengthMethod {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfDkmLengthFormat {
-    inner: CK_SP800_108_DKM_LENGTH_FORMAT,
+    inner: cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT,
 }
 
 impl KbkdfDkmLengthFormat {
@@ -92,10 +83,12 @@ impl KbkdfDkmLengthFormat {
     width_in_bits: usize,
     ) -> Self {
         Self {
-            inner: CK_SP800_108_DKM_LENGTH_FORMAT {
+            inner: cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT {
                 dkmLengthMethod: match dkm_length_method {
-                DkmLengthMethod::SumOfKeys => CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
-                DkmLengthMethod::SumOfSegments => CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
+                    DkmLengthMethod::SumOfKeys => cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
+                    DkmLengthMethod::SumOfSegments => {
+                        cryptoki_sys::CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS
+                    }
                 },
                 bLittleEndian: (endianness == Endianness::Little).into(),
                 ulWidthInBits: width_in_bits.try_into().expect(
@@ -125,7 +118,7 @@ pub enum PrfDataParamType<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct PrfDataParam<'a> {
-    inner: CK_PRF_DATA_PARAM,
+    inner: cryptoki_sys::CK_PRF_DATA_PARAM,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -139,23 +132,25 @@ impl<'a> PrfDataParam<'a> {
     pub fn new(type_: PrfDataParamType<'a>) -> Self {
         Self {
             inner: match type_ {
-                PrfDataParamType::IterationVariable => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_ITERATION_VARIABLE,
+                PrfDataParamType::IterationVariable => cryptoki_sys::CK_PRF_DATA_PARAM {
+                    type_: cryptoki_sys::CK_SP800_108_ITERATION_VARIABLE,
                     pValue: ptr::null_mut(),
                     ulValueLen: 0,
                 },
-                PrfDataParamType::Counter(counter_format) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_COUNTER,
+                PrfDataParamType::Counter(counter_format) => cryptoki_sys::CK_PRF_DATA_PARAM {
+                    type_: cryptoki_sys::CK_SP800_108_COUNTER,
                     pValue: &counter_format.inner as *const _ as *mut _,
-                    ulValueLen: size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG,
+                    ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_COUNTER_FORMAT>()
+                        as cryptoki_sys::CK_ULONG,
                 },
-                PrfDataParamType::DkmLength(dkm_length_format) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_DKM_LENGTH,
+                PrfDataParamType::DkmLength(dkm_length_format) => cryptoki_sys::CK_PRF_DATA_PARAM {
+                    type_: cryptoki_sys::CK_SP800_108_DKM_LENGTH,
                     pValue: &dkm_length_format.inner as *const _ as *mut _,
-                    ulValueLen: size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG,
+                    ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT>()
+                        as cryptoki_sys::CK_ULONG,
                 },
-                PrfDataParamType::ByteArray(data) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_BYTE_ARRAY,
+                PrfDataParamType::ByteArray(data) => cryptoki_sys::CK_PRF_DATA_PARAM {
+                    type_: cryptoki_sys::CK_SP800_108_BYTE_ARRAY,
                     pValue: data.as_ptr() as *mut _,
                     ulValueLen: data
                         .len()
@@ -185,7 +180,7 @@ pub enum PrfCounterDataParamType<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct PrfCounterDataParam<'a> {
-    inner: CK_PRF_DATA_PARAM,
+    inner: cryptoki_sys::CK_PRF_DATA_PARAM,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -199,18 +194,24 @@ impl<'a> PrfCounterDataParam<'a> {
     pub fn new(type_: PrfCounterDataParamType<'a>) -> Self {
         Self {
             inner: match type_ {
-                PrfCounterDataParamType::IterationVariable(counter_format) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_ITERATION_VARIABLE,
-                    pValue: &counter_format.inner as *const _ as *mut _,
-                    ulValueLen: size_of::<CK_SP800_108_COUNTER_FORMAT>() as CK_ULONG,
-                },
-                PrfCounterDataParamType::DkmLength(dkm_length_format) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_DKM_LENGTH,
-                    pValue: &dkm_length_format.inner as *const _ as *mut _,
-                    ulValueLen: size_of::<CK_SP800_108_DKM_LENGTH_FORMAT>() as CK_ULONG,
-                },
-                PrfCounterDataParamType::ByteArray(data) => CK_PRF_DATA_PARAM {
-                    type_: CK_SP800_108_BYTE_ARRAY,
+                PrfCounterDataParamType::IterationVariable(counter_format) => {
+                    cryptoki_sys::CK_PRF_DATA_PARAM {
+                        type_: cryptoki_sys::CK_SP800_108_ITERATION_VARIABLE,
+                        pValue: &counter_format.inner as *const _ as *mut _,
+                        ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_COUNTER_FORMAT>()
+                            as cryptoki_sys::CK_ULONG,
+                    }
+                }
+                PrfCounterDataParamType::DkmLength(dkm_length_format) => {
+                    cryptoki_sys::CK_PRF_DATA_PARAM {
+                        type_: cryptoki_sys::CK_SP800_108_DKM_LENGTH,
+                        pValue: &dkm_length_format.inner as *const _ as *mut _,
+                        ulValueLen: size_of::<cryptoki_sys::CK_SP800_108_DKM_LENGTH_FORMAT>()
+                            as cryptoki_sys::CK_ULONG,
+                    }
+                }
+                PrfCounterDataParamType::ByteArray(data) => cryptoki_sys::CK_PRF_DATA_PARAM {
+                    type_: cryptoki_sys::CK_SP800_108_BYTE_ARRAY,
                     pValue: data.as_ptr() as *mut _,
                     ulValueLen: data
                         .len()
@@ -227,7 +228,7 @@ impl<'a> PrfCounterDataParam<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct DerivedKey<'a> {
-    inner: CK_DERIVED_KEY,
+    inner: cryptoki_sys::CK_DERIVED_KEY,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -242,13 +243,13 @@ impl<'a> DerivedKey<'a> {
     /// * `handle` - The location into which will be written the handle of the new derived key.
     pub fn new(template: &'a [Attribute], handle: &'a mut u64) -> Self {
         Self {
-            inner: CK_DERIVED_KEY {
-                pTemplate: template.as_ptr() as CK_ATTRIBUTE_PTR,
+            inner: cryptoki_sys::CK_DERIVED_KEY {
+                pTemplate: template.as_ptr() as cryptoki_sys::CK_ATTRIBUTE_PTR,
                 ulAttributeCount: template
                     .len()
                     .try_into()
                     .expect("number of attributes in template does not fit in CK_ULONG"),
-                phKey: handle as CK_OBJECT_HANDLE_PTR,
+                phKey: handle as cryptoki_sys::CK_OBJECT_HANDLE_PTR,
             },
             _marker: PhantomData,
         }
@@ -261,7 +262,7 @@ impl<'a> DerivedKey<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfCounterParams<'a> {
-    inner: CK_SP800_108_KDF_PARAMS,
+    inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -283,25 +284,26 @@ impl<'a> KbkdfCounterParams<'a> {
         additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
         Self {
-            inner: CK_SP800_108_KDF_PARAMS {
+            inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
                     .try_into()
                     .expect("number of data parameters does not fit in CK_ULONG"),
-                pDataParams: prf_data_params.as_ptr() as CK_PRF_DATA_PARAM_PTR,
+                pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
                 ulAdditionalDerivedKeys: additional_derived_keys
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
+                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
         let derived_keys = unsafe {
             slice::from_raw_parts(
                 self.inner.pAdditionalDerivedKeys,
@@ -324,7 +326,7 @@ impl<'a> KbkdfCounterParams<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfFeedbackParams<'a> {
-    inner: CK_SP800_108_FEEDBACK_KDF_PARAMS,
+    inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -349,13 +351,13 @@ impl<'a> KbkdfFeedbackParams<'a> {
         additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
         Self {
-            inner: CK_SP800_108_FEEDBACK_KDF_PARAMS {
+            inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
                     .try_into()
                     .expect("number of data parameters does not fit in CK_ULONG"),
-                pDataParams: prf_data_params.as_ptr() as CK_PRF_DATA_PARAM_PTR,
+                pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
                 ulIVLen: iv.map_or(0, |iv| {
                     iv.len()
                         .try_into()
@@ -366,14 +368,15 @@ impl<'a> KbkdfFeedbackParams<'a> {
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
+                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
         let derived_keys = unsafe {
             slice::from_raw_parts(
                 self.inner.pAdditionalDerivedKeys,
@@ -396,7 +399,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct KbkdfDoublePipelineParams<'a> {
-    inner: CK_SP800_108_KDF_PARAMS,
+    inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
     _marker: PhantomData<&'a [u8]>,
 }
@@ -418,25 +421,26 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
         additional_derived_keys: &'a mut [DerivedKey<'a>],
     ) -> Self {
         Self {
-            inner: CK_SP800_108_KDF_PARAMS {
+            inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS {
                 prfType: prf_mechanism.into(),
                 ulNumberOfDataParams: prf_data_params
                     .len()
                     .try_into()
                     .expect("number of data parameters does not fit in CK_ULONG"),
-                pDataParams: prf_data_params.as_ptr() as CK_PRF_DATA_PARAM_PTR,
+                pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
                 ulAdditionalDerivedKeys: additional_derived_keys
                     .len()
                     .try_into()
                     .expect("number of additional derived keys does not fit in CK_ULONG"),
-                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr() as CK_DERIVED_KEY_PTR,
+                pAdditionalDerivedKeys: additional_derived_keys.as_mut_ptr()
+                    as cryptoki_sys::CK_DERIVED_KEY_PTR,
             },
             _marker: PhantomData,
         }
     }
 
     /// The additional keys derived by the KDF, as per the params
-    pub fn additional_derived_keys(&self) -> Vec<CK_OBJECT_HANDLE> {
+    pub fn additional_derived_keys(&self) -> Vec<cryptoki_sys::CK_OBJECT_HANDLE> {
         let derived_keys = unsafe {
             slice::from_raw_parts(
                 self.inner.pAdditionalDerivedKeys,
