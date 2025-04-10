@@ -1190,9 +1190,9 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::HkdfDerive(params) | Mechanism::HkdfData(params) => {
                 make_mechanism(mechanism, params)
             }
-            Mechanism::KbkdfCounter(params) => make_mechanism(mechanism, params),
-            Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params),
-            Mechanism::KbkdfDoublePipeline(params) => make_mechanism(mechanism, params),
+            Mechanism::KbkdfCounter(params) => make_mechanism(mechanism, params.inner()),
+            Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params.inner()),
+            Mechanism::KbkdfDoublePipeline(params) => make_mechanism(mechanism, params.inner()),
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
