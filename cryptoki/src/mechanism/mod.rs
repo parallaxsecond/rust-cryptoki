@@ -1047,11 +1047,11 @@ pub enum Mechanism<'a> {
 
     // NIST SP 800-108 KDF (aka KBKDF)
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in counter-mode
-    KbkdfCounter(kbkdf::KbkdfCounterParams<'a>),
+    KbkdfCounter(kbkdf::KbkdfParams<'a>),
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in feedback-mode
     KbkdfFeedback(kbkdf::KbkdfFeedbackParams<'a>),
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
-    KbkdfDoublePipeline(kbkdf::KbkdfDoublePipelineParams<'a>),
+    KbkdfDoublePipeline(kbkdf::KbkdfParams<'a>),
 
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),
@@ -1190,9 +1190,10 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::HkdfDerive(params) | Mechanism::HkdfData(params) => {
                 make_mechanism(mechanism, params)
             }
-            Mechanism::KbkdfCounter(params) => make_mechanism(mechanism, params.inner()),
+            Mechanism::KbkdfCounter(params) | Mechanism::KbkdfDoublePipeline(params) => {
+                make_mechanism(mechanism, params.inner())
+            }
             Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params.inner()),
-            Mechanism::KbkdfDoublePipeline(params) => make_mechanism(mechanism, params.inner()),
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
