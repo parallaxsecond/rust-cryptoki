@@ -24,7 +24,6 @@ use vendor_defined::VendorDefinedMechanism;
 
 use crate::error::Error;
 use crate::mechanism::rsa::PkcsOaepParams;
-use crate::object::ObjectHandle;
 pub use mechanism_info::MechanismInfo;
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -1282,23 +1281,6 @@ impl MessageParam<'_> {
             MessageParam::AesGcmMessage(_) => size_of::<CK_GCM_MESSAGE_PARAMS>()
                 .try_into()
                 .expect("usize can not fit in CK_ULONG"),
-        }
-    }
-}
-
-/// Trait for mechanism types that define additional keys to be derived in their parameters
-pub trait HasAdditionalDerivedKeys {
-    /// Get the object handles for the additional keys that were derived
-    fn additional_derived_keys(&self) -> Vec<ObjectHandle>;
-}
-
-impl HasAdditionalDerivedKeys for &Mechanism<'_> {
-    fn additional_derived_keys(&self) -> Vec<ObjectHandle> {
-        match self {
-            Mechanism::KbkdfCounter(params) => params.additional_derived_keys().unwrap_or_default(),
-            Mechanism::KbkdfFeedback(params) => params.additional_derived_keys().unwrap_or_default(),
-            Mechanism::KbkdfDoublePipeline(params) => params.additional_derived_keys().unwrap_or_default(),
-            _ => unimplemented!("The given mechanism doesn't define additional keys to derive"), // TODO: this or return an option?
         }
     }
 }

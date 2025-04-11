@@ -182,7 +182,16 @@ impl DerivedKey {
 
         Self {
             template,
-            handle: 0,
+            handle: cryptoki_sys::CK_INVALID_HANDLE,
+        }
+    }
+
+    /// Return handle for derived key, if it has been created yet
+    pub fn handle(&self) -> Option<ObjectHandle> {
+        if self.handle == cryptoki_sys::CK_INVALID_HANDLE {
+            None
+        } else {
+            Some(ObjectHandle::new(self.handle))
         }
     }
 }
@@ -207,7 +216,7 @@ impl From<&mut DerivedKey> for cryptoki_sys::CK_DERIVED_KEY {
 #[derive(Debug)]
 pub struct KbkdfParams<'a> {
     /// Holds own data so that we have a contiguous memory region to give to backend
-    additional_derived_keys: Option<Pin<Box<[cryptoki_sys::CK_DERIVED_KEY]>>>,
+    _additional_derived_keys: Option<Pin<Box<[cryptoki_sys::CK_DERIVED_KEY]>>>,
 
     inner: cryptoki_sys::CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
@@ -258,7 +267,7 @@ impl<'a> KbkdfParams<'a> {
         };
 
         Self {
-            additional_derived_keys,
+            _additional_derived_keys: additional_derived_keys,
 
             inner,
             _marker: PhantomData,
@@ -268,18 +277,6 @@ impl<'a> KbkdfParams<'a> {
     pub(crate) fn inner(&self) -> &cryptoki_sys::CK_SP800_108_KDF_PARAMS {
         &self.inner
     }
-
-    /// The additional keys derived by the KDF, as per the params
-    pub(crate) fn additional_derived_keys(&self) -> Option<Vec<ObjectHandle>> {
-        self.additional_derived_keys.as_ref().map(|keys| {
-            keys.iter()
-                .map(|key| {
-                    // SAFETY: a value is always provided during construction
-                    ObjectHandle::new(unsafe { *key.phKey })
-                })
-                .collect()
-        })
-    }
 }
 
 /// NIST SP 800-108 (aka KBKDF) feedback-mode parameters.
@@ -288,7 +285,7 @@ impl<'a> KbkdfParams<'a> {
 #[derive(Debug)]
 pub struct KbkdfFeedbackParams<'a> {
     /// Holds own data so that we have a contiguous memory region to give to backend
-    additional_derived_keys: Option<Pin<Box<[cryptoki_sys::CK_DERIVED_KEY]>>>,
+    _additional_derived_keys: Option<Pin<Box<[cryptoki_sys::CK_DERIVED_KEY]>>>,
 
     inner: cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
@@ -348,7 +345,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
         };
 
         Self {
-            additional_derived_keys,
+            _additional_derived_keys: additional_derived_keys,
 
             inner,
             _marker: PhantomData,
@@ -357,17 +354,5 @@ impl<'a> KbkdfFeedbackParams<'a> {
 
     pub(crate) fn inner(&self) -> &cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
         &self.inner
-    }
-
-    /// The additional keys derived by the KDF, as per the params
-    pub(crate) fn additional_derived_keys(&self) -> Option<Vec<ObjectHandle>> {
-        self.additional_derived_keys.as_ref().map(|keys| {
-            keys.iter()
-                .map(|key| {
-                    // SAFETY: a value is always provided during construction
-                    ObjectHandle::new(unsafe { *key.phKey })
-                })
-                .collect()
-        })
     }
 }
