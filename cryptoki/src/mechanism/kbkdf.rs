@@ -98,7 +98,7 @@ pub enum PrfDataParamType<'a> {
     IterationVariable(Option<&'a KbkdfCounterFormat>),
     /// Identifies location of counter in constructed PRF input data.
     Counter(&'a KbkdfCounterFormat),
-    /// Identifies location of DKM (derived key material) length in constructed PRF input data.
+    /// Identifies location of DKM (derived key material) length value in constructed PRF input data.
     DkmLength(&'a KbkdfDkmLengthFormat),
     /// Identifies location and value of byte array of data in constructed PRF input data.
     ByteArray(&'a [u8]),
@@ -106,7 +106,14 @@ pub enum PrfDataParamType<'a> {
 
 /// A segment of input data for the PRF, to be used to construct a sequence of input.
 ///
-/// Corresponds to CK_PRF_DATA_PARAM in the specific cases of the KDF operating in feedback- or double pipeline-mode.
+/// This structure wraps a `CK_PRF_DATA_PARAM` structure.
+///
+/// * [`PrfDataParamType::IterationVariable`] is required for the KDF in all modes.
+///   * In counter-mode, [`PrfDataParamType::IterationVariable`] must contain [`KbkdfCounterFormat`].
+///     In feedback- and double pipeline-mode, it must contain [`None`].
+/// * [`PrfDataParamType::Counter`] must not be present in counter-mode.
+/// * [`PrfDataParamType::DkmLength`] can be present at most once, in any mode.
+/// * [`PrfDataParamType::ByteArray`] can be present any amount of times, in any mode.
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct PrfDataParam<'a> {
@@ -210,7 +217,7 @@ impl From<&mut DerivedKey> for cryptoki_sys::CK_DERIVED_KEY {
     }
 }
 
-/// NIST SP 800-108 (aka KBKDF) counter-mode parameters.
+/// NIST SP 800-108 (aka KBKDF) counter and double pipeline-mode parameters.
 ///
 /// This structure wraps a `CK_SP800_108_KDF_PARAMS` structure.
 #[derive(Debug)]
@@ -225,7 +232,7 @@ pub struct KbkdfParams<'a> {
 
 impl<'a> KbkdfParams<'a> {
     /// Construct parameters for NIST SP 800-108 KDF (aka KBKDF) pseuderandom function-based key
-    /// derivation function, in counter-mode.
+    /// derivation function, in counter or double pipeline-mode.
     ///
     /// # Arguments
     ///
