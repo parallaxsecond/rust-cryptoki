@@ -230,13 +230,26 @@ impl DerivedKey {
     ///
     /// * `template` - The template for the key to be derived.
     pub fn new(template: &[Attribute]) -> Self {
-        let template: Box<[cryptoki_sys::CK_ATTRIBUTE]> =
-            template.iter().map(|attr| attr.into()).collect();
+        let template: Box<[cryptoki_sys::CK_ATTRIBUTE]> = template.iter().map(Into::into).collect();
         let template = Pin::new(template);
 
         Self {
             template,
             handle: 0,
+        }
+    }
+}
+
+impl From<&mut DerivedKey> for cryptoki_sys::CK_DERIVED_KEY {
+    fn from(value: &mut DerivedKey) -> Self {
+        cryptoki_sys::CK_DERIVED_KEY {
+            pTemplate: value.template.as_ptr() as cryptoki_sys::CK_ATTRIBUTE_PTR,
+            ulAttributeCount: value
+                .template
+                .len()
+                .try_into()
+                .expect("number of attributes in template does not fit in CK_ULONG"),
+            phKey: &mut value.handle as cryptoki_sys::CK_OBJECT_HANDLE_PTR,
         }
     }
 }
@@ -270,21 +283,13 @@ impl<'a> KbkdfCounterParams<'a> {
         prf_data_params: &'a [PrfCounterDataParam<'a>],
         additional_derived_keys: Option<&'a mut [DerivedKey]>,
     ) -> Self {
-        let additional_derived_keys: Option<Box<[cryptoki_sys::CK_DERIVED_KEY]>> =
-            additional_derived_keys.map(|keys| {
+        let mut additional_derived_keys = additional_derived_keys
+            .map(|keys| {
                 keys.iter_mut()
-                    .map(|key| cryptoki_sys::CK_DERIVED_KEY {
-                        pTemplate: key.template.as_ptr() as cryptoki_sys::CK_ATTRIBUTE_PTR,
-                        ulAttributeCount: key
-                            .template
-                            .len()
-                            .try_into()
-                            .expect("number of attributes in template does not fit in CK_ULONG"),
-                        phKey: &mut key.handle as cryptoki_sys::CK_OBJECT_HANDLE_PTR,
-                    })
-                    .collect()
-            });
-        let mut additional_derived_keys = additional_derived_keys.map(|keys| Pin::new(keys));
+                    .map(Into::into)
+                    .collect::<Box<[cryptoki_sys::CK_DERIVED_KEY]>>()
+            })
+            .map(Pin::new);
 
         let inner = cryptoki_sys::CK_SP800_108_KDF_PARAMS {
             prfType: prf_mechanism.into(),
@@ -362,21 +367,13 @@ impl<'a> KbkdfFeedbackParams<'a> {
         iv: Option<&'a [u8]>,
         additional_derived_keys: Option<&'a mut [DerivedKey]>,
     ) -> Self {
-        let additional_derived_keys: Option<Box<[cryptoki_sys::CK_DERIVED_KEY]>> =
-            additional_derived_keys.map(|keys| {
+        let mut additional_derived_keys = additional_derived_keys
+            .map(|keys| {
                 keys.iter_mut()
-                    .map(|key| cryptoki_sys::CK_DERIVED_KEY {
-                        pTemplate: key.template.as_ptr() as cryptoki_sys::CK_ATTRIBUTE_PTR,
-                        ulAttributeCount: key
-                            .template
-                            .len()
-                            .try_into()
-                            .expect("number of attributes in template does not fit in CK_ULONG"),
-                        phKey: &mut key.handle as cryptoki_sys::CK_OBJECT_HANDLE_PTR,
-                    })
-                    .collect()
-            });
-        let mut additional_derived_keys = additional_derived_keys.map(|keys| Pin::new(keys));
+                    .map(Into::into)
+                    .collect::<Box<[cryptoki_sys::CK_DERIVED_KEY]>>()
+            })
+            .map(Pin::new);
 
         let inner = cryptoki_sys::CK_SP800_108_FEEDBACK_KDF_PARAMS {
             prfType: prf_mechanism.into(),
@@ -457,21 +454,13 @@ impl<'a> KbkdfDoublePipelineParams<'a> {
         prf_data_params: &'a [PrfDataParam<'a>],
         additional_derived_keys: Option<&'a mut [DerivedKey]>,
     ) -> Self {
-        let additional_derived_keys: Option<Box<[cryptoki_sys::CK_DERIVED_KEY]>> =
-            additional_derived_keys.map(|keys| {
+        let mut additional_derived_keys = additional_derived_keys
+            .map(|keys| {
                 keys.iter_mut()
-                    .map(|key| cryptoki_sys::CK_DERIVED_KEY {
-                        pTemplate: key.template.as_ptr() as cryptoki_sys::CK_ATTRIBUTE_PTR,
-                        ulAttributeCount: key
-                            .template
-                            .len()
-                            .try_into()
-                            .expect("number of attributes in template does not fit in CK_ULONG"),
-                        phKey: &mut key.handle as cryptoki_sys::CK_OBJECT_HANDLE_PTR,
-                    })
-                    .collect()
-            });
-        let mut additional_derived_keys = additional_derived_keys.map(|keys| Pin::new(keys));
+                    .map(Into::into)
+                    .collect::<Box<[cryptoki_sys::CK_DERIVED_KEY]>>()
+            })
+            .map(Pin::new);
 
         let inner = cryptoki_sys::CK_SP800_108_KDF_PARAMS {
             prfType: prf_mechanism.into(),
