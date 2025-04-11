@@ -1252,9 +1252,11 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
 fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
     CK_MECHANISM {
         mechanism,
-        // SAFETY: Although the type signature says *mut, none of the
-        // mechanisms we support involve mutating the parameter, so
-        // this cast is OK.
+        // SAFETY: Parameters that expect to have some part of themselves
+        // mutated (such as additional_derived_keys in Kbkdf{*}Params) should
+        // indicate this to the end user by marking the relevant constructor
+        // parameters as mut. Otherwise, we should generally not expect the
+        // backend to mutate the parameters, so this cast is fine.
         pParameter: param as *const T as *mut c_void,
         ulParameterLen: size_of::<T>()
             .try_into()

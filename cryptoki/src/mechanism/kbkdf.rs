@@ -85,7 +85,7 @@ impl KbkdfDkmLengthFormat {
             },
             bLittleEndian: (endianness == Endianness::Little).into(),
             ulWidthInBits: width_in_bits.try_into().expect(
-                "bit width of KBKDF derived key material length value does not fit in CK_ULONG",
+                "bit width of KBKDF DKM length value does not fit in CK_ULONG",
             ),
         })
     }
@@ -111,7 +111,8 @@ pub enum PrfDataParamType<'a> {
 /// * [`PrfDataParamType::IterationVariable`] is required for the KDF in all modes.
 ///   * In counter-mode, [`PrfDataParamType::IterationVariable`] must contain [`KbkdfCounterFormat`].
 ///     In feedback- and double pipeline-mode, it must contain [`None`].
-/// * [`PrfDataParamType::Counter`] must not be present in counter-mode.
+/// * [`PrfDataParamType::Counter`] must not be present in counter-mode, and can be present at most
+///   once in feedback- and double-pipeline modes.
 /// * [`PrfDataParamType::DkmLength`] can be present at most once, in any mode.
 /// * [`PrfDataParamType::ByteArray`] can be present any amount of times, in any mode.
 #[derive(Debug, Clone, Copy)]
@@ -162,7 +163,7 @@ impl<'a> PrfDataParam<'a> {
                     ulValueLen: data
                         .len()
                         .try_into()
-                        .expect("length of data parameter does not fit in CK_ULONG"),
+                        .expect("length of PRF data parameter does not fit in CK_ULONG"),
                 },
             },
             _marker: PhantomData,
@@ -259,7 +260,7 @@ impl<'a> KbkdfParams<'a> {
             ulNumberOfDataParams: prf_data_params
                 .len()
                 .try_into()
-                .expect("number of data parameters does not fit in CK_ULONG"),
+                .expect("number of PRF data parameters does not fit in CK_ULONG"),
             pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
             ulAdditionalDerivedKeys: additional_derived_keys.as_ref().map_or(0, |keys| {
                 keys.len()
@@ -331,7 +332,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
             ulNumberOfDataParams: prf_data_params
                 .len()
                 .try_into()
-                .expect("number of data parameters does not fit in CK_ULONG"),
+                .expect("number of PRF data parameters does not fit in CK_ULONG"),
             pDataParams: prf_data_params.as_ptr() as cryptoki_sys::CK_PRF_DATA_PARAM_PTR,
             ulIVLen: iv.map_or(0, |iv| {
                 iv.len()
