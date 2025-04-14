@@ -941,7 +941,7 @@ fn wrap_and_unwrap_key() {
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), (Attribute::Unwrap(true))];
 
     let (wrapping_key, unwrapping_key) = session
         .generate_key_pair(
