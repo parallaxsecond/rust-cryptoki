@@ -56,7 +56,7 @@ impl KbkdfCounterFormat {
 ///
 /// Corresponds to CK_SP800_108_DKM_LENGTH_METHOD.
 #[derive(Debug, Clone, Copy)]
-pub enum DkmLengthMethod {
+pub enum KbkdfDkmLengthMethod {
     /// Sum of length of all keys derived by given invocation of KDF.
     SumOfKeys,
     /// Sum of length of all segments of output produced by PRF in given invocation of KDF.
@@ -81,14 +81,14 @@ impl KbkdfDkmLengthFormat {
     ///
     /// * `width_in_bits` - The number of bits used to represent the DKM length value.
     pub fn new(
-        dkm_length_method: DkmLengthMethod,
+        dkm_length_method: KbkdfDkmLengthMethod,
         endianness: Endianness,
         width_in_bits: usize,
     ) -> Self {
         Self(CK_SP800_108_DKM_LENGTH_FORMAT {
             dkmLengthMethod: match dkm_length_method {
-                DkmLengthMethod::SumOfKeys => CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
-                DkmLengthMethod::SumOfSegments => CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
+                KbkdfDkmLengthMethod::SumOfKeys => CK_SP800_108_DKM_LENGTH_SUM_OF_KEYS,
+                KbkdfDkmLengthMethod::SumOfSegments => CK_SP800_108_DKM_LENGTH_SUM_OF_SEGMENTS,
             },
             bLittleEndian: (endianness == Endianness::Little).into(),
             ulWidthInBits: width_in_bits

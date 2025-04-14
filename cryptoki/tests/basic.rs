@@ -9,7 +9,7 @@ use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::{GcmMessageParams, GcmParams, GeneratorFunction};
 use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
 use cryptoki::mechanism::kbkdf::{
-    DerivedKey, DkmLengthMethod, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat,
+    DerivedKey, KbkdfDkmLengthMethod, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat,
     KbkdfFeedbackParams, KbkdfParams, PrfDataParam, PrfDataParamType,
 };
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
@@ -2212,7 +2212,7 @@ fn kbkdf_all_modes() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, 16);
     let dkm_length_format =
-        KbkdfDkmLengthFormat::new(DkmLengthMethod::SumOfKeys, Endianness::Big, 16);
+        KbkdfDkmLengthFormat::new(KbkdfDkmLengthMethod::SumOfKeys, Endianness::Big, 16);
 
     /* COUNTER-MODE */
 
@@ -2393,7 +2393,7 @@ fn kbkdf_additional_keys_all_modes() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, 16);
     let dkm_length_format =
-        KbkdfDkmLengthFormat::new(DkmLengthMethod::SumOfKeys, Endianness::Big, 16);
+        KbkdfDkmLengthFormat::new(KbkdfDkmLengthMethod::SumOfKeys, Endianness::Big, 16);
     let mut additional_derived_keys = derived_key_templates[1..]
         .iter()
         .map(|template| DerivedKey::new(template))
@@ -2616,7 +2616,7 @@ fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, 16);
     let dkm_length_format =
-        KbkdfDkmLengthFormat::new(DkmLengthMethod::SumOfKeys, Endianness::Big, 16);
+        KbkdfDkmLengthFormat::new(KbkdfDkmLengthMethod::SumOfKeys, Endianness::Big, 16);
 
     /* MISSING ITERATION VARIABLE */
 
@@ -2762,7 +2762,7 @@ fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, 16);
     let dkm_length_format =
-        KbkdfDkmLengthFormat::new(DkmLengthMethod::SumOfKeys, Endianness::Big, 16);
+        KbkdfDkmLengthFormat::new(KbkdfDkmLengthMethod::SumOfKeys, Endianness::Big, 16);
 
     /* MISSING ITERATION VARIABLE */
 
@@ -2882,7 +2882,7 @@ fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, 16);
     let dkm_length_format =
-        KbkdfDkmLengthFormat::new(DkmLengthMethod::SumOfKeys, Endianness::Big, 16);
+        KbkdfDkmLengthFormat::new(KbkdfDkmLengthMethod::SumOfKeys, Endianness::Big, 16);
 
     /* MISSING ITERATION VARIABLE */
 
