@@ -9,7 +9,7 @@ use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::{GcmMessageParams, GcmParams, GeneratorFunction};
 use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
 use cryptoki::mechanism::kbkdf::{
-    DerivedKey, KbkdfDkmLengthMethod, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat,
+    DerivedKey, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat, KbkdfDkmLengthMethod,
     KbkdfFeedbackParams, KbkdfParams, PrfDataParam, PrfDataParamType,
 };
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
