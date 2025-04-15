@@ -156,7 +156,7 @@ impl<'a> PkcsOaepParams<'a> {
     /// # Arguments
     ///
     /// * `hash_alg` - The message digest algorithm used to calculate
-    ///    a digest of the encoding parameter.
+    ///   a digest of the encoding parameter.
     /// * `mgf` - The mask generation function to use on the encoded block.
     /// * `encoding_parameter` - The encoding parameter, also known as the label.
     pub fn new(

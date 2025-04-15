@@ -258,7 +258,7 @@ impl Session {
     /// # Arguments
     ///
     /// * `template` - A reference to [Attribute] of search parameters that will be used
-    ///                to find objects.
+    ///   to find objects.
     ///
     /// # Returns
     ///

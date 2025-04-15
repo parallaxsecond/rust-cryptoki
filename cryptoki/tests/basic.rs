@@ -6,10 +6,10 @@ use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
-use cryptoki::mechanism::aead::GcmParams;
+use cryptoki::mechanism::aead::{GcmMessageParams, GcmParams, GeneratorFunction};
 use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
-use cryptoki::mechanism::{Mechanism, MechanismType};
+use cryptoki::mechanism::{Mechanism, MechanismType, MessageParam};
 use cryptoki::object::{
     Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass, ObjectHandle,
 };
@@ -1859,6 +1859,125 @@ fn aes_gcm_with_aad() -> TestResult {
     let mechanism = Mechanism::AesGcm(gcm_params);
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_gcm_message_no_aad() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    // PKCS#11 3.0 API is not supported by this token. Skip
+    if !pkcs11.is_fn_supported(Function::MessageEncryptInit) {
+        /* return Ignore(); */
+        print!("SKIP: The PKCS#11 module does not support message based encryption");
+        return Ok(());
+    }
+
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // The same input as in aes_gcm_no_aad()
+    let key = vec![0; 16];
+    let mut iv = [0; 12];
+    let mut tag = [0; 12];
+    let aad = [];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
+        0x78, 0xf7, 0x95, 0xaa, 0xab, 0x49, 0x4b, 0x59, 0x23, 0xf7, 0xfd, 0x89, 0xff, 0x94, 0x8b,
+        0xc1, 0xe0,
+    ];
+    let expected_tag = [
+        0x40, 0x49, 0x0a, 0xf4, 0x80, 0x56, 0x06, 0xb2, 0xa3, 0xa2, 0xe7, 0x93,
+    ];
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+
+    let param = GcmMessageParams::new(&mut iv, 96.into(), GeneratorFunction::NoGenerate, &mut tag)?;
+    let mechanism = Mechanism::AesGcmMessage(param);
+    session.message_encrypt_init(&mechanism, key_handle)?;
+
+    let param2 = MessageParam::AesGcmMessage(param);
+    let cipher = session.encrypt_message(&param2, &aad, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    assert_eq!(expected_tag[..], tag[..]);
+    session.message_encrypt_final()?;
+
+    /* Do also decryption */
+    let param = GcmMessageParams::new(&mut iv, 96.into(), GeneratorFunction::NoGenerate, &mut tag)?;
+    let mechanism = Mechanism::AesGcmMessage(param);
+    session.message_decrypt_init(&mechanism, key_handle)?;
+
+    let param2 = MessageParam::AesGcmMessage(param);
+    let plain_decrypted = session.decrypt_message(&param2, &aad, &cipher)?;
+    assert_eq!(plain_decrypted[..], plain[..]);
+    session.message_decrypt_final()?;
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_gcm_message_with_aad() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    // PKCS#11 3.0 API is not supported by this token. Skip
+    if !pkcs11.is_fn_supported(Function::MessageEncryptInit) {
+        /* return Ignore(); */
+        print!("SKIP: The PKCS#11 module does not support message based encryption");
+        return Ok(());
+    }
+
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // The same input as in aes_gcm_with_aad()
+    let key = vec![0; 16];
+    let mut iv = [0; 12];
+    let mut tag = [0; 12];
+    let aad = [0; 16];
+    let plain = [0; 16];
+    let expected_cipher = [
+        0x03, 0x88, 0xda, 0xce, 0x60, 0xb6, 0xa3, 0x92, 0xf3, 0x28, 0xc2, 0xb9, 0x71, 0xb2, 0xfe,
+        0x78,
+    ];
+    let expected_tag = [
+        0xd2, 0x4e, 0x50, 0x3a, 0x1b, 0xb0, 0x37, 0x07, 0x1c, 0x71, 0xb3, 0x5d,
+    ];
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+
+    let param = GcmMessageParams::new(&mut iv, 96.into(), GeneratorFunction::NoGenerate, &mut tag)?;
+    let mechanism = Mechanism::AesGcmMessage(param);
+    session.message_encrypt_init(&mechanism, key_handle)?;
+
+    let param2 = MessageParam::AesGcmMessage(param);
+    let cipher = session.encrypt_message(&param2, &aad, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+    assert_eq!(expected_tag[..], tag[..]);
+    session.message_encrypt_final()?;
+
+    /* Do also decryption */
+    let param = GcmMessageParams::new(&mut iv, 96.into(), GeneratorFunction::NoGenerate, &mut tag)?;
+    let mechanism = Mechanism::AesGcmMessage(param);
+    session.message_decrypt_init(&mechanism, key_handle)?;
+
+    let param2 = MessageParam::AesGcmMessage(param);
+    let plain_decrypted = session.decrypt_message(&param2, &aad, &cipher)?;
+    assert_eq!(plain_decrypted[..], plain[..]);
+    session.message_decrypt_final()?;
     Ok(())
 }
 

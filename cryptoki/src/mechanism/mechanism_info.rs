@@ -29,6 +29,9 @@ bitflags! {
         const EC_OID = CKF_EC_OID;
         const EC_UNCOMPRESS = CKF_EC_UNCOMPRESS;
         const EC_COMPRESS = CKF_EC_COMPRESS;
+        const MESSAGE_ENCRYPT = CKF_MESSAGE_ENCRYPT;
+        const MESSAGE_DECRYPT = CKF_MESSAGE_DECRYPT;
+        const MULTI_MESSAGE = CKF_MULTI_MESSAGE;
     }
 }
 
@@ -228,6 +231,27 @@ impl MechanismInfo {
     pub fn ec_compressed(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::EC_COMPRESS)
     }
+
+    /// True if the mechanism can be used to encrypt messages
+    ///
+    /// See [`Session::encrypt_message`](crate::session::Session::encrypt_message)
+    pub fn message_encrypt(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::MESSAGE_ENCRYPT)
+    }
+
+    /// True if the mechanism can be used to decrypt encrypted messages
+    ///
+    /// See [`Session::decrypt`](crate::session::Session::decrypt_message)
+    pub fn message_decrypt(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::MESSAGE_DECRYPT)
+    }
+
+    /// True if the mechanism can be used with encrypt/decrypt_message_begin API.
+    /// One of message_* flag must also be set.
+    ///
+    pub fn multi_message(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::MULTI_MESSAGE)
+    }
 }
 
 impl std::fmt::Display for MechanismInfo {
@@ -269,7 +293,8 @@ mod test {
 HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
 VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
 EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
-EC_OID | EC_UNCOMPRESS | EC_COMPRESS";
+EC_OID | EC_UNCOMPRESS | EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | \
+MULTI_MESSAGE";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");
