@@ -2183,12 +2183,18 @@ fn sign_verify_sha1_hmac() -> TestResult {
         Attribute::Sensitive(true),
         Attribute::Sign(true),
         Attribute::Verify(true),
-        Attribute::KeyType(KeyType::GENERIC_SECRET),
-        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
     ];
 
-    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+    let private = session.generate_key(
+        // SoftHSM does not yet support SHA-n key gen mechanisms
+        if is_softhsm() {
+            &Mechanism::GenericSecretKeyGen
+        } else {
+            &Mechanism::Sha1KeyGen
+        },
+        &priv_key_template,
+    )?;
 
     let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
@@ -2213,12 +2219,18 @@ fn sign_verify_sha224_hmac() -> TestResult {
         Attribute::Sensitive(true),
         Attribute::Sign(true),
         Attribute::Verify(true),
-        Attribute::KeyType(KeyType::GENERIC_SECRET),
-        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
     ];
 
-    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+    let private = session.generate_key(
+        // SoftHSM does not yet support SHA-n key gen mechanisms
+        if is_softhsm() {
+            &Mechanism::GenericSecretKeyGen
+        } else {
+            &Mechanism::Sha224KeyGen
+        },
+        &priv_key_template,
+    )?;
 
     let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
@@ -2243,12 +2255,18 @@ fn sign_verify_sha256_hmac() -> TestResult {
         Attribute::Sensitive(true),
         Attribute::Sign(true),
         Attribute::Verify(true),
-        Attribute::KeyType(KeyType::GENERIC_SECRET),
-        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
     ];
 
-    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+    let private = session.generate_key(
+        // SoftHSM does not yet support SHA-n key gen mechanisms
+        if is_softhsm() {
+            &Mechanism::GenericSecretKeyGen
+        } else {
+            &Mechanism::Sha256KeyGen
+        },
+        &priv_key_template,
+    )?;
 
     let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
@@ -2273,12 +2291,18 @@ fn sign_verify_sha384_hmac() -> TestResult {
         Attribute::Sensitive(true),
         Attribute::Sign(true),
         Attribute::Verify(true),
-        Attribute::KeyType(KeyType::GENERIC_SECRET),
-        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
     ];
 
-    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+    let private = session.generate_key(
+        // SoftHSM does not yet support SHA-n key gen mechanisms
+        if is_softhsm() {
+            &Mechanism::GenericSecretKeyGen
+        } else {
+            &Mechanism::Sha384KeyGen
+        },
+        &priv_key_template,
+    )?;
 
     let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
@@ -2303,12 +2327,18 @@ fn sign_verify_sha512_hmac() -> TestResult {
         Attribute::Sensitive(true),
         Attribute::Sign(true),
         Attribute::Verify(true),
-        Attribute::KeyType(KeyType::GENERIC_SECRET),
-        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(256.into()),
     ];
 
-    let private = session.generate_key(&Mechanism::GenericSecretKeyGen, &priv_key_template)?;
+    let private = session.generate_key(
+        // SoftHSM does not yet support SHA-n key gen mechanisms
+        if is_softhsm() {
+            &Mechanism::GenericSecretKeyGen
+        } else {
+            &Mechanism::Sha512KeyGen
+        },
+        &priv_key_template,
+    )?;
 
     let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
 
