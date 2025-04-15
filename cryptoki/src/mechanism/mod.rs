@@ -264,6 +264,8 @@ impl MechanismType {
     pub const SHA512_RSA_PKCS_PSS: MechanismType = MechanismType {
         val: CKM_SHA512_RSA_PKCS_PSS,
     };
+
+    // SHAn-HMAC
     /// SHA1-HMAC mechanism
     pub const SHA1_HMAC: MechanismType = MechanismType {
         val: CKM_SHA_1_HMAC,
@@ -284,6 +286,29 @@ impl MechanismType {
     pub const SHA512_HMAC: MechanismType = MechanismType {
         val: CKM_SHA512_HMAC,
     };
+
+    // SHA-n key generation (for use with the corresponding HMAC mechanism)
+    /// SHA-1 key generation mechanism
+    pub const SHA1_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_SHA_1_KEY_GEN,
+    };
+    /// SHA-224 key generation mechanism
+    pub const SHA224_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_SHA224_KEY_GEN,
+    };
+    /// SHA-256 key generation mechanism
+    pub const SHA256_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_SHA256_KEY_GEN,
+    };
+    /// SHA-384 key generation mechanism
+    pub const SHA384_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_SHA384_KEY_GEN,
+    };
+    /// SHA-512 key generation mechanism
+    pub const SHA512_KEY_GEN: MechanismType = MechanismType {
+        val: CKM_SHA512_KEY_GEN,
+    };
+
     /// GENERIC-SECRET-KEY-GEN mechanism
     pub const GENERIC_SECRET_KEY_GEN: MechanismType = MechanismType {
         val: CKM_GENERIC_SECRET_KEY_GEN,
@@ -420,6 +445,7 @@ impl MechanismType {
             CKM_SHA_1 => String::from(stringify!(CKM_SHA_1)),
             CKM_SHA_1_HMAC => String::from(stringify!(CKM_SHA_1_HMAC)),
             CKM_SHA_1_HMAC_GENERAL => String::from(stringify!(CKM_SHA_1_HMAC_GENERAL)),
+            CKM_SHA_1_KEY_GEN => String::from(stringify!(CKM_SHA_1_KEY_GEN)),
             CKM_RIPEMD128 => String::from(stringify!(CKM_RIPEMD128)),
             CKM_RIPEMD128_HMAC => String::from(stringify!(CKM_RIPEMD128_HMAC)),
             CKM_RIPEMD128_HMAC_GENERAL => String::from(stringify!(CKM_RIPEMD128_HMAC_GENERAL)),
@@ -429,12 +455,15 @@ impl MechanismType {
             CKM_SHA256 => String::from(stringify!(CKM_SHA256)),
             CKM_SHA256_HMAC => String::from(stringify!(CKM_SHA256_HMAC)),
             CKM_SHA256_HMAC_GENERAL => String::from(stringify!(CKM_SHA256_HMAC_GENERAL)),
+            CKM_SHA256_KEY_GEN => String::from(stringify!(CKM_SHA256_KEY_GEN)),
             CKM_SHA384 => String::from(stringify!(CKM_SHA384)),
             CKM_SHA384_HMAC => String::from(stringify!(CKM_SHA384_HMAC)),
             CKM_SHA384_HMAC_GENERAL => String::from(stringify!(CKM_SHA384_HMAC_GENERAL)),
+            CKM_SHA384_KEY_GEN => String::from(stringify!(CKM_SHA384_KEY_GEN)),
             CKM_SHA512 => String::from(stringify!(CKM_SHA512)),
             CKM_SHA512_HMAC => String::from(stringify!(CKM_SHA512_HMAC)),
             CKM_SHA512_HMAC_GENERAL => String::from(stringify!(CKM_SHA512_HMAC_GENERAL)),
+            CKM_SHA512_KEY_GEN => String::from(stringify!(CKM_SHA512_KEY_GEN)),
             CKM_SECURID_KEY_GEN => String::from(stringify!(CKM_SECURID_KEY_GEN)),
             CKM_SECURID => String::from(stringify!(CKM_SECURID)),
             CKM_HOTP_KEY_GEN => String::from(stringify!(CKM_HOTP_KEY_GEN)),
@@ -661,6 +690,7 @@ impl MechanismType {
             CKM_SHA224_HMAC_GENERAL => String::from(stringify!(CKM_SHA224_HMAC_GENERAL)),
             CKM_SHA224_RSA_PKCS => String::from(stringify!(CKM_SHA224_RSA_PKCS)),
             CKM_SHA224_RSA_PKCS_PSS => String::from(stringify!(CKM_SHA224_RSA_PKCS_PSS)),
+            CKM_SHA224_KEY_GEN => String::from(stringify!(CKM_SHA224_KEY_GEN)),
             CKM_SHA224_KEY_DERIVATION => String::from(stringify!(CKM_SHA224_KEY_DERIVATION)),
             CKM_CAMELLIA_ECB => String::from(stringify!(CKM_CAMELLIA_ECB)),
             CKM_CAMELLIA_CBC => String::from(stringify!(CKM_CAMELLIA_CBC)),
@@ -760,6 +790,11 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA256_HMAC => Ok(MechanismType::SHA256_HMAC),
             CKM_SHA384_HMAC => Ok(MechanismType::SHA384_HMAC),
             CKM_SHA512_HMAC => Ok(MechanismType::SHA512_HMAC),
+            CKM_SHA_1_KEY_GEN => Ok(MechanismType::SHA1_KEY_GEN),
+            CKM_SHA224_KEY_GEN => Ok(MechanismType::SHA224_KEY_GEN),
+            CKM_SHA256_KEY_GEN => Ok(MechanismType::SHA256_KEY_GEN),
+            CKM_SHA384_KEY_GEN => Ok(MechanismType::SHA384_KEY_GEN),
+            CKM_SHA512_KEY_GEN => Ok(MechanismType::SHA512_KEY_GEN),
             CKM_GENERIC_SECRET_KEY_GEN => Ok(MechanismType::GENERIC_SECRET_KEY_GEN),
             CKM_HKDF_KEY_GEN => Ok(MechanismType::HKDF_KEY_GEN),
             CKM_HKDF_DERIVE => Ok(MechanismType::HKDF_DERIVE),
@@ -963,6 +998,18 @@ pub enum Mechanism<'a> {
     /// SHA512-HMAC mechanism
     Sha512Hmac,
 
+    // SHA-n key generation (for use with the corresponding HMAC mechanism)
+    /// SHA-1 key generation mechanism
+    Sha1KeyGen,
+    /// SHA-224 key generation mechanism
+    Sha224KeyGen,
+    /// SHA-256 key generation mechanism
+    Sha256KeyGen,
+    /// SHA-384 key generation mechanism
+    Sha384KeyGen,
+    /// SHA-512 key generation mechanism
+    Sha512KeyGen,
+
     /// GENERIC-SECRET-KEY-GEN mechanism
     GenericSecretKeyGen,
 
@@ -1042,6 +1089,12 @@ impl Mechanism<'_> {
             Mechanism::Sha256Hmac => MechanismType::SHA256_HMAC,
             Mechanism::Sha384Hmac => MechanismType::SHA384_HMAC,
             Mechanism::Sha512Hmac => MechanismType::SHA512_HMAC,
+
+            Mechanism::Sha1KeyGen => MechanismType::SHA1_KEY_GEN,
+            Mechanism::Sha224KeyGen => MechanismType::SHA224_KEY_GEN,
+            Mechanism::Sha256KeyGen => MechanismType::SHA256_KEY_GEN,
+            Mechanism::Sha384KeyGen => MechanismType::SHA384_KEY_GEN,
+            Mechanism::Sha512KeyGen => MechanismType::SHA512_KEY_GEN,
 
             Mechanism::GenericSecretKeyGen => MechanismType::GENERIC_SECRET_KEY_GEN,
 
@@ -1139,6 +1192,11 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha256Hmac
             | Mechanism::Sha384Hmac
             | Mechanism::Sha512Hmac
+            | Mechanism::Sha1KeyGen
+            | Mechanism::Sha224KeyGen
+            | Mechanism::Sha256KeyGen
+            | Mechanism::Sha384KeyGen
+            | Mechanism::Sha512KeyGen
             | Mechanism::GenericSecretKeyGen
             | Mechanism::HkdfKeyGen => CK_MECHANISM {
                 mechanism,
