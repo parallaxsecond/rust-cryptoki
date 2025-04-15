@@ -102,6 +102,9 @@ impl KbkdfDkmLengthFormat {
 #[derive(Debug, Clone, Copy)]
 pub enum PrfDataParamType<'a> {
     /// Identifies location of predefined iteration variable in constructed PRF input data.
+    ///
+    /// For counter-mode, this must contain a [`KbkdfCounterFormat`].
+    /// For feedback- and double-pipeline mode, this must contain [`None`].
     IterationVariable(Option<&'a KbkdfCounterFormat>),
     /// Identifies location of counter in constructed PRF input data.
     Counter(&'a KbkdfCounterFormat),
