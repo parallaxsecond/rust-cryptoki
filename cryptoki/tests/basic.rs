@@ -2187,7 +2187,7 @@ fn sign_verify_sha1_hmac() -> TestResult {
     ];
 
     let private = session.generate_key(
-        // SoftHSM does not yet support SHA-n key gen mechanisms
+        /* FIXME: SoftHSM does not yet support SHA-n key gen mechanisms (see https://github.com/softhsm/SoftHSMv2/issues/604) */
         if is_softhsm() {
             &Mechanism::GenericSecretKeyGen
         } else {
@@ -2223,7 +2223,7 @@ fn sign_verify_sha224_hmac() -> TestResult {
     ];
 
     let private = session.generate_key(
-        // SoftHSM does not yet support SHA-n key gen mechanisms
+        /* FIXME: SoftHSM does not yet support SHA-n key gen mechanisms (see https://github.com/softhsm/SoftHSMv2/issues/604) */
         if is_softhsm() {
             &Mechanism::GenericSecretKeyGen
         } else {
@@ -2259,7 +2259,7 @@ fn sign_verify_sha256_hmac() -> TestResult {
     ];
 
     let private = session.generate_key(
-        // SoftHSM does not yet support SHA-n key gen mechanisms
+        /* FIXME: SoftHSM does not yet support SHA-n key gen mechanisms (see https://github.com/softhsm/SoftHSMv2/issues/604) */
         if is_softhsm() {
             &Mechanism::GenericSecretKeyGen
         } else {
@@ -2295,7 +2295,7 @@ fn sign_verify_sha384_hmac() -> TestResult {
     ];
 
     let private = session.generate_key(
-        // SoftHSM does not yet support SHA-n key gen mechanisms
+        /* FIXME: SoftHSM does not yet support SHA-n key gen mechanisms (see https://github.com/softhsm/SoftHSMv2/issues/604) */
         if is_softhsm() {
             &Mechanism::GenericSecretKeyGen
         } else {
@@ -2331,7 +2331,7 @@ fn sign_verify_sha512_hmac() -> TestResult {
     ];
 
     let private = session.generate_key(
-        // SoftHSM does not yet support SHA-n key gen mechanisms
+        /* FIXME: SoftHSM does not yet support SHA-n key gen mechanisms (see https://github.com/softhsm/SoftHSMv2/issues/604) */
         if is_softhsm() {
             &Mechanism::GenericSecretKeyGen
         } else {
