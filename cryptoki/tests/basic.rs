@@ -601,11 +601,6 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
 #[test]
 #[serial]
 fn derive_key() -> TestResult {
-    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/184 */
-    if !is_softhsm() {
-        /* return Ignore(); */
-        return Ok(());
-    }
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -904,12 +899,6 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
 #[test]
 #[serial]
 fn wrap_and_unwrap_key() {
-    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/184 */
-    if !is_softhsm() {
-        /* return Ignore(); */
-        return;
-    }
-
     let (pkcs11, slot) = init_pins();
     // open a session
     let session = pkcs11.open_rw_session(slot).unwrap();
@@ -952,7 +941,7 @@ fn wrap_and_unwrap_key() {
     ];
 
     // priv key template
-    let priv_key_template = vec![Attribute::Token(true)];
+    let priv_key_template = vec![Attribute::Token(true), (Attribute::Unwrap(true))];
 
     let (wrapping_key, unwrapping_key) = session
         .generate_key_pair(
@@ -1048,7 +1037,7 @@ fn get_info_test() -> TestResult {
         assert_eq!(info.cryptoki_version().minor(), 40);
     } else {
         assert_eq!(info.cryptoki_version().major(), 3);
-        assert_eq!(info.cryptoki_version().minor(), 0);
+        assert_eq!(info.cryptoki_version().minor(), 2);
     }
     Ok(())
 }
@@ -1352,11 +1341,6 @@ fn test_clone_initialize() {
 #[test]
 #[serial]
 fn aes_key_attributes_test() -> TestResult {
-    /* FIXME: This is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/182 */
-    if !is_softhsm() {
-        /* return Ignore(); */
-        return Ok(());
-    }
     let (pkcs11, slot) = init_pins();
 
     // open a session
@@ -1672,11 +1656,6 @@ fn sha256_digest_multipart() -> TestResult {
 #[test]
 #[serial]
 fn sha256_digest_multipart_with_key() -> TestResult {
-    // FIXME: Getting value from sensitive objects is now broken in Kryoptic: https://github.com/latchset/kryoptic/issues/193
-    if !is_softhsm() {
-        return Ok(());
-    }
-
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
