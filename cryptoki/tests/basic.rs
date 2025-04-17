@@ -1037,7 +1037,7 @@ fn get_info_test() -> TestResult {
         assert_eq!(info.cryptoki_version().minor(), 40);
     } else {
         assert_eq!(info.cryptoki_version().major(), 3);
-        assert_eq!(info.cryptoki_version().minor(), 0);
+        assert_eq!(info.cryptoki_version().minor(), 2);
     }
     Ok(())
 }
