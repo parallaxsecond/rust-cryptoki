@@ -4,6 +4,7 @@
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061446>
 
 use core::{convert::TryInto, marker::PhantomData, pin::Pin, ptr};
+use std::num::NonZeroUsize;
 
 use cryptoki_sys::{
     CK_ATTRIBUTE, CK_ATTRIBUTE_PTR, CK_DERIVED_KEY, CK_DERIVED_KEY_PTR, CK_INVALID_HANDLE,
@@ -42,10 +43,11 @@ impl KbkdfCounterFormat {
     /// * `endianness` - The endianness of the counter's bit representation.
     ///
     /// * `width_in_bits` - The number of bits used to represent the counter value.
-    pub fn new(endianness: Endianness, width_in_bits: usize) -> Self {
+    pub fn new(endianness: Endianness, width_in_bits: NonZeroUsize) -> Self {
         Self(CK_SP800_108_COUNTER_FORMAT {
             bLittleEndian: (endianness == Endianness::Little).into(),
             ulWidthInBits: width_in_bits
+                .get()
                 .try_into()
                 .expect("bit width of KBKDF internal counter does not fit in CK_ULONG"),
         })
@@ -83,7 +85,7 @@ impl KbkdfDkmLengthFormat {
     pub fn new(
         dkm_length_method: KbkdfDkmLengthMethod,
         endianness: Endianness,
-        width_in_bits: usize,
+        width_in_bits: NonZeroUsize,
     ) -> Self {
         Self(CK_SP800_108_DKM_LENGTH_FORMAT {
             dkmLengthMethod: match dkm_length_method {
@@ -92,6 +94,7 @@ impl KbkdfDkmLengthFormat {
             },
             bLittleEndian: (endianness == Endianness::Little).into(),
             ulWidthInBits: width_in_bits
+                .get()
                 .try_into()
                 .expect("bit width of KBKDF DKM length value does not fit in CK_ULONG"),
         })
