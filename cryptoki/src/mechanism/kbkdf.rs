@@ -237,7 +237,7 @@ pub struct KbkdfParams<'a> {
 }
 
 impl<'a> KbkdfParams<'a> {
-    /// Construct parameters for NIST SP 800-108 KDF (aka KBKDF) pseuderandom function-based key
+    /// Construct parameters for NIST SP 800-108 KDF (aka KBKDF) pseudorandom function-based key
     /// derivation function, in counter or double pipeline-mode.
     ///
     /// # Arguments
