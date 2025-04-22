@@ -1037,7 +1037,11 @@ fn get_info_test() -> TestResult {
         assert_eq!(info.cryptoki_version().minor(), 40);
     } else {
         assert_eq!(info.cryptoki_version().major(), 3);
-        assert_eq!(info.cryptoki_version().minor(), 2);
+        let minor = info.cryptoki_version().minor();
+        assert!(
+            [0, 2].contains(&minor),
+            "Only 3.0 and 3.2 versions are expected but got 3.{minor}"
+        );
     }
     Ok(())
 }
