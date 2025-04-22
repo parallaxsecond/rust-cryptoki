@@ -236,7 +236,7 @@ pub struct KbkdfParams<'a> {
 
     inner: CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
-    _marker: PhantomData<&'a [u8]>,
+    _marker: PhantomData<&'a mut [u8]>,
 }
 
 impl<'a> KbkdfParams<'a> {
@@ -305,7 +305,7 @@ pub struct KbkdfFeedbackParams<'a> {
 
     inner: CK_SP800_108_FEEDBACK_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
-    _marker: PhantomData<&'a [u8]>,
+    _marker: PhantomData<&'a mut [u8]>,
 }
 
 impl<'a> KbkdfFeedbackParams<'a> {
