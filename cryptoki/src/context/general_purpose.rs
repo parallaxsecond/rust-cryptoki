@@ -141,6 +141,19 @@ pub enum Function {
     VerifyMessageBegin,
     VerifyMessageNext,
     MessageVerifyFinal,
+    /* PKCS #11 3.2 */
+    EncapsulateKey,
+    DecapsulateKey,
+    VerifySignatureInit,
+    VerifySignature,
+    VerifySignatureUpdate,
+    VerifySignatureFinal,
+    GetSessionValidationFlags,
+    AsyncComplete,
+    AsyncGetID,
+    AsyncJoin,
+    WrapKeyAuthenticated,
+    UnwrapKeyAuthenticated,
 }
 
 impl Display for Function {
@@ -245,5 +258,18 @@ pub(super) fn is_fn_supported(ctx: &Pkcs11, function: Function) -> bool {
         Function::VerifyMessageBegin => check_fn!(ctx, VerifyMessageBegin),
         Function::VerifyMessageNext => check_fn!(ctx, VerifyMessageNext),
         Function::MessageVerifyFinal => check_fn!(ctx, MessageVerifyFinal),
+        /* PKCS #11 3.2 */
+        Function::EncapsulateKey => check_fn!(ctx, EncapsulateKey),
+        Function::DecapsulateKey => check_fn!(ctx, DecapsulateKey),
+        Function::VerifySignatureInit => check_fn!(ctx, VerifySignatureInit),
+        Function::VerifySignature => check_fn!(ctx, VerifySignature),
+        Function::VerifySignatureUpdate => check_fn!(ctx, VerifySignatureUpdate),
+        Function::VerifySignatureFinal => check_fn!(ctx, VerifySignatureFinal),
+        Function::GetSessionValidationFlags => check_fn!(ctx, GetSessionValidationFlags),
+        Function::AsyncComplete => check_fn!(ctx, AsyncComplete),
+        Function::AsyncGetID => check_fn!(ctx, AsyncGetID),
+        Function::AsyncJoin => check_fn!(ctx, AsyncJoin),
+        Function::WrapKeyAuthenticated => check_fn!(ctx, WrapKeyAuthenticated),
+        Function::UnwrapKeyAuthenticated => check_fn!(ctx, UnwrapKeyAuthenticated),
     }
 }
