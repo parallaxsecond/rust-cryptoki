@@ -2,7 +2,7 @@
 name = "cryptoki-sys"
 version = "0.3.0"
 authors = ["Contributors to the Parsec project"]
-edition = '2018'
+edition = '2021'
 description = "FFI wrapper around the PKCS #11 API"
 readme = "README.md"
 keywords = ["pkcs11", "cryptoki", "hsm"]
