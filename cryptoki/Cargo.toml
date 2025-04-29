@@ -2,7 +2,7 @@
 name = "cryptoki"
 version = "0.9.0"
 authors = ["Contributors to the Parsec project"]
-edition = '2018'
+edition = '2021'
 description = "Rust-native wrapper around the PKCS #11 API"
 readme = "README.md"
 keywords = ["pkcs11", "cryptoki", "hsm"]
