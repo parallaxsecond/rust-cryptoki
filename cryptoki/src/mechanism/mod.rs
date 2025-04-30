@@ -341,6 +341,14 @@ impl MechanismType {
         val: CKM_SP800_108_DOUBLE_PIPELINE_KDF,
     };
 
+    // ML-KEM
+    /// ML-KEM key pair generation mechanism
+    pub const ML_KEM_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_ML_KEM_KEY_PAIR_GEN,
+    };
+    /// ML-KEM encapsulation and decapsulation mechanism
+    pub const ML_KEM: MechanismType = MechanismType { val: CKM_ML_KEM };
+
     /// Create vendor defined mechanism
     ///
     /// # Arguments
@@ -735,6 +743,8 @@ impl MechanismType {
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => {
                 String::from(stringify!(CKM_SP800_108_DOUBLE_PIPELINE_KDF))
             }
+            CKM_ML_KEM_KEY_PAIR_GEN => String::from(stringify!(CKM_ML_KEM_KEY_PAIR_GEN)),
+            CKM_ML_KEM => String::from(stringify!(CKM_ML_KEM)),
             _ => format!("unknown {mech:08x}"),
         }
     }
@@ -822,6 +832,8 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SP800_108_COUNTER_KDF => Ok(MechanismType::SP800_108_COUNTER_KDF),
             CKM_SP800_108_FEEDBACK_KDF => Ok(MechanismType::SP800_108_FEEDBACK_KDF),
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => Ok(MechanismType::SP800_108_DOUBLE_PIPELINE_KDF),
+            CKM_ML_KEM_KEY_PAIR_GEN => Ok(MechanismType::ML_KEM_KEY_PAIR_GEN),
+            CKM_ML_KEM => Ok(MechanismType::ML_KEM),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -1052,6 +1064,12 @@ pub enum Mechanism<'a> {
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
     KbkdfDoublePipeline(kbkdf::KbkdfParams<'a>),
 
+    // ML-KEM
+    /// ML-KEM key pair generation mechanism
+    MlKemKeyPairGen,
+    /// ML-KEM key encacpsulation/decapsulation mechanism
+    MlKem,
+
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),
 }
@@ -1136,6 +1154,9 @@ impl Mechanism<'_> {
             Mechanism::KbkdfCounter(_) => MechanismType::SP800_108_COUNTER_KDF,
             Mechanism::KbkdfFeedback(_) => MechanismType::SP800_108_FEEDBACK_KDF,
             Mechanism::KbkdfDoublePipeline(_) => MechanismType::SP800_108_DOUBLE_PIPELINE_KDF,
+
+            Mechanism::MlKemKeyPairGen => MechanismType::ML_KEM_KEY_PAIR_GEN,
+            Mechanism::MlKem => MechanismType::ML_KEM,
 
             Mechanism::VendorDefined(vm) => MechanismType {
                 val: vm.inner.mechanism,
@@ -1237,7 +1258,9 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha384KeyGen
             | Mechanism::Sha512KeyGen
             | Mechanism::GenericSecretKeyGen
-            | Mechanism::HkdfKeyGen => CK_MECHANISM {
+            | Mechanism::HkdfKeyGen
+            | Mechanism::MlKemKeyPairGen
+            | Mechanism::MlKem => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,
