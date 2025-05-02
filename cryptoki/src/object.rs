@@ -150,6 +150,8 @@ pub enum AttributeType {
     ParameterSet,
     /// ML-KEM parameter set
     MlKemParameterSet,
+    /// ML-DSA parameter set
+    MlDsaParameterSet,
 }
 
 impl AttributeType {
@@ -321,6 +323,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::KeyType => CKA_KEY_TYPE,
             AttributeType::Label => CKA_LABEL,
             AttributeType::Local => CKA_LOCAL,
+            AttributeType::MlDsaParameterSet => CKA_PARAMETER_SET,
             AttributeType::MlKemParameterSet => CKA_PARAMETER_SET,
             AttributeType::Modifiable => CKA_MODIFIABLE,
             AttributeType::Modulus => CKA_MODULUS,
@@ -505,6 +508,8 @@ pub enum Attribute {
     Label(Vec<u8>),
     /// Indicates if the key was generated locally or copied from a locally created object
     Local(bool),
+    /// ML-DSA parameter set
+    MlDsaParameterSet(MlDsaParameterSetType),
     /// ML-KEM parameter set
     MlKemParameterSet(MlKemParameterSetType),
     /// Determines if the object can be modified
@@ -611,6 +616,7 @@ impl Attribute {
             Attribute::KeyType(_) => AttributeType::KeyType,
             Attribute::Label(_) => AttributeType::Label,
             Attribute::Local(_) => AttributeType::Local,
+            Attribute::MlDsaParameterSet(_) => AttributeType::MlDsaParameterSet,
             Attribute::MlKemParameterSet(_) => AttributeType::MlKemParameterSet,
             Attribute::Modifiable(_) => AttributeType::Modifiable,
             Attribute::Modulus(_) => AttributeType::Modulus,
@@ -714,6 +720,7 @@ impl Attribute {
             Attribute::ValueLen(_) => size_of::<CK_ULONG>(),
             Attribute::EndDate(_) | Attribute::StartDate(_) => size_of::<CK_DATE>(),
             Attribute::MlKemParameterSet(_) => size_of::<CK_ML_KEM_PARAMETER_SET_TYPE>(),
+            Attribute::MlDsaParameterSet(_) => size_of::<CK_ML_DSA_PARAMETER_SET_TYPE>(),
 
             Attribute::AllowedMechanisms(mechanisms) => {
                 size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
@@ -806,6 +813,7 @@ impl Attribute {
             Attribute::KeyGenMechanism(mech) => mech as *const _ as *mut c_void,
             Attribute::KeyType(key_type) => key_type as *const _ as *mut c_void,
             Attribute::MlKemParameterSet(p) => p as *const _ as *mut c_void,
+            Attribute::MlDsaParameterSet(p) => p as *const _ as *mut c_void,
             Attribute::AllowedMechanisms(mechanisms) => mechanisms.as_ptr() as *mut c_void,
             Attribute::EndDate(date) | Attribute::StartDate(date) => {
                 date as *const _ as *mut c_void
@@ -945,6 +953,9 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             )),
             AttributeType::MlKemParameterSet => Ok(Attribute::MlKemParameterSet(
                 CK_ML_KEM_PARAMETER_SET_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
+            )),
+            AttributeType::MlDsaParameterSet => Ok(Attribute::MlDsaParameterSet(
+                CK_ML_DSA_PARAMETER_SET_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
             AttributeType::AllowedMechanisms => {
                 let val = unsafe {
@@ -1109,6 +1120,67 @@ impl TryFrom<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
             CKP_ML_KEM_1024 => Ok(MlKemParameterSetType::ML_KEM_1024),
             _ => {
                 error!("ML-KEM parameter set {} is not supported.", val);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// Identifier of the ML-DSA parameter set
+pub struct MlDsaParameterSetType {
+    val: CK_ML_DSA_PARAMETER_SET_TYPE,
+}
+
+impl MlDsaParameterSetType {
+    /// ML-DSA 44
+    pub const ML_DSA_44: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_44 };
+    /// ML-DSA 65
+    pub const ML_DSA_65: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_65 };
+    /// ML-DSA 87
+    pub const ML_DSA_87: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_87 };
+
+    pub(crate) fn stringify(val: CK_ML_DSA_PARAMETER_SET_TYPE) -> String {
+        match val {
+            CKP_ML_DSA_44 => String::from(stringify!(CKP_ML_DSA_44)),
+            CKP_ML_DSA_65 => String::from(stringify!(CKP_ML_DSA_65)),
+            CKP_ML_DSA_87 => String::from(stringify!(CKP_ML_DSA_87)),
+            _ => format!("unknown ({val:08x})"),
+        }
+    }
+}
+
+impl std::fmt::Display for MlDsaParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", MlDsaParameterSetType::stringify(self.val))
+    }
+}
+
+impl Deref for MlDsaParameterSetType {
+    type Target = CK_ML_DSA_PARAMETER_SET_TYPE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<MlDsaParameterSetType> for CK_ML_DSA_PARAMETER_SET_TYPE {
+    fn from(val: MlDsaParameterSetType) -> Self {
+        *val
+    }
+}
+
+impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: CK_ML_DSA_PARAMETER_SET_TYPE) -> Result<Self> {
+        match val {
+            CKP_ML_DSA_44 => Ok(MlDsaParameterSetType::ML_DSA_44),
+            CKP_ML_DSA_65 => Ok(MlDsaParameterSetType::ML_DSA_65),
+            CKP_ML_DSA_87 => Ok(MlDsaParameterSetType::ML_DSA_87),
+            _ => {
+                error!("ML-DSA parameter set {} is not supported.", val);
                 Err(Error::NotSupported)
             }
         }
@@ -1345,6 +1417,9 @@ impl KeyType {
     /// ML-KEM key
     pub const ML_KEM: KeyType = KeyType { val: CKK_ML_KEM };
 
+    /// ML-DSA key
+    pub const ML_DSA: KeyType = KeyType { val: CKK_ML_DSA };
+
     /// Create vendor defined key type
     ///
     /// # Arguments
@@ -1418,6 +1493,7 @@ impl KeyType {
             CKK_EC_MONTGOMERY => String::from(stringify!(CKK_EC_MONTGOMERY)),
             CKK_HKDF => String::from(stringify!(CKK_HKDF)),
             CKK_ML_KEM => String::from(stringify!(CKK_ML_KEM)),
+            CKK_ML_DSA => String::from(stringify!(CKK_ML_DSA)),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => String::from(stringify!(key_type)),
             _ => format!("unknown ({key_type:08x})"),
         }
@@ -1494,6 +1570,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_HKDF => Ok(KeyType::HKDF),
             CKK_ML_KEM => Ok(KeyType::ML_KEM),
+            CKK_ML_DSA => Ok(KeyType::ML_DSA),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
                 error!("Key type {} is not supported.", key_type);
