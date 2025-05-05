@@ -1157,6 +1157,9 @@ fn set_pin_test() -> TestResult {
     session.logout()?;
     session.login(UserType::User, Some(&new_user_pin))?;
 
+    // return it back
+    session.set_pin(&new_user_pin, &user_pin)?;
+    session.logout()?;
     Ok(())
 }
 
