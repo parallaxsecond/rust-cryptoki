@@ -1200,7 +1200,7 @@ fn get_attribute_info_test() -> TestResult {
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
-    let mut priv_attribs = [
+    let priv_attribs = [
         AttributeType::PublicExponent,
         AttributeType::Modulus,
         AttributeType::PrivateExponent,
