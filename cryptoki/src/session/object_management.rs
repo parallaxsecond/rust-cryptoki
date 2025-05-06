@@ -57,7 +57,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 ///
 ///     let attributes = session.get_attributes(obj, &wanted_attr)?;
 ///
-///     match attributes.get(0) {
+///     match attributes.first() {
 ///         Some(Attribute::Label(l)) => {
 ///             println!(
 ///                 "token object #{}: handle {}, label {}",
@@ -413,7 +413,7 @@ impl Session {
     /// session.login(UserType::User, Some(&AuthPin::new("fedcba".into())));
     ///
     /// let empty_attrib= vec![];
-    /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().get(0) {
+    /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().first() {
     ///     let attribute_types = vec![
     ///         AttributeType::Token,
     ///         AttributeType::Private,
