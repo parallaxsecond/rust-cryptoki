@@ -16,6 +16,7 @@ fn get_pkcs11_path() -> String {
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
 }
 
+#[allow(dead_code)]
 pub fn is_softhsm() -> bool {
     get_pkcs11_path().contains("softhsm")
 }
