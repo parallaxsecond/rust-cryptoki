@@ -122,6 +122,8 @@ pub enum AttributeType {
     Token,
     /// Determines if the object is trusted
     Trusted,
+    /// Unique Object Id
+    UniqueId,
     /// Determines if a key supports unwrapping
     Unwrap,
     /// Gives the URL where the complete certificate can be obtained
@@ -258,6 +260,7 @@ impl AttributeType {
             CKA_UNWRAP_TEMPLATE => String::from(stringify!(CKA_UNWRAP_TEMPLATE)),
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
+            CKA_UNIQUE_ID => String::from(stringify!(CKA_UNIQUE_ID)),
             CKA_VENDOR_DEFINED..=MAX_CU_ULONG => {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
@@ -327,6 +330,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Subject => CKA_SUBJECT,
             AttributeType::Token => CKA_TOKEN,
             AttributeType::Trusted => CKA_TRUSTED,
+            AttributeType::UniqueId => CKA_UNIQUE_ID,
             AttributeType::Unwrap => CKA_UNWRAP,
             AttributeType::Url => CKA_URL,
             AttributeType::Value => CKA_VALUE,
@@ -396,6 +400,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_SUBJECT => Ok(AttributeType::Subject),
             CKA_TOKEN => Ok(AttributeType::Token),
             CKA_TRUSTED => Ok(AttributeType::Trusted),
+            CKA_UNIQUE_ID => Ok(AttributeType::UniqueId),
             CKA_UNWRAP => Ok(AttributeType::Unwrap),
             CKA_URL => Ok(AttributeType::Url),
             CKA_VALUE => Ok(AttributeType::Value),
@@ -519,6 +524,8 @@ pub enum Attribute {
     Token(bool),
     /// Determines if an object is trusted
     Trusted(bool),
+    /// Unique Object Id
+    UniqueId(Vec<u8>),
     /// Determines if a key supports unwrapping
     Unwrap(bool),
     /// Gives the URL where the complete certificate can ber obtained
@@ -594,6 +601,7 @@ impl Attribute {
             Attribute::Subject(_) => AttributeType::Subject,
             Attribute::Token(_) => AttributeType::Token,
             Attribute::Trusted(_) => AttributeType::Trusted,
+            Attribute::UniqueId(_) => AttributeType::UniqueId,
             Attribute::Unwrap(_) => AttributeType::Unwrap,
             Attribute::Url(_) => AttributeType::Url,
             Attribute::Value(_) => AttributeType::Value,
@@ -663,6 +671,7 @@ impl Attribute {
             Attribute::PublicKeyInfo(bytes) => bytes.len(),
             Attribute::SerialNumber(bytes) => bytes.len(),
             Attribute::Subject(bytes) => bytes.len(),
+            Attribute::UniqueId(bytes) => bytes.len(),
             Attribute::Value(bytes) => bytes.len(),
             Attribute::ValueLen(_) => size_of::<CK_ULONG>(),
             Attribute::EndDate(_) | Attribute::StartDate(_) => size_of::<CK_DATE>(),
@@ -741,6 +750,7 @@ impl Attribute {
             | Attribute::Owner(bytes)
             | Attribute::SerialNumber(bytes)
             | Attribute::Subject(bytes)
+            | Attribute::UniqueId(bytes)
             | Attribute::Url(bytes)
             | Attribute::Value(bytes)
             | Attribute::VendorDefined((_, bytes))
@@ -868,6 +878,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Owner => Ok(Attribute::Owner(val.to_vec())),
             AttributeType::SerialNumber => Ok(Attribute::SerialNumber(val.to_vec())),
             AttributeType::Subject => Ok(Attribute::Subject(val.to_vec())),
+            AttributeType::UniqueId => Ok(Attribute::UniqueId(val.to_vec())),
             AttributeType::Url => Ok(Attribute::Url(val.to_vec())),
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
