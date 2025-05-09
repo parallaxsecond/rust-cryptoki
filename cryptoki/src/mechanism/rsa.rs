@@ -134,6 +134,7 @@ pub struct PkcsPssParams {
 /// Parameters of the RsaPkcsOaep mechanism
 #[derive(Copy, Debug, Clone)]
 #[repr(C)]
+#[cfg_attr(windows, repr(packed))]
 pub struct PkcsOaepParams<'a> {
     /// mechanism ID of the message digest algorithm used to calculate the digest of the encoding
     /// parameter
