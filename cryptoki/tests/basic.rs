@@ -1192,8 +1192,9 @@ fn get_attribute_info_test() -> TestResult {
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
-    let mut priv_attribs = pub_attribs.clone();
-    priv_attribs.push(AttributeType::PrivateExponent);
+    let mut priv_attribs = [
+        AttributeType::PublicExponent, AttributeType::Modulus, AttributeType::PrivateExponent
+    ];
 
     let attrib_info = session.get_attribute_info(public, &pub_attribs)?;
     let hash = pub_attribs
@@ -1234,7 +1235,7 @@ fn get_attribute_info_test() -> TestResult {
         _ => panic!("Private Exponent of RSA private key should be sensitive"),
     }
 
-    let hash = session.get_attribute_info_map(private, priv_attribs)?;
+    let hash = session.get_attribute_info_map(private, &priv_attribs)?;
     if let AttributeInfo::Available(size) = hash[&AttributeType::Modulus] {
         assert_eq!(size, 2048 / 8);
     } else {

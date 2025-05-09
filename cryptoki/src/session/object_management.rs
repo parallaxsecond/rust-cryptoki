@@ -486,9 +486,9 @@ impl Session {
     pub fn get_attribute_info_map(
         &self,
         object: ObjectHandle,
-        attributes: Vec<AttributeType>,
+        attributes: &[AttributeType],
     ) -> Result<HashMap<AttributeType, AttributeInfo>> {
-        let attrib_info = self.get_attribute_info(object, attributes.as_slice())?;
+        let attrib_info = self.get_attribute_info(object, attributes)?;
 
         Ok(attributes
             .iter()
