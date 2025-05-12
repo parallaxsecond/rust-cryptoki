@@ -1198,7 +1198,9 @@ fn get_attribute_info_test() -> TestResult {
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
     let mut priv_attribs = [
-        AttributeType::PublicExponent, AttributeType::Modulus, AttributeType::PrivateExponent
+        AttributeType::PublicExponent,
+        AttributeType::Modulus,
+        AttributeType::PrivateExponent,
     ];
 
     let attrib_info = session.get_attribute_info(public, &pub_attribs)?;
