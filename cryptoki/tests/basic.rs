@@ -8,6 +8,10 @@ use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::{GcmMessageParams, GcmParams, GeneratorFunction};
 use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
+use cryptoki::mechanism::kbkdf::{
+    DerivedKey, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat, KbkdfDkmLengthMethod,
+    KbkdfFeedbackParams, KbkdfParams, PrfDataParam, PrfDataParamType,
+};
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
 use cryptoki::mechanism::{Mechanism, MechanismType, MessageParam};
 use cryptoki::object::{
@@ -24,6 +28,7 @@ use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
 const AES128_BLOCK_SIZE: usize = 128 / 8;
+const AES256_BLOCK_SIZE: usize = 256 / 8;
 
 #[test]
 #[serial]
@@ -2149,6 +2154,1193 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
         derived_key,
         session.find_objects(&[derived_key_label])?.remove(0)
     );
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_counter_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    // Instantiate KBKDF in counter-mode without additional keys
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let derived_key = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_template,
+    )?;
+
+    // Verify derive key matches template
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+        Attribute::Sign(false),
+        Attribute::Verify(false),
+        Attribute::Derive(false),
+    ];
+    let have_attributes = session.get_attributes(derived_key, &attributes_to_check)?;
+
+    for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+        assert_eq!(value_wanted, value_have);
+    }
+
+    // Delete keys
+    session.destroy_object(derived_key)?;
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_feedback_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    /* FEEDBACK-MODE - no IV */
+
+    // Instantiate KBKDF in feedback-mode without additional keys or an IV
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfFeedbackParams::new(MechanismType::AES_CMAC, &data_params, None, None);
+
+    // Derive key
+    let derived_key_feedback_no_iv = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_template,
+    )?;
+
+    /* FEEDBACK-MODE - with IV */
+
+    // Instantiate KBKDF in feedback-mode without additional keys but with an IV
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
+    ];
+    let params = KbkdfFeedbackParams::new(
+        MechanismType::AES_CMAC,
+        &data_params,
+        Some(b"some_initialization_vector"),
+        None,
+    );
+
+    // Derive key
+    let derived_key_feedback_iv = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_template,
+    )?;
+
+    // Verify derived keys match template
+    let derived_keys = [derived_key_feedback_no_iv, derived_key_feedback_iv];
+
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+        Attribute::Sign(false),
+        Attribute::Verify(false),
+        Attribute::Derive(false),
+    ];
+
+    for key in derived_keys {
+        let have_attributes = session.get_attributes(key, &attributes_to_check)?;
+
+        for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+            assert_eq!(value_wanted, value_have);
+        }
+    }
+
+    // Delete all keys
+    for key in derived_keys {
+        session.destroy_object(key)?;
+    }
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment"]
+fn kbkdf_double_pipeline_mode() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    // Instantiate KBKDF in feedback-mode without additional keys
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let derived_key = session.derive_key(
+        &Mechanism::KbkdfDoublePipeline(params),
+        base_key,
+        &derived_key_template,
+    )?;
+
+    // Verify derive key matches template
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+        Attribute::Sign(false),
+        Attribute::Verify(false),
+        Attribute::Derive(false),
+    ];
+    let have_attributes = session.get_attributes(derived_key, &attributes_to_check)?;
+
+    for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+        assert_eq!(value_wanted, value_have);
+    }
+
+    // Delete keys
+    session.destroy_object(derived_key)?;
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_additional_keys_counter_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The templates of the keys to derive. We supply more than one to test deriving additional keys
+    let derived_key_templates = [
+        vec![
+            Attribute::Token(false),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    // Instantiate KBKDF in counter-mode without additional keys
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let mut additional_derived_keys = derived_key_templates[1..]
+        .iter()
+        .map(|template| DerivedKey::new(template))
+        .collect::<Vec<_>>();
+    let params = KbkdfParams::new(
+        MechanismType::AES_CMAC,
+        &data_params,
+        Some(&mut additional_derived_keys),
+    );
+
+    let mut derived_keys = vec![];
+
+    // Derive all keys
+    let main_derived_key = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_templates[0],
+    )?;
+    let additional_derived_keys = additional_derived_keys
+        .iter()
+        .filter_map(|key| key.handle())
+        .collect::<Vec<_>>();
+
+    derived_keys.push(main_derived_key);
+    derived_keys.extend(additional_derived_keys);
+
+    // Verify all derived keys match template
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    for (key, wanted_attributes) in derived_keys.iter().zip(wanted_attributes.iter().cycle()) {
+        let have_attributes = session.get_attributes(*key, &attributes_to_check)?;
+
+        for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+            assert_eq!(value_wanted, value_have);
+        }
+    }
+
+    // Delete all keys
+    for key in derived_keys {
+        session.destroy_object(key)?;
+    }
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_additional_keys_feedback_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The templates of the keys to derive. We supply more than one to test deriving additional keys
+    let derived_key_templates = [
+        vec![
+            Attribute::Token(false),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    let mut derived_keys = vec![];
+
+    /* FEEDBACK-MODE - no IV */
+
+    // Instantiate KBKDF in feedback-mode without additional keys or an IV
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let mut additional_derived_keys = derived_key_templates[1..]
+        .iter()
+        .map(|template| DerivedKey::new(template))
+        .collect::<Vec<_>>();
+    let params = KbkdfFeedbackParams::new(
+        MechanismType::AES_CMAC,
+        &data_params,
+        None,
+        Some(&mut additional_derived_keys),
+    );
+
+    // Derive all keys
+    let main_derived_key = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_templates[0],
+    )?;
+    let additional_derived_keys = additional_derived_keys
+        .iter()
+        .filter_map(|key| key.handle())
+        .collect::<Vec<_>>();
+
+    derived_keys.push(main_derived_key);
+    derived_keys.extend(additional_derived_keys);
+
+    /* FEEDBACK-MODE - with IV */
+
+    // Instantiate KBKDF in feedback-mode without additional keys but with an IV
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
+    ];
+    let mut additional_derived_keys = derived_key_templates[1..]
+        .iter()
+        .map(|template| DerivedKey::new(template))
+        .collect::<Vec<_>>();
+    let params = KbkdfFeedbackParams::new(
+        MechanismType::AES_CMAC,
+        &data_params,
+        Some(b"some_initialization_vector"),
+        Some(&mut additional_derived_keys),
+    );
+
+    // Derive all keys
+    let main_derived_key = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_templates[0],
+    )?;
+    let additional_derived_keys = additional_derived_keys
+        .iter()
+        .filter_map(|key| key.handle())
+        .collect::<Vec<_>>();
+
+    derived_keys.push(main_derived_key);
+    derived_keys.extend(additional_derived_keys);
+
+    // Verify all derived keys match template
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    for (key, wanted_attributes) in derived_keys.iter().zip(wanted_attributes.iter().cycle()) {
+        let have_attributes = session.get_attributes(*key, &attributes_to_check)?;
+
+        for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+            assert_eq!(value_wanted, value_have);
+        }
+    }
+
+    // Delete all keys
+    for key in derived_keys {
+        session.destroy_object(key)?;
+    }
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment"]
+fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The templates of the keys to derive. We supply more than one to test deriving additional keys
+    let derived_key_templates = [
+        vec![
+            Attribute::Token(false),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+        ],
+        vec![
+            Attribute::Token(true),
+            Attribute::Private(false),
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    // Some variables we will use throughout
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    // Instantiate KBKDF in feedback-mode without additional keys
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let mut additional_derived_keys = derived_key_templates[1..]
+        .iter()
+        .map(|template| DerivedKey::new(template))
+        .collect::<Vec<_>>();
+    let params = KbkdfParams::new(
+        MechanismType::AES_CMAC,
+        &data_params,
+        Some(&mut additional_derived_keys),
+    );
+
+    let mut derived_keys = vec![];
+
+    // Derive all keys
+    let main_derived_key = session.derive_key(
+        &Mechanism::KbkdfDoublePipeline(params),
+        base_key,
+        &derived_key_templates[0],
+    )?;
+    let additional_derived_keys = additional_derived_keys
+        .iter()
+        .filter_map(|key| key.handle())
+        .collect::<Vec<_>>();
+
+    derived_keys.push(main_derived_key);
+    derived_keys.extend(additional_derived_keys);
+
+    // Verify all derived keys match template
+    let attributes_to_check = [
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::ValueLen,
+        AttributeType::Encrypt,
+        AttributeType::Decrypt,
+        AttributeType::Sign,
+        AttributeType::Verify,
+        AttributeType::Derive,
+    ];
+    let wanted_attributes = [
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(true),
+            Attribute::Decrypt(true),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::AES),
+            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(true),
+            Attribute::Verify(true),
+            Attribute::Derive(false),
+        ],
+        vec![
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(1.into()),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
+            Attribute::Sign(false),
+            Attribute::Verify(false),
+            Attribute::Derive(true),
+        ],
+    ];
+
+    for (key, wanted_attributes) in derived_keys.iter().zip(wanted_attributes.iter().cycle()) {
+        let have_attributes = session.get_attributes(*key, &attributes_to_check)?;
+
+        for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
+            assert_eq!(value_wanted, value_have);
+        }
+    }
+
+    // Delete all keys
+    for key in derived_keys {
+        session.destroy_object(key)?;
+    }
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    /* MISSING ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* MISSING COUNTER FORMAT IN ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING COUNTER */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING MORE THAN 1 DKM LENGTH FORMAT */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfCounter(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    // Delete base key
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
+    /* SoftHSM does not support NIST SP800-108 KDF yet */
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    /* MISSING ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfFeedbackParams::new(MechanismType::AES_CMAC, &data_params, None, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING COUNTER FORMAT IN ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfFeedbackParams::new(MechanismType::AES_CMAC, &data_params, None, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING MORE THAN 1 DKM LENGTH FORMAT */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfFeedbackParams::new(MechanismType::AES_CMAC, &data_params, None, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfFeedback(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    // Delete base key
+    session.destroy_object(base_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
+    /* FIXME: NIST SP800-108 in double-pipeline mode is not yet supported by SoftHSM or Kryoptic */
+    if true {
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate base key
+    let base_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Derive(true),
+    ];
+    let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
+
+    // The template of the key to derive
+    let derived_key_template = [
+        Attribute::Token(false),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+
+    // Some variables we will use throughout
+    let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
+    let dkm_length_format = KbkdfDkmLengthFormat::new(
+        KbkdfDkmLengthMethod::SumOfKeys,
+        Endianness::Big,
+        NonZeroUsize::new(16).unwrap(),
+    );
+
+    /* MISSING ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfDoublePipeline(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING COUNTER FORMAT IN ITERATION VARIABLE */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfDoublePipeline(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    /* INCLUDING MORE THAN 1 DKM LENGTH FORMAT */
+
+    // Instantiate KBKDF
+    let data_params = [
+        PrfDataParam::new(PrfDataParamType::IterationVariable(Some(&counter_format))),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"test_label")),
+        PrfDataParam::new(PrfDataParamType::ByteArray(&[0])),
+        PrfDataParam::new(PrfDataParamType::ByteArray(b"\xfe\xed\xbe\xef")),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+        PrfDataParam::new(PrfDataParamType::DkmLength(&dkm_length_format)),
+    ];
+    let params = KbkdfParams::new(MechanismType::AES_CMAC, &data_params, None);
+
+    // Derive key
+    let result = session.derive_key(
+        &Mechanism::KbkdfDoublePipeline(params),
+        base_key,
+        &derived_key_template,
+    );
+
+    assert!(result.is_err());
+    assert!(matches!(
+        result.unwrap_err(),
+        Error::Pkcs11(RvError::MechanismParamInvalid, Function::DeriveKey)
+    ));
+
+    // Delete base key
+    session.destroy_object(base_key)?;
 
     Ok(())
 }
