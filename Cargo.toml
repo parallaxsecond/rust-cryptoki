@@ -1,2 +1,3 @@
 [workspace]
 members = ["cryptoki", "cryptoki-sys"]
+resolver = "2"
