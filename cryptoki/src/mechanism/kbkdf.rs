@@ -257,12 +257,11 @@ impl<'a> KbkdfParams<'a> {
         prf_data_params: &'a [PrfDataParam<'a>],
         additional_derived_keys: Option<&'a mut [DerivedKey]>,
     ) -> Self {
-        let mut additional_derived_keys = additional_derived_keys
-            .map(|keys| {
-                keys.iter_mut()
-                    .map(Into::into)
-                    .collect::<Box<[CK_DERIVED_KEY]>>()
-            });
+        let mut additional_derived_keys = additional_derived_keys.map(|keys| {
+            keys.iter_mut()
+                .map(Into::into)
+                .collect::<Box<[CK_DERIVED_KEY]>>()
+        });
 
         let inner = CK_SP800_108_KDF_PARAMS {
             prfType: prf_mechanism.into(),
@@ -329,12 +328,11 @@ impl<'a> KbkdfFeedbackParams<'a> {
         iv: Option<&'a [u8]>,
         additional_derived_keys: Option<&'a mut [DerivedKey]>,
     ) -> Self {
-        let mut additional_derived_keys = additional_derived_keys
-            .map(|keys| {
-                keys.iter_mut()
-                    .map(Into::into)
-                    .collect::<Box<[CK_DERIVED_KEY]>>()
-            });
+        let mut additional_derived_keys = additional_derived_keys.map(|keys| {
+            keys.iter_mut()
+                .map(Into::into)
+                .collect::<Box<[CK_DERIVED_KEY]>>()
+        });
 
         let inner = CK_SP800_108_FEEDBACK_KDF_PARAMS {
             prfType: prf_mechanism.into(),

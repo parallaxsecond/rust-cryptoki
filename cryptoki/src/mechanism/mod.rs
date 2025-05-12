@@ -1252,7 +1252,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
 fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
     CK_MECHANISM {
         mechanism,
-        /* SAFETY: Parameters that expect to have some part of themselves
+        /*
+         * SAFETY: Parameters that expect to have some part of themselves
          * mutated should indicate this to the end user by marking both the
          * relevant constructor parameters and the type's PhantomData as mut.
          * Otherwise, we should generally not expect the backend to mutate the
@@ -1262,7 +1263,7 @@ fn make_mechanism<T>(mechanism: CK_MECHANISM_TYPE, param: &T) -> CK_MECHANISM {
          * - aead::GcmMessageParams
          * - kbkdf::KbkdfParams
          * - kbkdf::KbkdfFeedbackParams
-        **/
+         */
         pParameter: param as *const T as *mut c_void,
         ulParameterLen: size_of::<T>()
             .try_into()
