@@ -3,7 +3,7 @@
 //! Mechanisms of NIST key-based key derive functions (SP 800-108, informally KBKDF)
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061446>
 
-use core::{convert::TryInto, marker::PhantomData, pin::Pin, ptr};
+use core::{convert::TryInto, marker::PhantomData, ptr};
 use std::num::NonZeroUsize;
 
 use cryptoki_sys::{
@@ -182,7 +182,9 @@ impl<'a> PrfDataParam<'a> {
 /// Container for information on an additional key to be derived.
 #[derive(Debug)]
 pub struct DerivedKey {
-    template: Pin<Box<[CK_ATTRIBUTE]>>,
+    /// Holds own data so that we have a contiguous memory region for backend to reference.
+    /// Because of this, the address of this allocation must remain stable during its lifetime.
+    template: Box<[CK_ATTRIBUTE]>,
     handle: CK_OBJECT_HANDLE,
 }
 
@@ -194,7 +196,6 @@ impl DerivedKey {
     /// * `template` - The template for the key to be derived.
     pub fn new(template: &[Attribute]) -> Self {
         let template: Box<[CK_ATTRIBUTE]> = template.iter().map(Into::into).collect();
-        let template = Pin::new(template);
 
         Self {
             template,
@@ -231,8 +232,9 @@ impl From<&mut DerivedKey> for CK_DERIVED_KEY {
 /// This structure wraps a `CK_SP800_108_KDF_PARAMS` structure.
 #[derive(Debug)]
 pub struct KbkdfParams<'a> {
-    /// Holds own data so that we have a contiguous memory region to give to backend
-    _additional_derived_keys: Option<Pin<Box<[CK_DERIVED_KEY]>>>,
+    /// Holds own data so that we have a contiguous memory region for backend to reference.
+    /// Because of this, the address of this allocation must remain stable during its lifetime.
+    _additional_derived_keys: Option<Box<[CK_DERIVED_KEY]>>,
 
     inner: CK_SP800_108_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
@@ -260,8 +262,7 @@ impl<'a> KbkdfParams<'a> {
                 keys.iter_mut()
                     .map(Into::into)
                     .collect::<Box<[CK_DERIVED_KEY]>>()
-            })
-            .map(Pin::new);
+            });
 
         let inner = CK_SP800_108_KDF_PARAMS {
             prfType: prf_mechanism.into(),
@@ -300,8 +301,9 @@ impl<'a> KbkdfParams<'a> {
 /// This structure wraps a `CK_SP800_108_FEEDBACK_KDF_PARAMS` structure.
 #[derive(Debug)]
 pub struct KbkdfFeedbackParams<'a> {
-    /// Holds own data so that we have a contiguous memory region to give to backend
-    _additional_derived_keys: Option<Pin<Box<[CK_DERIVED_KEY]>>>,
+    /// Holds own data so that we have a contiguous memory region for backend to reference.
+    /// Because of this, the address of this allocation must remain stable during its lifetime.
+    _additional_derived_keys: Option<Box<[CK_DERIVED_KEY]>>,
 
     inner: CK_SP800_108_FEEDBACK_KDF_PARAMS,
     /// Marker type to ensure we don't outlive the data
@@ -332,8 +334,7 @@ impl<'a> KbkdfFeedbackParams<'a> {
                 keys.iter_mut()
                     .map(Into::into)
                     .collect::<Box<[CK_DERIVED_KEY]>>()
-            })
-            .map(Pin::new);
+            });
 
         let inner = CK_SP800_108_FEEDBACK_KDF_PARAMS {
             prfType: prf_mechanism.into(),
