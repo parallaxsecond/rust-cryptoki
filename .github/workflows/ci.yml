@@ -9,7 +9,7 @@ jobs:
     name: Check spelling
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Check spelling
         uses: codespell-project/actions-codespell@v1
 
@@ -17,7 +17,7 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Check formatting
         run: cargo fmt --all -- --check
 
@@ -25,7 +25,7 @@ jobs:
     name: Check documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Check documentation
         run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items --no-deps
 
@@ -33,7 +33,7 @@ jobs:
     name: Execute CI script
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -48,7 +48,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: dnf -y install git cargo clang-devel kryoptic
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Test script
         env:
           KRYOPTIC_CONF: /tmp/kryoptic.sql
@@ -63,7 +63,7 @@ jobs:
     name: MSRV - Execute CI script
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Rust toolchain on MSRV
         uses: actions-rs/toolchain@v1
         with:
@@ -75,7 +75,7 @@ jobs:
     name: Check links
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Link Checker
       uses: peter-evans/link-checker@v1
       with:
