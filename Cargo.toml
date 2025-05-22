@@ -1,3 +1,3 @@
 [workspace]
-members = ["cryptoki", "cryptoki-sys"]
+members = ["cryptoki", "cryptoki-sys", "paste"]
 resolver = "2"
