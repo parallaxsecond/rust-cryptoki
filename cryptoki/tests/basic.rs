@@ -1988,7 +1988,9 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let pub_key_template = [
+        Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(2048.into()),
         Attribute::Encrypt(true),
     ];
@@ -2027,7 +2029,9 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let pub_key_template = [
+        Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(2048.into()),
         Attribute::Encrypt(true),
     ];
