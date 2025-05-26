@@ -2517,6 +2517,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
             Attribute::Sign(true),
             Attribute::Verify(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Token(true),
@@ -2525,6 +2527,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::KeyType(KeyType::GENERIC_SECRET),
             Attribute::ValueLen(1.into()),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
@@ -2601,6 +2605,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Sign(true),
             Attribute::Verify(true),
             Attribute::Derive(false),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
@@ -2611,6 +2617,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Sign(false),
             Attribute::Verify(false),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
@@ -2618,7 +2626,10 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
         let have_attributes = session.get_attributes(*key, &attributes_to_check)?;
 
         for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
-            assert_eq!(value_wanted, value_have);
+            assert_eq!(
+                value_wanted, value_have,
+                "The generated key {key} has unexpected attribute value"
+            );
         }
     }
 
@@ -2673,6 +2684,8 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
             Attribute::Sign(true),
             Attribute::Verify(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Token(true),
@@ -2681,6 +2694,8 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::KeyType(KeyType::GENERIC_SECRET),
             Attribute::ValueLen(1.into()),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
