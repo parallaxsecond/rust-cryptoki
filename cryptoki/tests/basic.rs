@@ -2105,6 +2105,9 @@ fn generate_generic_secret_key() -> TestResult {
     let attributes_result = session.find_objects(&[key_label])?.remove(0);
     assert_eq!(key, attributes_result);
 
+    // Delete keys
+    session.destroy_object(key)?;
+
     Ok(())
 }
 
@@ -2161,6 +2164,9 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
         session.find_objects(&[derived_key_label])?.remove(0)
     );
 
+    // delete keys
+    session.destroy_object(master_key)?;
+    session.destroy_object(derived_key)?;
     Ok(())
 }
 
