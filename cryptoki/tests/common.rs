@@ -31,6 +31,10 @@ pub fn is_softhsm() -> bool {
     get_pkcs11_path().contains("softhsm")
 }
 
+pub fn is_softokn() -> bool {
+    get_pkcs11_path().contains("softokn")
+}
+
 pub fn get_pkcs11() -> Pkcs11 {
     Pkcs11::new(get_pkcs11_path()).unwrap()
 }

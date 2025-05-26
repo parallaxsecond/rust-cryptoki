@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
+use crate::common::{get_pkcs11, is_softhsm, is_softokn, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -1086,7 +1086,11 @@ fn get_session_info_test() -> TestResult {
         if let Err(cryptoki::error::Error::Pkcs11(rv_error, _)) =
             session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))
         {
-            assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+            if is_softokn() {
+                assert_eq!(rv_error, RvError::UserTypeInvalid)
+            } else {
+                assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+            }
         } else {
             panic!("Should error when attempting to log in as CKU_SO on a read-only session");
         }
@@ -1107,14 +1111,16 @@ fn get_session_info_test() -> TestResult {
     assert_eq!(session_info.slot_id(), slot);
     assert!(matches!(session_info.session_state(), SessionState::RwUser,));
     session.logout()?;
-    session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
-    let session_info = session.get_session_info()?;
-    assert!(session_info.read_write());
-    assert_eq!(session_info.slot_id(), slot);
-    assert!(matches!(
-        session_info.session_state(),
-        SessionState::RwSecurityOfficer
-    ));
+    if !is_softokn() {
+        session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
+        let session_info = session.get_session_info()?;
+        assert!(session_info.read_write());
+        assert_eq!(session_info.slot_id(), slot);
+        assert!(matches!(
+            session_info.session_state(),
+            SessionState::RwSecurityOfficer
+        ));
+    }
 
     Ok(())
 }
