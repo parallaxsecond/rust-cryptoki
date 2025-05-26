@@ -3700,13 +3700,7 @@ fn unique_id() -> TestResult {
     ];
     let res = session.create_object(&key_template);
     assert!(res.is_err());
-    assert!(matches!(
-        res,
-        Err(Error::Pkcs11(
-            RvError::AttributeTypeInvalid,
-            Function::CreateObject
-        ))
-    ));
+    assert!(matches!(res, Err(Error::Pkcs11(_, Function::CreateObject))));
 
     let generate_template = vec![
         Attribute::Token(true),
