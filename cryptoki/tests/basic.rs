@@ -2097,7 +2097,7 @@ fn generate_generic_secret_key() -> TestResult {
         Attribute::Token(true),
         Attribute::Sensitive(true),
         Attribute::Private(true),
-        Attribute::ValueLen(512.into()),
+        Attribute::ValueLen(256.into()),
         key_label.clone(),
     ];
 
