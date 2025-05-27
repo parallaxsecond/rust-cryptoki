@@ -124,6 +124,12 @@ impl Session {
             .into_result(Function::EncryptFinal)?;
         }
 
+        // Some pkcs11 modules might finalize the operation when there
+        // no more output even if we pass in NULL.
+        if encrypted_data_len == 0 {
+            return Ok(Vec::new());
+        }
+
         let mut encrypted_data = vec![0; encrypted_data_len.try_into()?];
 
         unsafe {
