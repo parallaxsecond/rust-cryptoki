@@ -3740,8 +3740,9 @@ fn unique_id() -> TestResult {
 
     // we can get the UniqueId attribute
     let attrs = session.get_attributes(key, &[AttributeType::UniqueId])?;
-    if is_softhsm() {
+    if is_softhsm() || is_softokn() {
         // SoftHSM does not support this attribute at all
+        // Softkn does not expose this attribute
         assert_eq!(attrs.len(), 0);
     } else {
         assert!(matches!(attrs.first(), Some(Attribute::UniqueId(_))));
@@ -3751,8 +3752,9 @@ fn unique_id() -> TestResult {
     let update_template = vec![Attribute::UniqueId(vec![0x01, 0x02, 0x03])];
     let res = session.update_attributes(key, &update_template);
     assert!(res.is_err());
-    if is_softhsm() {
+    if is_softhsm() || is_softokn() {
         // SoftHSM does not support this attribute at all
+        // Softtokn supports it internally, but does not expose it
         assert!(matches!(
             res,
             Err(Error::Pkcs11(
