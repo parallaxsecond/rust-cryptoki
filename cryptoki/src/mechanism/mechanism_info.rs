@@ -31,6 +31,8 @@ bitflags! {
         const EC_COMPRESS = CKF_EC_COMPRESS;
         const MESSAGE_ENCRYPT = CKF_MESSAGE_ENCRYPT;
         const MESSAGE_DECRYPT = CKF_MESSAGE_DECRYPT;
+        const MESSAGE_SIGN = CKF_MESSAGE_SIGN;
+        const MESSAGE_VERIFY = CKF_MESSAGE_VERIFY;
         const MULTI_MESSAGE = CKF_MULTI_MESSAGE;
     }
 }
@@ -246,6 +248,20 @@ impl MechanismInfo {
         self.flags.contains(MechanismInfoFlags::MESSAGE_DECRYPT)
     }
 
+    /// True if the mechanism can be used to sign messages
+    ///
+    /// See [`Session::sign_message`](crate::session::Session::sign_message)
+    pub fn message_sign(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::MESSAGE_SIGN)
+    }
+
+    /// True if the mechanism can be used to verify signed messages
+    ///
+    /// See [`Session::decrypt`](crate::session::Session::verify_message)
+    pub fn message_verify(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::MESSAGE_VERIFY)
+    }
+
     /// True if the mechanism can be used with encrypt/decrypt_message_begin API.
     /// One of message_* flag must also be set.
     ///
@@ -294,7 +310,7 @@ HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
 VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
 EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
 EC_OID | EC_UNCOMPRESS | EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | \
-MULTI_MESSAGE";
+MESSAGE_SIGN | MESSAGE_VERIFY | MULTI_MESSAGE";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");
