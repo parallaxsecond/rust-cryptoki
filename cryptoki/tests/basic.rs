@@ -1501,10 +1501,15 @@ fn session_copy_object() -> TestResult {
     let copy = rw_session.copy_object(object, &copy_template)?;
     rw_session.destroy_object(copy)?;
 
-    // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
-    rw_session
-        .copy_object(object, &insecure_copy_template)
-        .unwrap_err();
+    let res = rw_session.copy_object(object, &insecure_copy_template);
+    if is_softokn() {
+        // Softokn considers all keys nonextractable
+        let copy = res?;
+        rw_session.destroy_object(copy)?;
+    } else {
+        // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
+        res.unwrap_err();
+    }
 
     // delete keys
     rw_session.destroy_object(object)?;
