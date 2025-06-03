@@ -1,5 +1,50 @@
 # Changelog
 
+## [cryptoki-0.10.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.10.0) (2025-06-03)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.4.0...cryptoki-0.10.0)
+
+## [cryptoki-sys-0.4.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.4.0) (2025-06-03)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.9.0...cryptoki-sys-0.4.0)
+
+**Implemented enhancements:**
+
+- Consider changing get\_attribute\_info\_map from taking a Vec to taking a slice [\#267](https://github.com/parallaxsecond/rust-cryptoki/issues/267)
+
+**Closed issues:**
+
+- CKA\_UNIQUE\_ID not exposed [\#268](https://github.com/parallaxsecond/rust-cryptoki/issues/268)
+- PkcsOaepParams mis-aligned [\#266](https://github.com/parallaxsecond/rust-cryptoki/issues/266)
+- Thread Safety [\#260](https://github.com/parallaxsecond/rust-cryptoki/issues/260)
+- Suggestion: Have verification functions return `Result<bool>` instead of `Result<()>` [\#254](https://github.com/parallaxsecond/rust-cryptoki/issues/254)
+- Support for multi-part operations [\#250](https://github.com/parallaxsecond/rust-cryptoki/issues/250)
+- GcmParams ulIvBits being set to 0 causes issues with Thales HSMs [\#247](https://github.com/parallaxsecond/rust-cryptoki/issues/247)
+- Use GcmParams with AWS CloudHSM will cause undefined behavior [\#225](https://github.com/parallaxsecond/rust-cryptoki/issues/225)
+- Add support for C\_GetInterfaceList [\#209](https://github.com/parallaxsecond/rust-cryptoki/issues/209)
+- bug: `is_fn_supported()` always returns `true` [\#155](https://github.com/parallaxsecond/rust-cryptoki/issues/155)
+
+**Merged pull requests:**
+
+- Update CI definitions [\#275](https://github.com/parallaxsecond/rust-cryptoki/pull/275) ([wiktor-k](https://github.com/wiktor-k))
+- Add workspace resolver to fix a build warning [\#274](https://github.com/parallaxsecond/rust-cryptoki/pull/274) ([wiktor-k](https://github.com/wiktor-k))
+- \#267 Modify get\_attribute\_info\_map to take slice instead of vec [\#273](https://github.com/parallaxsecond/rust-cryptoki/pull/273) ([ivozeba](https://github.com/ivozeba))
+- \#266: Added conditional attribute to pack the PkcsOaepParams struct o… [\#272](https://github.com/parallaxsecond/rust-cryptoki/pull/272) ([ivozeba](https://github.com/ivozeba))
+-  Add UniqueId Attribute [\#271](https://github.com/parallaxsecond/rust-cryptoki/pull/271) ([Jakuje](https://github.com/Jakuje))
+- Bump rust edition to 2021 [\#265](https://github.com/parallaxsecond/rust-cryptoki/pull/265) ([Jakuje](https://github.com/Jakuje))
+- tests: Be less strict in accepted interface versions [\#262](https://github.com/parallaxsecond/rust-cryptoki/pull/262) ([Jakuje](https://github.com/Jakuje))
+- Bump libloading version to 0.8.6 [\#261](https://github.com/parallaxsecond/rust-cryptoki/pull/261) ([Jakuje](https://github.com/Jakuje))
+- Feat: Add SHA key generation mechanisms [\#259](https://github.com/parallaxsecond/rust-cryptoki/pull/259) ([jacobprudhomme](https://github.com/jacobprudhomme))
+- Remove skipping of kryoptic tests as they should work now [\#258](https://github.com/parallaxsecond/rust-cryptoki/pull/258) ([Jakuje](https://github.com/Jakuje))
+- Feat: Add NIST SP800-108 KDF mechanisms [\#257](https://github.com/parallaxsecond/rust-cryptoki/pull/257) ([jacobprudhomme](https://github.com/jacobprudhomme))
+- Add support for message-based encryption and decryption \(PKCS\#11 3.0\) [\#255](https://github.com/parallaxsecond/rust-cryptoki/pull/255) ([Jakuje](https://github.com/Jakuje))
+- Fixed failing tests for multi-part operations [\#253](https://github.com/parallaxsecond/rust-cryptoki/pull/253) ([jacobprudhomme](https://github.com/jacobprudhomme))
+- Add bindings for multi-part operations [\#252](https://github.com/parallaxsecond/rust-cryptoki/pull/252) ([jacobprudhomme](https://github.com/jacobprudhomme))
+- feat: add bindings for riscv64gc-unknown-linux-gnu target [\#251](https://github.com/parallaxsecond/rust-cryptoki/pull/251) ([hug-dev](https://github.com/hug-dev))
+- Set ulIvBits and more graceful error handling [\#249](https://github.com/parallaxsecond/rust-cryptoki/pull/249) ([jaeparker22](https://github.com/jaeparker22))
+- Add support for PKCS\#11 3.0 [\#248](https://github.com/parallaxsecond/rust-cryptoki/pull/248) ([Jakuje](https://github.com/Jakuje))
+- WIP: supports mutable IV in GcmParams, close \#225 [\#226](https://github.com/parallaxsecond/rust-cryptoki/pull/226) ([zkonge](https://github.com/zkonge))
+
 ## [cryptoki-0.9.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.9.0) (2025-02-17)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.3.0...cryptoki-0.9.0)
