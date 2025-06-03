@@ -125,6 +125,12 @@ impl Session {
             .into_result(Function::DecryptFinal)?;
         }
 
+        // Some pkcs11 modules might finalize the operation when there
+        // no more output even if we pass in NULL.
+        if data_len == 0 {
+            return Ok(Vec::new());
+        }
+
         let mut data = vec![0; data_len.try_into()?];
 
         unsafe {
