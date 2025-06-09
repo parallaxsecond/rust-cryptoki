@@ -1856,6 +1856,7 @@ fn sha256_digest_multipart_already_initialized() -> TestResult {
     Ok(())
 }
 
+#[cfg(target_pointer_width = "64")]
 #[test]
 #[serial]
 fn gcm_param_graceful_failure() -> TestResult {
