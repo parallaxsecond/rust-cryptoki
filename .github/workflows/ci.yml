@@ -65,6 +65,8 @@ jobs:
           echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
+      - name: Check
+        run: cargo check --target ${{ matrix.target }} --workspace --all-targets
       - name: Test script
         env:
           TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
