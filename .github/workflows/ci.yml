@@ -71,6 +71,7 @@ jobs:
           SOFTHSM2_CONF: /tmp/softhsm2.conf
           TARGET: ${{ matrix.target }}
           RUST_BACKTRACE: 1
+          RUSTFLAGS: "-D warnings"
         run: ./ci.sh
 
   build-windows:
@@ -97,7 +98,6 @@ jobs:
           RUST_BACKTRACE=1 cargo build --all-features &&
           RUST_BACKTRACE=1 cargo test
 
-
   build-msrv:
     name: MSRV - Execute CI script
     runs-on: ubuntu-latest
@@ -114,10 +114,10 @@ jobs:
     name: Check links
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Link Checker
-      uses: peter-evans/link-checker@v1
-      with:
-        args: -v -r *.md
-    - name: Fail if there were link errors
-      run: exit ${{ steps.lc.outputs.exit_code }}
+      - uses: actions/checkout@v4
+      - name: Link Checker
+        uses: peter-evans/link-checker@v1
+        with:
+          args: -v -r *.md
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc.outputs.exit_code }}
