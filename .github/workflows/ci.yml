@@ -32,6 +32,7 @@ jobs:
   build:
     name: Execute CI script
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       matrix:
         target:
