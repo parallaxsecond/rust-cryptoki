@@ -32,14 +32,46 @@ jobs:
   build:
     name: Execute CI script
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - armv7-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabihf
+          - arm-unknown-linux-gnueabi
+          - aarch64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - loongarch64-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-unknown-freebsd
+          - riscv64gc-unknown-linux-gnu
+        toolchain:
+          - stable
+          - "1.66.0" # MSRV
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-      - name: "Installs SoftHSM and execute tests"
-        uses: ./.github/actions/ci_script
+          toolchain: ${{ matrix.toolchain }}
+      - name: Install SoftHSM
+        run: |
+          sudo apt-get update -y -qq &&
+          sudo apt-get install -y -qq libsofthsm2 &&
+          mkdir /tmp/tokens
+          echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Test script
+        env:
+          TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
+          SOFTHSM2_CONF: /tmp/softhsm2.conf
+          TARGET: ${{ matrix.target }}
+          RUST_BACKTRACE: 1
+        run: ./ci.sh
 
   build-windows:
     name: Build on Windows
