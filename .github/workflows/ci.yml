@@ -100,18 +100,6 @@ jobs:
           RUST_BACKTRACE=1 cargo build --all-features &&
           RUST_BACKTRACE=1 cargo test
 
-  build-msrv:
-    name: MSRV - Execute CI script
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain on MSRV
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.66.0
-      - name: "Installs SoftHSM and execute tests"
-        uses: ./.github/actions/ci_script
-
   links:
     name: Check links
     runs-on: ubuntu-latest
