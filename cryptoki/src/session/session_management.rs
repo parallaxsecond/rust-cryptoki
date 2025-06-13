@@ -62,8 +62,8 @@ impl Session {
     }
 
     /// Logs a session in using a slice of raw bytes as a PIN. Some dongle drivers allow
-    /// non UTF-8 characters in the PIN and as a result, we aren't guaranteed that we can
-    /// pass in a UTF-8 string to login. Therefore, it's useful to be able to pass in raw bytes
+    /// non UTF-8 characters in the PIN and, as a result, we aren't guaranteed that we can
+    /// pass in a UTF-8 string to `login`. Therefore, it's useful to be able to pass in raw bytes
     /// rather than convert a UTF-8 string to bytes.
     ///
     /// # Arguments

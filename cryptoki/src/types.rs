@@ -4,8 +4,7 @@
 
 use crate::error::{Error, Result};
 use cryptoki_sys::*;
-use secrecy::SecretString;
-use secrecy::SecretVec;
+use secrecy::{SecretBox, SecretString};
 use std::convert::TryFrom;
 use std::convert::TryInto;
 use std::fmt::Formatter;
@@ -29,7 +28,7 @@ impl Date {
     ///
     /// # Errors
     ///
-    /// If the lengths are invalid a `Error::InvalidValue` will be returned
+    /// If the lengths are invalid, an `Error::InvalidValue` will be returned
     pub fn new_from_str_slice(year: &str, month: &str, day: &str) -> Result<Self> {
         if year.len() != 4 || month.len() != 2 || day.len() != 2 {
             Err(Error::InvalidValue)
@@ -222,22 +221,22 @@ impl From<CK_VERSION> for Version {
 /// A UTC datetime returned by a token's clock if present.
 #[derive(Copy, Clone, Debug)]
 pub struct UtcTime {
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=9999
     pub year: u16,
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=99
     pub month: u8,
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=99
     pub day: u8,
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=99
     pub hour: u8,
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=99
     pub minute: u8,
-    /// **[Conformance](crate#conformance-notes):**
+    /// **[Conformance](crate#conformance-notes): **
     /// Guaranteed to be in range 0..=99
     pub second: u8,
 }
@@ -248,7 +247,7 @@ impl UtcTime {
     /// PKCS#11 and ISO are unrelated standards, and this function is provided
     /// only for convenience. ISO format is more widely recognized and parsable
     /// by various date/time utilities, while PKCS#11's internal representation
-    /// of this type is is not used elsewhere.
+    /// of this type is not used elsewhere.
     /// Other than formatting, this crate does not guarantee or enforce any part
     /// of the ISO standard.
     pub fn as_iso8601_string(&self) -> String {
@@ -281,7 +280,7 @@ pub type AuthPin = SecretString;
 /// Secret wrapper for a raw non UTF-8 Pin
 ///
 /// Enable the `serde` feature to add support for Deserialize
-pub type RawAuthPin = SecretVec<u8>;
+pub type RawAuthPin = SecretBox<Vec<u8>>;
 
 #[cfg(test)]
 mod test {

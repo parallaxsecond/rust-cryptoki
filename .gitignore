@@ -4,4 +4,10 @@
 *DS_Store
 *.patch
 *NVChip
+
+#IDEs
 .vscode
+.idea
+
+#build artifacts
+cryptoki-sys/pkcs11-precompile.h
