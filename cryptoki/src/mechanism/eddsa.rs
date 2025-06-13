@@ -120,7 +120,7 @@ impl EddsaParams<'_> {
     ///
     /// # Arguments
     ///
-    /// * `params` - The CK_EDDSA_PARAMS structure.
+    /// * `scheme` - The EdDSA signature scheme.
     ///
     /// # Returns
     ///
