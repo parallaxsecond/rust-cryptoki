@@ -37,4 +37,8 @@ RUST_BACKTRACE=1 cargo build --target x86_64-apple-darwin
 RUST_BACKTRACE=1 cargo build --target aarch64-apple-darwin
 RUST_BACKTRACE=1 cargo build --target x86_64-unknown-freebsd
 
-RUST_BACKTRACE=1 cargo test
+if [[ -z "${TEST_TARGET:-}" ]]; then
+	RUST_BACKTRACE=1 cargo test
+else
+	RUST_BACKTRACE=1 cargo test $TEST_TARGET
+fi

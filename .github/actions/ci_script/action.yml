@@ -4,7 +4,7 @@ description: "Installs SoftHSM and executes tests"
 runs:
   using: "composite"
   steps:
-    - name: Install SoftHSM
+    - name: Install & set up SoftHSM (64b)
       run: |
         sudo apt-get update -y -qq &&
         sudo apt-get install -y -qq libsofthsm2 &&
@@ -35,3 +35,20 @@ runs:
         SOFTHSM2_CONF: /tmp/softhsm2.conf
       run: ./ci.sh
       shell: bash
+
+    - name: Install SoftHSM (32b) and ix86 dependencies
+      run: |
+        sudo dpkg --add-architecture i386 &&
+        sudo apt-get update -y -qq &&
+        sudo apt-get remove -y -qq libsofthsm2 &&
+        sudo apt-get install -y -qq gcc-multilib libsofthsm2:i386
+      shell: bash
+
+    - name: Test script on i386 
+      env:
+        TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
+        SOFTHSM2_CONF: /tmp/softhsm2.conf
+        TEST_TARGET: --target i686-unknown-linux-gnu
+      run: ./ci.sh
+      shell: bash
+
