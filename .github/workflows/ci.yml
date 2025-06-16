@@ -74,8 +74,8 @@ jobs:
       - name: Check all features source
         run: cargo check --target ${{ matrix.target }} --all-features --workspace --all-targets
 
-  test:
-    name: Unit tests
+  tests-softhsm:
+    name: Run tests against SoftHSM
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
