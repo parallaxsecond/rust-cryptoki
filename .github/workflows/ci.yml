@@ -29,13 +29,14 @@ jobs:
       - name: Check documentation
         run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items --no-deps
 
-  build:
-    name: Execute CI script
+  check:
+    name: Check
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
         target:
+          - x86_64-unknown-linux-gnu
           - armv7-unknown-linux-gnueabi
           - armv7-unknown-linux-gnueabihf
           - arm-unknown-linux-gnueabi
@@ -49,6 +50,34 @@ jobs:
           - aarch64-apple-darwin
           - x86_64-unknown-freebsd
           - riscv64gc-unknown-linux-gnu
+        toolchain:
+          - stable
+          - "1.66.0" # MSRV
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Check lints
+        run: cargo clippy --all-targets -- -D clippy::all -D clippy::cargo
+      - name: Check source
+        run: cargo check --target ${{ matrix.target }} --workspace --all-targets
+      - name: Check all features source
+        run: cargo check --target ${{ matrix.target }} --all-features --workspace --all-targets
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
         toolchain:
           - stable
           - "1.66.0" # MSRV
