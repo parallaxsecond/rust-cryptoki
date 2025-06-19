@@ -10,8 +10,8 @@ use std::fmt::Debug;
 bitflags! {
     /// Collection of flags defined for [`CK_SLOT_INFO`]
     struct SlotInfoFlags: CK_FLAGS {
-        const TOKEN_PRESENT=CKF_TOKEN_PRESENT;
-        const REMOVABLE_DEVICE=CKF_REMOVABLE_DEVICE;
+        const TOKEN_PRESENT = CKF_TOKEN_PRESENT;
+        const REMOVABLE_DEVICE = CKF_REMOVABLE_DEVICE;
         const HW_SLOT = CKF_HW_SLOT;
     }
 }
