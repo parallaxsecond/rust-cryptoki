@@ -32,7 +32,6 @@ use crate::error::{Error, Result, Rv};
 
 use log::error;
 use std::fmt;
-use std::mem;
 use std::path::Path;
 use std::ptr;
 use std::sync::Arc;
@@ -135,18 +134,17 @@ impl Pkcs11 {
     unsafe fn _new(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
         /* First try the 3.0 API to get default interface. It might have some more functions than
          * the 2.4 API */
-        let mut interface = mem::MaybeUninit::uninit();
+        let mut interface: *mut cryptoki_sys::CK_INTERFACE = ptr::null_mut();
         if pkcs11_lib.C_GetInterface.is_ok() {
             Rv::from(pkcs11_lib.C_GetInterface(
                 ptr::null_mut(),
                 ptr::null_mut(),
-                interface.as_mut_ptr(),
+                &mut interface,
                 0,
             ))
             .into_result(Function::GetInterface)?;
-            if !interface.as_ptr().is_null() {
-                let ifce_ptr: *mut cryptoki_sys::CK_INTERFACE = *interface.as_ptr();
-                let ifce: cryptoki_sys::CK_INTERFACE = *ifce_ptr;
+            if !interface.is_null() {
+                let ifce: cryptoki_sys::CK_INTERFACE = *interface;
 
                 let list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST =
                     ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST;
@@ -166,12 +164,9 @@ impl Pkcs11 {
             }
         }
 
-        let mut list = mem::MaybeUninit::uninit();
-
-        Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
+        let mut list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST = ptr::null_mut();
+        Rv::from(pkcs11_lib.C_GetFunctionList(&mut list_ptr))
             .into_result(Function::GetFunctionList)?;
-
-        let list_ptr = *list.as_ptr();
 
         Ok(Pkcs11 {
             impl_: Arc::new(Pkcs11Impl {
