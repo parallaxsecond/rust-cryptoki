@@ -74,12 +74,22 @@ impl Pkcs11Impl {
             FunctionList::V3_2(l) => l,
         }
     }
+}
 
+/// Main PKCS11 context. Should usually be unique per application.
+#[derive(Debug)]
+pub struct Pkcs11 {
+    pub(crate) impl_: Pkcs11Impl,
+    initialized: RwLock<bool>,
+}
+
+impl Pkcs11 {
     // Private finalize call
     #[inline(always)]
-    fn finalize(&self) -> Result<()> {
+    fn finalize_ref(&self) -> Result<()> {
         unsafe {
             Rv::from(self
+                .impl_
                 .get_function_list()
                 .C_Finalize
                 .ok_or(Error::NullFunctionPointer)?(
@@ -90,19 +100,12 @@ impl Pkcs11Impl {
     }
 }
 
-impl Drop for Pkcs11Impl {
+impl Drop for Pkcs11 {
     fn drop(&mut self) {
-        if let Err(e) = self.finalize() {
+        if let Err(e) = self.finalize_ref() {
             error!("Failed to finalize: {}", e);
         }
     }
-}
-
-/// Main PKCS11 context. Should usually be unique per application.
-#[derive(Debug)]
-pub struct Pkcs11 {
-    pub(crate) impl_: Pkcs11Impl,
-    initialized: RwLock<bool>,
 }
 
 impl Pkcs11 {
