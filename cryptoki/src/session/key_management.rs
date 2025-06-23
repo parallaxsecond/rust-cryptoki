@@ -10,7 +10,7 @@ use crate::session::Session;
 use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
 use std::convert::TryInto;
 
-impl Session {
+impl Session<'_> {
     /// Generate a secret key
     pub fn generate_key(
         &self,

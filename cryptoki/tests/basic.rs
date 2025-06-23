@@ -22,6 +22,7 @@ use cryptoki::types::AuthPin;
 use serial_test::serial;
 use std::collections::HashMap;
 use std::num::NonZeroUsize;
+use std::sync::Arc;
 use std::thread;
 
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
@@ -992,6 +993,7 @@ fn login_feast() {
     const SESSIONS: usize = 100;
 
     let (pkcs11, slot) = init_pins();
+    let pkcs11 = Arc::new(pkcs11);
     let mut threads = Vec::new();
 
     for _ in 0..SESSIONS {
@@ -1197,7 +1199,7 @@ fn get_attribute_info_test() -> TestResult {
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
-    let mut priv_attribs = [
+    let priv_attribs = [
         AttributeType::PublicExponent,
         AttributeType::Modulus,
         AttributeType::PrivateExponent,
@@ -1328,7 +1330,7 @@ fn is_initialized_test() {
 fn test_clone_initialize() {
     use cryptoki::context::CInitializeArgs;
 
-    let pkcs11 = get_pkcs11();
+    let pkcs11 = Arc::new(get_pkcs11());
 
     let clone = pkcs11.clone();
     assert!(
