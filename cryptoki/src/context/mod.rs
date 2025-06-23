@@ -51,8 +51,8 @@ enum FunctionList {
     //V3_2(cryptoki_sys::CK_FUNCTION_LIST_3_2),
 }
 
-// Implementation of Pkcs11 class that can be enclosed in a single Arc
-pub(crate) struct Pkcs11Impl {
+/// Implementation of Pkcs11 class that can be enclosed in a single Arc
+pub struct Pkcs11Impl {
     // Even if this field is never read, it is needed for the pointers in function_list to remain
     // valid.
     _pkcs11_lib: cryptoki_sys::Pkcs11,
@@ -68,6 +68,55 @@ impl fmt::Debug for Pkcs11Impl {
 }
 
 impl Pkcs11Impl {
+    /// Initializes Pkcs11 using raw Pkcs11 object.
+    ///
+    /// # Safety
+    ///
+    /// `pkcs11_lib` must point to a valid Pkcs11 object.
+    pub unsafe fn new_unchecked(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
+        /* First try the 3.0 API to get default interface. It might have some more functions than
+         * the 2.4 API */
+        let mut interface = mem::MaybeUninit::uninit();
+        if pkcs11_lib.C_GetInterface.is_ok() {
+            Rv::from(pkcs11_lib.C_GetInterface(
+                ptr::null_mut(),
+                ptr::null_mut(),
+                interface.as_mut_ptr(),
+                0,
+            ))
+            .into_result(Function::GetInterface)?;
+            if !interface.as_ptr().is_null() {
+                let ifce_ptr: *mut cryptoki_sys::CK_INTERFACE = *interface.as_ptr();
+                let ifce: cryptoki_sys::CK_INTERFACE = *ifce_ptr;
+
+                let list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST =
+                    ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST;
+                let list: cryptoki_sys::CK_FUNCTION_LIST = *list_ptr;
+                if list.version.major >= 3 {
+                    let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
+                        ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
+                    return Ok(Pkcs11Impl {
+                        _pkcs11_lib: pkcs11_lib,
+                        function_list: FunctionList::V3_0(*list30_ptr),
+                    });
+                }
+                /* fall back to the 2.* API */
+            }
+        }
+
+        let mut list = mem::MaybeUninit::uninit();
+
+        Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
+            .into_result(Function::GetFunctionList)?;
+
+        let list_ptr = *list.as_ptr();
+
+        Ok(Pkcs11Impl {
+            _pkcs11_lib: pkcs11_lib,
+            function_list: FunctionList::V2(v2tov3(*list_ptr)),
+        })
+    }
+
     #[inline(always)]
     pub(crate) fn get_function_list(&self) -> cryptoki_sys::CK_FUNCTION_LIST_3_0 {
         match self.function_list {
@@ -118,7 +167,10 @@ impl Pkcs11 {
         unsafe {
             let pkcs11_lib =
                 cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?;
-            Self::_new(pkcs11_lib)
+            Ok(Self {
+                impl_: Pkcs11Impl::new_unchecked(pkcs11_lib)?,
+                initialized: RwLock::new(false),
+            })
         }
     }
 
@@ -130,58 +182,11 @@ impl Pkcs11 {
             #[cfg(windows)]
             let this_lib = libloading::os::windows::Library::this()?;
             let pkcs11_lib = cryptoki_sys::Pkcs11::from_library(this_lib)?;
-            Self::_new(pkcs11_lib)
+            Ok(Self {
+                impl_: Pkcs11Impl::new_unchecked(pkcs11_lib)?,
+                initialized: RwLock::new(false),
+            })
         }
-    }
-
-    unsafe fn _new(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
-        /* First try the 3.0 API to get default interface. It might have some more functions than
-         * the 2.4 API */
-        let mut interface = mem::MaybeUninit::uninit();
-        if pkcs11_lib.C_GetInterface.is_ok() {
-            Rv::from(pkcs11_lib.C_GetInterface(
-                ptr::null_mut(),
-                ptr::null_mut(),
-                interface.as_mut_ptr(),
-                0,
-            ))
-            .into_result(Function::GetInterface)?;
-            if !interface.as_ptr().is_null() {
-                let ifce_ptr: *mut cryptoki_sys::CK_INTERFACE = *interface.as_ptr();
-                let ifce: cryptoki_sys::CK_INTERFACE = *ifce_ptr;
-
-                let list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST =
-                    ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST;
-                let list: cryptoki_sys::CK_FUNCTION_LIST = *list_ptr;
-                if list.version.major >= 3 {
-                    let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
-                        ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
-                    return Ok(Pkcs11 {
-                        impl_: Pkcs11Impl {
-                            _pkcs11_lib: pkcs11_lib,
-                            function_list: FunctionList::V3_0(*list30_ptr),
-                        },
-                        initialized: RwLock::new(false),
-                    });
-                }
-                /* fall back to the 2.* API */
-            }
-        }
-
-        let mut list = mem::MaybeUninit::uninit();
-
-        Rv::from(pkcs11_lib.C_GetFunctionList(list.as_mut_ptr()))
-            .into_result(Function::GetFunctionList)?;
-
-        let list_ptr = *list.as_ptr();
-
-        Ok(Pkcs11 {
-            impl_: Pkcs11Impl {
-                _pkcs11_lib: pkcs11_lib,
-                function_list: FunctionList::V2(v2tov3(*list_ptr)),
-            },
-            initialized: RwLock::new(false),
-        })
     }
 
     /// Initialize the PKCS11 library

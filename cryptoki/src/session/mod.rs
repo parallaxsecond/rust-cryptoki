@@ -76,7 +76,7 @@ impl<'a> Session<'a> {
     }
 
     pub(crate) fn client(&self) -> &Pkcs11 {
-        &self.client
+        self.client
     }
 }
 
