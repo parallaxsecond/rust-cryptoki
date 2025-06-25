@@ -127,6 +127,14 @@ pub struct Ulong {
     val: CK_ULONG,
 }
 
+impl Ulong {
+    /// Create a new variable
+    #[must_use]
+    pub const fn new(ulong: CK_ULONG) -> Self {
+        Ulong { val: ulong }
+    }
+}
+
 impl Deref for Ulong {
     type Target = CK_ULONG;
 
@@ -284,7 +292,6 @@ pub type RawAuthPin = SecretBox<Vec<u8>>;
 
 #[cfg(test)]
 mod test {
-
     use super::*;
     const UTC_TIME: UtcTime = UtcTime {
         year: 1970,
