@@ -82,7 +82,45 @@ pub struct EcKdf<'a> {
     shared_data: Option<&'a [u8]>,
 }
 
-impl EcKdf<'_> {
+macro_rules! ansi {
+    { $func_name: ident, $algo: ident, $algo_name: literal } => {
+        #[doc = "The key derivation function based on "]
+        #[doc = $algo_name]
+        #[doc = " as defined in the ANSI X9.63 standard. The
+                 derived key is produced by concatenating hashes of
+                 the shared value followed by 00000001, 00000002,
+                 etc. until we find enough bytes to fill the
+                 `CKA_VALUE_LEN` of the derived key."]
+        pub fn $func_name(shared_data: &'a [u8]) -> Self {
+            Self {
+                kdf_type: $algo,
+                shared_data: Some(shared_data),
+            }
+        }
+    }
+}
+
+macro_rules! sp800 {
+    { $func_name: ident, $algo: ident, $algo_name: literal } => {
+        #[doc = "The key derivation function based on "]
+        #[doc = $algo_name]
+        #[doc = " as defined in the [NIST SP800-56A standard, revision
+                 2](http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-56Ar2.pdf),
+                 section 5.8.1.1. The derived key is produced by
+                 concatenating hashes of 00000001, 00000002,
+                 etc. followed by the shared value until we find
+                 enough bytes to fill the `CKA_VALUE_LEN` of the
+                 derived key."]
+        pub fn $func_name(shared_data: &'a [u8]) -> Self {
+            Self {
+                kdf_type: $algo,
+                shared_data: Some(shared_data),
+            }
+        }
+    }
+}
+
+impl<'a> EcKdf<'a> {
     /// The null transformation. The derived key value is produced by
     /// taking bytes from the left of the agreed value. The new key
     /// size is limited to the size of the agreed value.
@@ -93,16 +131,25 @@ impl EcKdf<'_> {
         }
     }
 
-    /// The key derivation function based on sha256 as defined in the ANSI X9.63 standard. The
-    /// derived key is produced by concatenating hashes of the shared
-    /// value followed by 00000001, 00000002, etc. until we find
-    /// enough bytes to fill the `CKA_VALUE_LEN` of the derived key.
-    pub fn sha256() -> Self {
-        Self {
-            kdf_type: CKD_SHA256_KDF,
-            shared_data: None,
-        }
-    }
+    ansi!(sha1, CKD_SHA1_KDF, "SHA1");
+    ansi!(sha224, CKD_SHA224_KDF, "SHA224");
+    ansi!(sha256, CKD_SHA256_KDF, "SHA256");
+    ansi!(sha384, CKD_SHA384_KDF, "SHA384");
+    ansi!(sha512, CKD_SHA512_KDF, "SHA512");
+    ansi!(sha3_224, CKD_SHA3_224_KDF, "SHA3_224");
+    ansi!(sha3_256, CKD_SHA3_256_KDF, "SHA3_256");
+    ansi!(sha3_384, CKD_SHA3_384_KDF, "SHA3_384");
+    ansi!(sha3_512, CKD_SHA3_512_KDF, "SHA3_512");
+
+    sp800!(sha1_sp800, CKD_SHA1_KDF_SP800, "SHA1");
+    sp800!(sha224_sp800, CKD_SHA224_KDF_SP800, "SHA224");
+    sp800!(sha256_sp800, CKD_SHA256_KDF_SP800, "SHA256");
+    sp800!(sha384_sp800, CKD_SHA384_KDF_SP800, "SHA384");
+    sp800!(sha512_sp800, CKD_SHA512_KDF_SP800, "SHA512");
+    sp800!(sha3_224_sp800, CKD_SHA3_224_KDF_SP800, "SHA3_224");
+    sp800!(sha3_256_sp800, CKD_SHA3_256_KDF_SP800, "SHA3_256");
+    sp800!(sha3_384_sp800, CKD_SHA3_384_KDF_SP800, "SHA3_384");
+    sp800!(sha3_512_sp800, CKD_SHA3_512_KDF_SP800, "SHA3_512");
 
     // The intention here is to be able to support other methods with
     // shared data, without it being a breaking change, by just adding
