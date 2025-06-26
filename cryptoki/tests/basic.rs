@@ -18,7 +18,7 @@ use cryptoki::object::{
     Attribute, AttributeInfo, AttributeType, KeyType, ObjectClass, ObjectHandle,
 };
 use cryptoki::session::{SessionState, UserType};
-use cryptoki::types::AuthPin;
+use cryptoki::types::{AuthPin, Ulong};
 use serial_test::serial;
 use std::collections::HashMap;
 use std::num::NonZeroUsize;
@@ -27,8 +27,8 @@ use std::thread;
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
-const AES128_BLOCK_SIZE: usize = 128 / 8;
-const AES256_BLOCK_SIZE: usize = 256 / 8;
+const AES128_BLOCK_SIZE: Ulong = Ulong::new(128 / 8);
+const AES256_BLOCK_SIZE: Ulong = Ulong::new(256 / 8);
 
 #[test]
 #[serial]
@@ -455,7 +455,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES128_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -473,7 +473,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
-    for part in data.chunks(AES128_BLOCK_SIZE) {
+    for part in data.chunks(AES128_BLOCK_SIZE.into()) {
         encrypted_data.extend(session.encrypt_update(part)?);
     }
     encrypted_data.extend(session.encrypt_final()?);
@@ -482,7 +482,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
     session.decrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut decrypted_data = vec![];
-    for part in encrypted_data.chunks(AES128_BLOCK_SIZE) {
+    for part in encrypted_data.chunks(AES128_BLOCK_SIZE.into()) {
         decrypted_data.extend(session.decrypt_update(part)?);
     }
     decrypted_data.extend(session.decrypt_final()?);
@@ -566,7 +566,7 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
     let template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES128_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -1197,7 +1197,7 @@ fn get_attribute_info_test() -> TestResult {
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
     let pub_attribs = vec![AttributeType::PublicExponent, AttributeType::Modulus];
-    let mut priv_attribs = [
+    let priv_attribs = [
         AttributeType::PublicExponent,
         AttributeType::Modulus,
         AttributeType::PrivateExponent,
@@ -1678,7 +1678,7 @@ fn sha256_digest_multipart_with_key() -> TestResult {
     let key_template = vec![
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES128_BLOCK_SIZE),
         // Key must be non-sensitive and extractable to get its bytes and digest them directly, for comparison
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
@@ -2179,7 +2179,7 @@ fn kbkdf_counter_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2190,7 +2190,7 @@ fn kbkdf_counter_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -2234,7 +2234,7 @@ fn kbkdf_counter_mode() -> TestResult {
     let wanted_attributes = [
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
         Attribute::Sign(false),
@@ -2272,7 +2272,7 @@ fn kbkdf_feedback_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2283,7 +2283,7 @@ fn kbkdf_feedback_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -2350,7 +2350,7 @@ fn kbkdf_feedback_mode() -> TestResult {
     let wanted_attributes = [
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
         Attribute::Sign(false),
@@ -2389,7 +2389,7 @@ fn kbkdf_double_pipeline_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2400,7 +2400,7 @@ fn kbkdf_double_pipeline_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -2440,7 +2440,7 @@ fn kbkdf_double_pipeline_mode() -> TestResult {
     let wanted_attributes = [
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
         Attribute::Sign(false),
@@ -2478,7 +2478,7 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2490,7 +2490,7 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
         ],
@@ -2499,7 +2499,7 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Sign(true),
             Attribute::Verify(true),
         ],
@@ -2570,7 +2570,7 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
             Attribute::Sign(false),
@@ -2580,7 +2580,7 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Encrypt(false),
             Attribute::Decrypt(false),
             Attribute::Sign(true),
@@ -2634,7 +2634,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2646,7 +2646,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
         ],
@@ -2655,7 +2655,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Sign(true),
             Attribute::Verify(true),
         ],
@@ -2759,7 +2759,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
             Attribute::Sign(false),
@@ -2769,7 +2769,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Encrypt(false),
             Attribute::Decrypt(false),
             Attribute::Sign(true),
@@ -2819,7 +2819,7 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2831,7 +2831,7 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
         ],
@@ -2840,7 +2840,7 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
             Attribute::Private(false),
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Sign(true),
             Attribute::Verify(true),
         ],
@@ -2907,7 +2907,7 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES256_BLOCK_SIZE),
             Attribute::Encrypt(true),
             Attribute::Decrypt(true),
             Attribute::Sign(false),
@@ -2917,7 +2917,7 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
             Attribute::KeyType(KeyType::AES),
-            Attribute::ValueLen((AES128_BLOCK_SIZE as u64).into()),
+            Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Encrypt(false),
             Attribute::Decrypt(false),
             Attribute::Sign(true),
@@ -2971,7 +2971,7 @@ fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -2982,7 +2982,7 @@ fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -3120,7 +3120,7 @@ fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -3131,7 +3131,7 @@ fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
@@ -3243,7 +3243,7 @@ fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
     let base_template = [
         Attribute::Token(true),
         Attribute::Private(false),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Derive(true),
     ];
     let base_key = session.generate_key(&Mechanism::AesKeyGen, &base_template)?;
@@ -3254,7 +3254,7 @@ fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
         Attribute::Private(false),
         Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::KeyType(KeyType::AES),
-        Attribute::ValueLen((AES256_BLOCK_SIZE as u64).into()),
+        Attribute::ValueLen(AES256_BLOCK_SIZE),
         Attribute::Encrypt(true),
         Attribute::Decrypt(true),
     ];
