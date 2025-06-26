@@ -1,6 +1,6 @@
 // Copyright 2025 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-//! Encrypting data
+//! Decrypting messages
 
 use crate::context::Function;
 use crate::error::{Result, Rv};
