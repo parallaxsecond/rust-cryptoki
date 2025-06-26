@@ -66,6 +66,32 @@ jobs:
           RUST_BACKTRACE=1 cargo test
 
 
+  tests-softokn:
+    name: Run tests against Softokn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Install dependencies
+        run: sudo apt-get -yq install libnss3 libnss3-tools libnss3-dev
+      - name: Test script
+        env:
+          NSS_LIB_PARAMS: configDir=/tmp/nssdb/
+          TEST_PKCS11_MODULE: /usr/lib/x86_64-linux-gnu/libsoftokn3.so
+          TEST_TOKEN_LABEL: NSS Certificate DB
+          TEST_SKIP_TOKEN_INIT: 1
+        run: |
+          mkdir /tmp/nssdb/ &&
+          echo "fedcba" > /tmp/nssdb/pinfile &&
+          certutil -N -d /tmp/nssdb/ -f /tmp/nssdb/pinfile &&
+          RUST_BACKTRACE=1 cargo build &&
+          RUST_BACKTRACE=1 cargo build --all-features &&
+          RUST_BACKTRACE=1 cargo test
+
+
   build-msrv:
     name: MSRV - Execute CI script
     runs-on: ubuntu-latest

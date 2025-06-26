@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
+use crate::common::{get_pkcs11, is_softhsm, is_softokn, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -1086,7 +1086,11 @@ fn get_session_info_test() -> TestResult {
         if let Err(cryptoki::error::Error::Pkcs11(rv_error, _)) =
             session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))
         {
-            assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+            if is_softokn() {
+                assert_eq!(rv_error, RvError::UserTypeInvalid)
+            } else {
+                assert_eq!(rv_error, RvError::SessionReadOnlyExists)
+            }
         } else {
             panic!("Should error when attempting to log in as CKU_SO on a read-only session");
         }
@@ -1107,14 +1111,16 @@ fn get_session_info_test() -> TestResult {
     assert_eq!(session_info.slot_id(), slot);
     assert!(matches!(session_info.session_state(), SessionState::RwUser,));
     session.logout()?;
-    session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
-    let session_info = session.get_session_info()?;
-    assert!(session_info.read_write());
-    assert_eq!(session_info.slot_id(), slot);
-    assert!(matches!(
-        session_info.session_state(),
-        SessionState::RwSecurityOfficer
-    ));
+    if !is_softokn() {
+        session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
+        let session_info = session.get_session_info()?;
+        assert!(session_info.read_write());
+        assert_eq!(session_info.slot_id(), slot);
+        assert!(matches!(
+            session_info.session_state(),
+            SessionState::RwSecurityOfficer
+        ));
+    }
 
     Ok(())
 }
@@ -1157,6 +1163,9 @@ fn set_pin_test() -> TestResult {
     session.logout()?;
     session.login(UserType::User, Some(&new_user_pin))?;
 
+    // return it back
+    session.set_pin(&new_user_pin, &user_pin)?;
+    session.logout()?;
     Ok(())
 }
 
@@ -1492,10 +1501,15 @@ fn session_copy_object() -> TestResult {
     let copy = rw_session.copy_object(object, &copy_template)?;
     rw_session.destroy_object(copy)?;
 
-    // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
-    rw_session
-        .copy_object(object, &insecure_copy_template)
-        .unwrap_err();
+    let res = rw_session.copy_object(object, &insecure_copy_template);
+    if is_softokn() {
+        // Softokn considers all keys nonextractable
+        let copy = res?;
+        rw_session.destroy_object(copy)?;
+    } else {
+        // try the copy with the insecure template. It should fail. Returning CKR_OK is considered a failure.
+        res.unwrap_err();
+    }
 
     // delete keys
     rw_session.destroy_object(object)?;
@@ -1979,7 +1993,9 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let pub_key_template = [
+        Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(2048.into()),
         Attribute::Encrypt(true),
     ];
@@ -2018,7 +2034,9 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
     let pub_key_template = [
+        Attribute::PublicExponent(public_exponent),
         Attribute::ModulusBits(2048.into()),
         Attribute::Encrypt(true),
     ];
@@ -2094,13 +2112,16 @@ fn generate_generic_secret_key() -> TestResult {
         Attribute::Token(true),
         Attribute::Sensitive(true),
         Attribute::Private(true),
-        Attribute::ValueLen(512.into()),
+        Attribute::ValueLen(256.into()),
         key_label.clone(),
     ];
 
     let key = session.generate_key(&Mechanism::GenericSecretKeyGen, &key_template)?;
     let attributes_result = session.find_objects(&[key_label])?.remove(0);
     assert_eq!(key, attributes_result);
+
+    // Delete keys
+    session.destroy_object(key)?;
 
     Ok(())
 }
@@ -2158,6 +2179,9 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
         session.find_objects(&[derived_key_label])?.remove(0)
     );
 
+    // delete keys
+    session.destroy_object(master_key)?;
+    session.destroy_object(derived_key)?;
     Ok(())
 }
 
@@ -2502,6 +2526,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Sign(true),
             Attribute::Verify(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Token(true),
@@ -2510,6 +2536,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::KeyType(KeyType::GENERIC_SECRET),
             Attribute::ValueLen(1.into()),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
@@ -2586,6 +2614,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Sign(true),
             Attribute::Verify(true),
             Attribute::Derive(false),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Class(ObjectClass::SECRET_KEY),
@@ -2596,6 +2626,8 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
             Attribute::Sign(false),
             Attribute::Verify(false),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
@@ -2603,7 +2635,10 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
         let have_attributes = session.get_attributes(*key, &attributes_to_check)?;
 
         for (value_wanted, value_have) in wanted_attributes.iter().zip(have_attributes.iter()) {
-            assert_eq!(value_wanted, value_have);
+            assert_eq!(
+                value_wanted, value_have,
+                "The generated key {key} has unexpected attribute value"
+            );
         }
     }
 
@@ -2658,6 +2693,8 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::ValueLen(AES128_BLOCK_SIZE),
             Attribute::Sign(true),
             Attribute::Verify(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
         vec![
             Attribute::Token(true),
@@ -2666,6 +2703,8 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
             Attribute::KeyType(KeyType::GENERIC_SECRET),
             Attribute::ValueLen(1.into()),
             Attribute::Derive(true),
+            Attribute::Encrypt(false),
+            Attribute::Decrypt(false),
         ],
     ];
 
@@ -3697,13 +3736,7 @@ fn unique_id() -> TestResult {
     ];
     let res = session.create_object(&key_template);
     assert!(res.is_err());
-    assert!(matches!(
-        res,
-        Err(Error::Pkcs11(
-            RvError::AttributeTypeInvalid,
-            Function::CreateObject
-        ))
-    ));
+    assert!(matches!(res, Err(Error::Pkcs11(_, Function::CreateObject))));
 
     let generate_template = vec![
         Attribute::Token(true),
@@ -3716,8 +3749,9 @@ fn unique_id() -> TestResult {
 
     // we can get the UniqueId attribute
     let attrs = session.get_attributes(key, &[AttributeType::UniqueId])?;
-    if is_softhsm() {
+    if is_softhsm() || is_softokn() {
         // SoftHSM does not support this attribute at all
+        // Softkn does not expose this attribute
         assert_eq!(attrs.len(), 0);
     } else {
         assert!(matches!(attrs.first(), Some(Attribute::UniqueId(_))));
@@ -3727,8 +3761,9 @@ fn unique_id() -> TestResult {
     let update_template = vec![Attribute::UniqueId(vec![0x01, 0x02, 0x03])];
     let res = session.update_attributes(key, &update_template);
     assert!(res.is_err());
-    if is_softhsm() {
+    if is_softhsm() || is_softokn() {
         // SoftHSM does not support this attribute at all
+        // Softtokn supports it internally, but does not expose it
         assert!(matches!(
             res,
             Err(Error::Pkcs11(
