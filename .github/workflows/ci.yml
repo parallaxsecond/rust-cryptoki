@@ -41,6 +41,13 @@ jobs:
       - name: "Installs SoftHSM and execute tests"
         uses: ./.github/actions/ci_script
 
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo check --all-features --workspace --all-targets
+
   tests-kryoptic:
     name: Run tests against Kryoptic
     runs-on: ubuntu-latest
