@@ -21,6 +21,14 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+  lints:
+    name: Check lints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting
+        run: cargo clippy --all-targets -- -D clippy::all -D clippy::cargo
+
   docs:
     name: Check documentation
     runs-on: ubuntu-latest
@@ -29,17 +37,90 @@ jobs:
       - name: Check documentation
         run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items --no-deps
 
-  build:
-    name: Execute CI script
+  check:
+    name: Check for errors
     runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - armv7-unknown-linux-gnueabi
+          - armv7-unknown-linux-gnueabihf
+          - arm-unknown-linux-gnueabi
+          - aarch64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - loongarch64-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - powerpc64le-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-unknown-freebsd
+          - riscv64gc-unknown-linux-gnu
+        toolchain:
+          - stable
+          - "1.66.0" # MSRV
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
-      - name: "Installs SoftHSM and execute tests"
-        uses: ./.github/actions/ci_script
+          toolchain: ${{ matrix.toolchain }}
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Check source
+        run: cargo check --target ${{ matrix.target }} --workspace --all-targets
+      - name: Check all features source
+        run: cargo check --target ${{ matrix.target }} --all-features --workspace --all-targets
+
+  check-matrix:
+    name: Check if all checks succeeded
+    if: always()
+    needs:
+      - check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+  tests-softhsm:
+    name: Run tests against SoftHSM
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+        toolchain:
+          - stable
+          - "1.66.0" # MSRV
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - name: Install SoftHSM
+        run: |
+          sudo apt-get update -y -qq &&
+          sudo apt-get install -y -qq libsofthsm2 &&
+          mkdir /tmp/tokens
+          echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+      - name: Check
+        run: cargo check --target ${{ matrix.target }} --workspace --all-targets
+      - name: Test script
+        env:
+          TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
+          SOFTHSM2_CONF: /tmp/softhsm2.conf
+          TARGET: ${{ matrix.target }}
+          RUST_BACKTRACE: 1
+          RUSTFLAGS: "-D warnings"
+        run: ./ci.sh
 
   build-windows:
     name: Build on Windows
@@ -65,27 +146,14 @@ jobs:
           RUST_BACKTRACE=1 cargo build --all-features &&
           RUST_BACKTRACE=1 cargo test
 
-
-  build-msrv:
-    name: MSRV - Execute CI script
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Rust toolchain on MSRV
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.66.0
-      - name: "Installs SoftHSM and execute tests"
-        uses: ./.github/actions/ci_script
-
   links:
     name: Check links
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Link Checker
-      uses: peter-evans/link-checker@v1
-      with:
-        args: -v -r *.md
-    - name: Fail if there were link errors
-      run: exit ${{ steps.lc.outputs.exit_code }}
+      - uses: actions/checkout@v4
+      - name: Link Checker
+        uses: peter-evans/link-checker@v1
+        with:
+          args: -v -r *.md
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc.outputs.exit_code }}
