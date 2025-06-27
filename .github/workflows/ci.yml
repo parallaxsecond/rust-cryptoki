@@ -67,6 +67,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
+          default: true
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
       - name: Check source
@@ -103,6 +104,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.toolchain }}
+          default: true
       - name: Install SoftHSM
         run: |
           sudo apt-get update -y -qq &&
