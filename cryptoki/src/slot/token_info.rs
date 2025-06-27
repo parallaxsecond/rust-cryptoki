@@ -13,6 +13,7 @@ use std::fmt::Debug;
 
 bitflags! {
     /// Collection of flags defined for [`CK_TOKEN_INFO`]
+    #[derive(Debug, Clone, Copy)]
     struct TokenInfoFlags: CK_FLAGS {
         const RNG = CKF_RNG;
         const WRITE_PROTECTED = CKF_WRITE_PROTECTED;
@@ -463,13 +464,14 @@ mod test {
 
     #[test]
     fn debug_flags_all() {
-        let expected = "\
-RNG | WRITE_PROTECTED | LOGIN_REQUIRED | USER_PIN_INITIALIZED | \
-RESTORE_KEY_NOT_NEEDED | CLOCK_ON_TOKEN | PROTECTED_AUTHENTICATION_PATH | \
-DUAL_CRYPTO_OPERATIONS | TOKEN_INITIALIZED | SECONDARY_AUTHENTICATION | \
-USER_PIN_COUNT_LOW | USER_PIN_FINAL_TRY | USER_PIN_LOCKED | \
-USER_PIN_TO_BE_CHANGED | SO_PIN_COUNT_LOW | SO_PIN_FINAL_TRY | SO_PIN_LOCKED | \
-SO_PIN_TO_BE_CHANGED | ERROR_STATE";
+        let expected = "TokenInfoFlags(
+    RNG | WRITE_PROTECTED | LOGIN_REQUIRED | USER_PIN_INITIALIZED | \
+    RESTORE_KEY_NOT_NEEDED | CLOCK_ON_TOKEN | PROTECTED_AUTHENTICATION_PATH | \
+    DUAL_CRYPTO_OPERATIONS | TOKEN_INITIALIZED | SECONDARY_AUTHENTICATION | \
+    USER_PIN_COUNT_LOW | USER_PIN_FINAL_TRY | USER_PIN_LOCKED | \
+    USER_PIN_TO_BE_CHANGED | SO_PIN_COUNT_LOW | SO_PIN_FINAL_TRY | SO_PIN_LOCKED | \
+    SO_PIN_TO_BE_CHANGED | ERROR_STATE,
+)";
         let all = TokenInfoFlags::all();
         let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
@@ -509,7 +511,9 @@ SO_PIN_TO_BE_CHANGED | ERROR_STATE";
     manufacturer_id: "Manufacturer ID",
     model: "Token Model",
     serial_number: "Serial Number",
-    flags: (empty),
+    flags: TokenInfoFlags(
+        0x0,
+    ),
     max_session_count: Max(
         100,
     ),

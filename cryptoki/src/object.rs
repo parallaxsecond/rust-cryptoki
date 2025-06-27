@@ -427,7 +427,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
             CKA_VENDOR_DEFINED..=CK_ULONG::MAX => Ok(AttributeType::VendorDefined(attribute_type)),
             attr_type => {
-                error!("Attribute type {} not supported.", attr_type);
+                error!("Attribute type {attr_type} not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1331,7 +1331,7 @@ impl TryFrom<CK_OBJECT_CLASS> for ObjectClass {
             CKO_OTP_KEY => Ok(ObjectClass::OTP_KEY),
 
             _ => {
-                error!("Object class {} is not supported.", object_class);
+                error!("Object class {object_class} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1626,7 +1626,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_ML_DSA => Ok(KeyType::ML_DSA),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
-                error!("Key type {} is not supported.", key_type);
+                error!("Key type {key_type} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1702,7 +1702,7 @@ impl TryFrom<CK_CERTIFICATE_TYPE> for CertificateType {
             CKC_X_509_ATTR_CERT => Ok(CertificateType::X_509_ATTR),
             CKC_WTLS => Ok(CertificateType::WTLS),
             _ => {
-                error!("Certificate type {} is not supported.", certificate_type);
+                error!("Certificate type {certificate_type} is not supported.");
                 Err(Error::NotSupported)
             }
         }

@@ -7,6 +7,7 @@ use cryptoki_sys::*;
 use std::fmt::{Debug, Formatter};
 
 bitflags! {
+    #[derive(Debug, Clone, Copy)]
     struct MechanismInfoFlags: CK_FLAGS {
         const HW = CKF_HW;
         const ENCRYPT = CKF_ENCRYPT;
@@ -25,7 +26,6 @@ bitflags! {
         const EC_F_P = CKF_EC_F_P;
         const EC_F_2M = CKF_EC_F_2M;
         const EC_ECPARAMETERS = CKF_EC_ECPARAMETERS;
-        const EC_NAMEDCURVE = CKF_EC_NAMEDCURVE;
         const EC_OID = CKF_EC_OID;
         const EC_UNCOMPRESS = CKF_EC_UNCOMPRESS;
         const EC_COMPRESS = CKF_EC_COMPRESS;
@@ -35,6 +35,12 @@ bitflags! {
         const ENCAPSULATE = CKF_ENCAPSULATE;
         const DECAPSULATE = CKF_DECAPSULATE;
     }
+}
+
+impl MechanismInfoFlags {
+    /// `CKF_EC_NAMEDCURVE` is deprecated with `PKCS#11 3.00`. It is replaced by [`CKF_EC_OID`](MechanismInfoFlags::EC_OID).
+    #[deprecated = "use `EC_OID` instead"]
+    pub const EC_NAMEDCURVE: Self = Self::from_bits_retain(CKF_EC_NAMEDCURVE);
 }
 
 /// Information about a particular mechanism
@@ -201,6 +207,7 @@ impl MechanismInfo {
     /// [`ec_from_named_curve`](Self::ec_from_named_curve) must be `true`
     #[deprecated = "use `ec_from_oid` instead"]
     pub fn ec_from_named_curve(&self) -> bool {
+        #[allow(deprecated)]
         self.flags.contains(MechanismInfoFlags::EC_NAMEDCURVE)
     }
 
@@ -302,15 +309,25 @@ impl From<CK_MECHANISM_INFO> for MechanismInfo {
 #[cfg(test)]
 mod test {
     use super::{MechanismInfo, MechanismInfoFlags};
+    use cryptoki_sys::CK_FLAGS;
+
+    #[test]
+    fn deprecated_flags() {
+        let ec_oid_bits: CK_FLAGS = MechanismInfoFlags::EC_OID.bits();
+        #[allow(deprecated)]
+        let ec_namedcurve_bits: CK_FLAGS = MechanismInfoFlags::EC_NAMEDCURVE.bits();
+        assert_eq!(ec_oid_bits, ec_namedcurve_bits);
+    }
 
     #[test]
     fn debug_flags_all() {
-        let expected = "\
-HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
-VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
-EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
-EC_OID | EC_UNCOMPRESS | EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | \
-MULTI_MESSAGE | ENCAPSULATE | DECAPSULATE";
+        let expected = "MechanismInfoFlags(
+    HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
+    VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
+    EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_OID | EC_UNCOMPRESS | \
+    EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | MULTI_MESSAGE | ENCAPSULATE | \
+    DECAPSULATE,
+)";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");
@@ -327,7 +344,9 @@ MULTI_MESSAGE | ENCAPSULATE | DECAPSULATE";
         let expected = r#"MechanismInfo {
     min_key_size: 16,
     max_key_size: 4096,
-    flags: (empty),
+    flags: MechanismInfoFlags(
+        0x0,
+    ),
 }"#;
         let observed = format!("{info:#?}");
         assert_eq!(observed, expected);

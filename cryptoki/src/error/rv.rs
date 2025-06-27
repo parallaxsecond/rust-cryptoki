@@ -120,8 +120,7 @@ impl From<CK_RV> for Rv {
             CKR_VENDOR_DEFINED..=CK_ULONG::MAX => Rv::Error(RvError::VendorDefined(ck_rv)),
             other => {
                 error!(
-                    "Can not find a corresponding error for {}, converting to UnknownErrorCode.",
-                    other
+                    "Can not find a corresponding error for {other}, converting to UnknownErrorCode."
                 );
                 Rv::Error(RvError::UnknownErrorCode(other))
             }
