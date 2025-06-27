@@ -823,7 +823,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SP800_108_FEEDBACK_KDF => Ok(MechanismType::SP800_108_FEEDBACK_KDF),
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => Ok(MechanismType::SP800_108_DOUBLE_PIPELINE_KDF),
             other => {
-                error!("Mechanism type {} is not supported.", other);
+                error!("Mechanism type {other} is not supported.");
                 Err(Error::NotSupported)
             }
         }
