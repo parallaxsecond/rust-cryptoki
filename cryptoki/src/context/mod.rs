@@ -93,8 +93,8 @@ impl Pkcs11Impl {
 
 impl Drop for Pkcs11Impl {
     fn drop(&mut self) {
-        if let Err(e) = self.finalize() {
-            error!("Failed to finalize: {}", e);
+        if let Err(err) = self.finalize() {
+            error!("Failed to finalize: {err}");
         }
     }
 }

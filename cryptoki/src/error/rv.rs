@@ -119,8 +119,7 @@ impl From<CK_RV> for Rv {
             CKR_VENDOR_DEFINED => Rv::Error(RvError::VendorDefined),
             other => {
                 error!(
-                    "Can not find a corresponding error for {}, converting to GeneralError.",
-                    other
+                    "Can not find a corresponding error for {other}, converting to GeneralError."
                 );
                 Rv::Error(RvError::GeneralError)
             }
