@@ -194,4 +194,67 @@ impl Session {
 
         Ok(())
     }
+
+    /// Initialize Signature verification operation, by including the signature at initialization
+    pub fn verify_signature_init(
+        &self,
+        mechanism: &Mechanism,
+        key: ObjectHandle,
+        signature: &[u8],
+    ) -> Result<()> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_VerifySignatureInit)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                key.handle(),
+                signature.as_ptr() as *mut u8,
+                signature.len().try_into()?,
+            ))
+            .into_result(Function::VerifySignatureInit)?;
+        }
+
+        Ok(())
+    }
+
+    /// Verify Signature in single-part operation
+    pub fn verify_signature(&self, data: &[u8]) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_VerifySignature)(
+                self.handle(),
+                data.as_ptr() as *mut u8,
+                data.len().try_into()?,
+            ))
+            .into_result(Function::VerifySignature)?;
+        }
+
+        Ok(())
+    }
+
+    /// continue multi-part Verify Signature operation
+    pub fn verify_signature_update(&self, data: &[u8]) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_VerifySignatureUpdate)(
+                self.handle(),
+                data.as_ptr() as *mut u8,
+                data.len().try_into()?,
+            ))
+            .into_result(Function::VerifySignatureUpdate)?;
+        }
+
+        Ok(())
+    }
+
+    /// finalize multi-part Verify Signature operation
+    pub fn verify_signature_final(&self) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_VerifySignatureFinal)(
+                self.handle(),
+            ))
+            .into_result(Function::VerifySignatureFinal)?;
+        }
+
+        Ok(())
+    }
 }
