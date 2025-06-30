@@ -14,6 +14,7 @@ mod encryption;
 mod key_management;
 mod message_decryption;
 mod message_encryption;
+mod message_signing;
 mod object_management;
 mod random;
 mod session_info;
