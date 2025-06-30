@@ -95,6 +95,7 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
         toolchain:
           - stable
           - "1.77" # MSRV
@@ -107,8 +108,14 @@ jobs:
           default: true
       - name: Install SoftHSM
         run: |
-          sudo apt-get update -y -qq &&
-          sudo apt-get install -y -qq libsofthsm2 &&
+          if [ "${{ matrix.target }}" = "i686-unknown-linux-gnu" ]; then
+            sudo dpkg --add-architecture i386
+            sudo apt-get update -y -qq
+            sudo apt-get install -y -qq gcc-multilib:i386 libsofthsm2:i386 gcc:i386
+          else
+            sudo apt-get update -y -qq
+            sudo apt-get install -y -qq libsofthsm2
+          fi
           mkdir /tmp/tokens
           echo "directories.tokendir = /tmp/tokens" > /tmp/softhsm2.conf
       - name: Install Rust target
