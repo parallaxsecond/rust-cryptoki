@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_pkcs11, is_softhsm, SO_PIN, USER_PIN};
+use crate::common::{get_firmware_version, get_pkcs11, is_kryoptic, is_softhsm, SO_PIN, USER_PIN};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -682,6 +682,94 @@ fn derive_key() -> TestResult {
 
     // delete keys
     session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn derive_key_sp800() -> TestResult {
+    if is_softhsm() {
+        return Ok(());
+    }
+
+    use cryptoki::mechanism::elliptic_curve::*;
+
+    let (pkcs11, slot) = init_pins();
+
+    if is_kryoptic() {
+        let (major, minor) = get_firmware_version(&pkcs11, slot);
+        // Kryoptic added support for sha256_sp800 in version 1.3.
+        if !(major > 1 || minor >= 3) {
+            eprintln!(
+                "Skipping test: Kryoptic is too old (need 1.3, got {}.{})",
+                major, minor
+            );
+            return Ok(());
+        }
+    }
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // sha256_sp800
+    let key = hex::decode("F00670C5F139E7E6C2511EA04FF507AFBBE237CE3C71A89CA59A1C5CF8856562")
+        .expect("valid hex");
+    let ephemeral_key =
+        hex::decode("533B3F09E53B3DEED661A13F7A7D9694AB71CE156C728E00DEE87A1EE3A14C4A")
+            .expect("valid hex");
+    let kdf_param = hex::decode("0A2B0601040197550105011203010807416E6F6E796D6F75732053656E646572202020205633A4C5AE4305BC0FE2ABB699A8EE54632790A0").expect("valid hex");
+    let derivation = hex::decode("AF8CE51D0139A6D60831A9BABAB20186").expect("valid hex");
+
+    let template = [
+        Attribute::Class(ObjectClass::PRIVATE_KEY),
+        Attribute::KeyType(KeyType::EC_MONTGOMERY),
+        Attribute::EcParams(vec![
+            0x13, 0x0a, 0x63, 0x75, 0x72, 0x76, 0x65, 0x32, 0x35, 0x35, 0x31, 0x39,
+        ]),
+        Attribute::Value(key),
+        Attribute::Id(b"foo".to_vec()),
+        Attribute::Label(b"bar".to_vec()),
+        Attribute::Sensitive(true),
+        Attribute::Token(true),
+        Attribute::Derive(true),
+    ];
+
+    let private = session.create_object(&template)?;
+
+    let kdf = EcKdf::sha256_sp800(&kdf_param);
+
+    let params = Ecdh1DeriveParams::new(kdf, &ephemeral_key);
+
+    let shared_secret = session.derive_key(
+        &Mechanism::Ecdh1Derive(params),
+        private,
+        &[
+            Attribute::Class(ObjectClass::SECRET_KEY),
+            Attribute::KeyType(KeyType::GENERIC_SECRET),
+            Attribute::ValueLen(Ulong::new(derivation.len().try_into().unwrap())),
+            Attribute::Sensitive(false),
+            Attribute::Extractable(true),
+            Attribute::Token(false),
+        ],
+    )?;
+
+    let value_attribute = session
+        .get_attributes(shared_secret, &[AttributeType::Value])?
+        .remove(0);
+    let value = if let Attribute::Value(value) = value_attribute {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    assert_eq!(value, derivation);
+
+    // delete keys
     session.destroy_object(private)?;
 
     Ok(())
