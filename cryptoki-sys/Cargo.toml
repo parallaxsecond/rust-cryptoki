@@ -10,7 +10,7 @@ categories = ["api-bindings", "external-ffi-bindings", "cryptography", "hardware
 license = "Apache-2.0"
 repository = "https://github.com/parallaxsecond/rust-cryptoki"
 documentation = "https://docs.rs/crate/cryptoki-sys"
-rust-version = "1.66.0"
+rust-version = "1.77"
 
 [build-dependencies]
 bindgen = { version = "0.70.1", optional = true }
