@@ -145,7 +145,7 @@ pub enum Function {
 
 impl Display for Function {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Function::{:?}", self)
+        write!(f, "Function::{self:?}")
     }
 }
 
