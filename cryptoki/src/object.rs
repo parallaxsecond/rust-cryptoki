@@ -148,10 +148,6 @@ pub enum AttributeType {
     Seed,
     /// Algorithm-specific parameter set
     ParameterSet,
-    /// ML-KEM parameter set
-    MlKemParameterSet,
-    /// ML-DSA parameter set
-    MlDsaParameterSet,
 }
 
 impl AttributeType {
@@ -323,8 +319,6 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::KeyType => CKA_KEY_TYPE,
             AttributeType::Label => CKA_LABEL,
             AttributeType::Local => CKA_LOCAL,
-            AttributeType::MlDsaParameterSet => CKA_PARAMETER_SET,
-            AttributeType::MlKemParameterSet => CKA_PARAMETER_SET,
             AttributeType::Modifiable => CKA_MODIFIABLE,
             AttributeType::Modulus => CKA_MODULUS,
             AttributeType::ModulusBits => CKA_MODULUS_BITS,
@@ -508,10 +502,6 @@ pub enum Attribute {
     Label(Vec<u8>),
     /// Indicates if the key was generated locally or copied from a locally created object
     Local(bool),
-    /// ML-DSA parameter set
-    MlDsaParameterSet(MlDsaParameterSetType),
-    /// ML-KEM parameter set
-    MlKemParameterSet(MlKemParameterSetType),
     /// Determines if the object can be modified
     Modifiable(bool),
     /// Modulus value of a key
@@ -524,8 +514,8 @@ pub enum Attribute {
     ObjectId(Vec<u8>),
     /// DER encoding of the attribute certificate's subject field
     Owner(Vec<u8>),
-    /// Algorithm specific parameter set
-    ParameterSet(Vec<u8>),
+    /// Algorithm specific parameter set, now used for ML-DSA and ML-KEM algorithms
+    ParameterSet(ParameterSetType),
     /// Prime number value of a key
     Prime(Vec<u8>),
     /// The prime `p` of an RSA private key
@@ -616,8 +606,6 @@ impl Attribute {
             Attribute::KeyType(_) => AttributeType::KeyType,
             Attribute::Label(_) => AttributeType::Label,
             Attribute::Local(_) => AttributeType::Local,
-            Attribute::MlDsaParameterSet(_) => AttributeType::MlDsaParameterSet,
-            Attribute::MlKemParameterSet(_) => AttributeType::MlKemParameterSet,
             Attribute::Modifiable(_) => AttributeType::Modifiable,
             Attribute::Modulus(_) => AttributeType::Modulus,
             Attribute::ModulusBits(_) => AttributeType::ModulusBits,
@@ -705,7 +693,7 @@ impl Attribute {
             Attribute::ModulusBits(_) => size_of::<CK_ULONG>(),
             Attribute::ObjectId(bytes) => bytes.len(),
             Attribute::Owner(bytes) => bytes.len(),
-            Attribute::ParameterSet(bytes) => bytes.len(),
+            Attribute::ParameterSet(_) => size_of::<CK_ULONG>(),
             Attribute::Prime(bytes) => bytes.len(),
             Attribute::Prime1(bytes) => bytes.len(),
             Attribute::Prime2(bytes) => bytes.len(),
@@ -719,8 +707,6 @@ impl Attribute {
             Attribute::Value(bytes) => bytes.len(),
             Attribute::ValueLen(_) => size_of::<CK_ULONG>(),
             Attribute::EndDate(_) | Attribute::StartDate(_) => size_of::<CK_DATE>(),
-            Attribute::MlKemParameterSet(_) => size_of::<CK_ML_KEM_PARAMETER_SET_TYPE>(),
-            Attribute::MlDsaParameterSet(_) => size_of::<CK_ML_DSA_PARAMETER_SET_TYPE>(),
 
             Attribute::AllowedMechanisms(mechanisms) => {
                 size_of::<CK_MECHANISM_TYPE>() * mechanisms.len()
@@ -788,7 +774,6 @@ impl Attribute {
             | Attribute::Issuer(bytes)
             | Attribute::Label(bytes)
             | Attribute::ObjectId(bytes)
-            | Attribute::ParameterSet(bytes)
             | Attribute::Prime(bytes)
             | Attribute::Prime1(bytes)
             | Attribute::Prime2(bytes)
@@ -806,14 +791,13 @@ impl Attribute {
             | Attribute::VendorDefined((_, bytes))
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
+            Attribute::ParameterSet(val) => val as *const _ as *mut c_void,
             Attribute::CertificateType(certificate_type) => {
                 certificate_type as *const _ as *mut c_void
             }
             Attribute::Class(object_class) => object_class as *const _ as *mut c_void,
             Attribute::KeyGenMechanism(mech) => mech as *const _ as *mut c_void,
             Attribute::KeyType(key_type) => key_type as *const _ as *mut c_void,
-            Attribute::MlKemParameterSet(p) => p as *const _ as *mut c_void,
-            Attribute::MlDsaParameterSet(p) => p as *const _ as *mut c_void,
             Attribute::AllowedMechanisms(mechanisms) => mechanisms.as_ptr() as *mut c_void,
             Attribute::EndDate(date) | Attribute::StartDate(date) => {
                 date as *const _ as *mut c_void
@@ -921,7 +905,6 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             }
             AttributeType::Issuer => Ok(Attribute::Issuer(val.to_vec())),
             AttributeType::Label => Ok(Attribute::Label(val.to_vec())),
-            AttributeType::ParameterSet => Ok(Attribute::ParameterSet(val.to_vec())),
             AttributeType::Prime => Ok(Attribute::Prime(val.to_vec())),
             AttributeType::Prime1 => Ok(Attribute::Prime1(val.to_vec())),
             AttributeType::Prime2 => Ok(Attribute::Prime2(val.to_vec())),
@@ -939,6 +922,9 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
+            AttributeType::ParameterSet => Ok(Attribute::ParameterSet(ParameterSetType {
+                val: CK_ULONG::from_ne_bytes(val.try_into()?).into(),
+            })),
             AttributeType::CertificateType => Ok(Attribute::CertificateType(
                 CK_CERTIFICATE_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
@@ -950,12 +936,6 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             )),
             AttributeType::KeyType => Ok(Attribute::KeyType(
                 CK_KEY_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
-            )),
-            AttributeType::MlKemParameterSet => Ok(Attribute::MlKemParameterSet(
-                CK_ML_KEM_PARAMETER_SET_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
-            )),
-            AttributeType::MlDsaParameterSet => Ok(Attribute::MlDsaParameterSet(
-                CK_ML_DSA_PARAMETER_SET_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
             AttributeType::AllowedMechanisms => {
                 let val = unsafe {
@@ -1061,6 +1041,63 @@ impl std::fmt::UpperHex for ObjectHandle {
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
+/// Generic parameter set
+pub struct ParameterSetType {
+    val: Ulong,
+}
+
+impl ParameterSetType {
+    pub(crate) fn stringify(val: Ulong) -> String {
+        format!("unknown ({:08x})", *val)
+    }
+}
+
+impl std::fmt::Display for ParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", ParameterSetType::stringify(self.val))
+    }
+}
+
+impl Deref for ParameterSetType {
+    type Target = Ulong;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<ParameterSetType> for Ulong {
+    fn from(val: ParameterSetType) -> Self {
+        *val
+    }
+}
+
+impl TryFrom<Ulong> for ParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: Ulong) -> Result<Self> {
+        Ok(ParameterSetType { val })
+    }
+}
+
+impl From<MlKemParameterSetType> for ParameterSetType {
+    fn from(val: MlKemParameterSetType) -> Self {
+        ParameterSetType {
+            val: Ulong::new(*val),
+        }
+    }
+}
+
+impl From<MlDsaParameterSetType> for ParameterSetType {
+    fn from(val: MlDsaParameterSetType) -> Self {
+        ParameterSetType {
+            val: Ulong::new(*val),
+        }
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
 /// Identifier of the ML-KEM parameter set
 pub struct MlKemParameterSetType {
     val: CK_ML_KEM_PARAMETER_SET_TYPE,
@@ -1126,6 +1163,14 @@ impl TryFrom<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
     }
 }
 
+impl From<ParameterSetType> for MlKemParameterSetType {
+    fn from(val: ParameterSetType) -> Self {
+        MlKemParameterSetType {
+            val: CK_ULONG::from(*val),
+        }
+    }
+}
+
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
 #[repr(transparent)]
 /// Identifier of the ML-DSA parameter set
@@ -1183,6 +1228,14 @@ impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
                 error!("ML-DSA parameter set {} is not supported.", val);
                 Err(Error::NotSupported)
             }
+        }
+    }
+}
+
+impl From<ParameterSetType> for MlDsaParameterSetType {
+    fn from(val: ParameterSetType) -> Self {
+        MlDsaParameterSetType {
+            val: CK_ULONG::from(*val),
         }
     }
 }
