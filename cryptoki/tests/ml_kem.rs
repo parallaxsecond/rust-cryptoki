@@ -34,7 +34,7 @@ fn ml_kem() -> TestResult {
     // pub key template
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::MlKemParameterSet(MlKemParameterSetType::ML_KEM_768),
+        Attribute::ParameterSet(MlKemParameterSetType::ML_KEM_768.into()),
         Attribute::Encapsulate(true),
     ];
 

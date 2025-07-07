@@ -36,7 +36,7 @@ fn ml_dsa() -> TestResult {
     // pub key template
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::MlDsaParameterSet(MlDsaParameterSetType::ML_DSA_65),
+        Attribute::ParameterSet(MlDsaParameterSetType::ML_DSA_65.into()),
         Attribute::Verify(true),
     ];
 
@@ -129,7 +129,7 @@ fn ml_dsa_multipart() -> TestResult {
     // pub key template
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::MlDsaParameterSet(MlDsaParameterSetType::ML_DSA_87),
+        Attribute::ParameterSet(MlDsaParameterSetType::ML_DSA_87.into()),
         Attribute::Verify(true),
     ];
 
@@ -199,7 +199,7 @@ fn ml_dsa_hash() -> TestResult {
     // pub key template
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::MlDsaParameterSet(MlDsaParameterSetType::ML_DSA_44),
+        Attribute::ParameterSet(MlDsaParameterSetType::ML_DSA_44.into()),
         Attribute::Verify(true),
     ];
 
@@ -294,7 +294,7 @@ fn ml_dsa_hashes() -> TestResult {
     // pub key template
     let pub_key_template = vec![
         Attribute::Token(true),
-        Attribute::MlDsaParameterSet(MlDsaParameterSetType::ML_DSA_65),
+        Attribute::ParameterSet(MlDsaParameterSetType::ML_DSA_65.into()),
         Attribute::Verify(true),
     ];
 
