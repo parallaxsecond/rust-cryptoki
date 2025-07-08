@@ -702,10 +702,7 @@ fn derive_key_sp800() -> TestResult {
         let (major, minor) = get_firmware_version(&pkcs11, slot);
         // Kryoptic added support for sha256_sp800 in version 1.3.
         if !(major > 1 || minor >= 3) {
-            eprintln!(
-                "Skipping test: Kryoptic is too old (need 1.3, got {}.{})",
-                major, minor
-            );
+            eprintln!("Skipping test: Kryoptic is too old (need 1.3, got {major}.{minor})");
             return Ok(());
         }
     }
