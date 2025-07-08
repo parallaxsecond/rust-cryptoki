@@ -89,16 +89,24 @@ jobs:
 
   tests-softhsm:
     name: Run tests against SoftHSM
-    runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
       matrix:
         target:
           - x86_64-unknown-linux-gnu
           - i686-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
         toolchain:
           - stable
           - "1.77" # MSRV
+        include:
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+          - target: i686-unknown-linux-gnu
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust toolchain
