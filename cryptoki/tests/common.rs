@@ -20,6 +20,10 @@ pub fn is_softhsm() -> bool {
     get_pkcs11_path().contains("softhsm")
 }
 
+pub fn is_kryoptic() -> bool {
+    get_pkcs11_path().contains("kryoptic")
+}
+
 pub fn get_pkcs11() -> Pkcs11 {
     Pkcs11::new(get_pkcs11_path()).unwrap()
 }
@@ -45,4 +49,11 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     }
 
     (pkcs11, slot)
+}
+
+pub fn get_firmware_version(pkcs11: &Pkcs11, slot: Slot) -> (u8, u8) {
+    let info = pkcs11.get_slot_info(slot).unwrap();
+
+    let v = info.firmware_version();
+    (v.major(), v.minor())
 }
