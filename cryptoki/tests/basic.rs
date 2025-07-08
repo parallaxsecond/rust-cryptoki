@@ -862,7 +862,7 @@ fn session_find_objects() -> testresult::TestResult {
         let key_template = vec![
             Attribute::Token(true),
             Attribute::Encrypt(true),
-            Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
+            Attribute::Label(format!("key_{i}").as_bytes().to_vec()),
             Attribute::ValueLen(32.into()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
@@ -914,7 +914,7 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
             Attribute::Token(true),
             Attribute::Encrypt(true),
             Attribute::ValueLen(32.into()),
-            Attribute::Label(format!("key_{}", i).as_bytes().to_vec()),
+            Attribute::Label(format!("key_{i}").as_bytes().to_vec()),
             Attribute::Id("12345678".as_bytes().to_vec()), // reusing the same CKA_ID
         ];
 
@@ -1088,27 +1088,27 @@ fn login_feast() {
             let session = pkcs11.open_rw_session(slot).unwrap();
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
             match session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into()))) {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserAlreadyLoggedIn, Function::Login)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
             match session.logout() {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
             match session.logout() {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
             match session.logout() {
                 Ok(_) | Err(Error::Pkcs11(RvError::UserNotLoggedIn, Function::Logout)) => {}
-                Err(e) => panic!("Bad error response: {}", e),
+                Err(e) => panic!("Bad error response: {e}"),
             }
         }));
     }
@@ -1405,7 +1405,7 @@ fn is_initialized_test() {
 
     match pkcs11.initialize(CInitializeArgs::OsThreads) {
         Err(Error::AlreadyInitialized) => (),
-        Err(e) => panic!("Got unexpected error when initializing: {}", e),
+        Err(e) => panic!("Got unexpected error when initializing: {e}"),
         Ok(()) => panic!("Initializing twice should not have been allowed"),
     }
 }
@@ -1517,7 +1517,7 @@ fn ro_rw_session_test() -> TestResult {
         if let Error::Pkcs11(RvError::SessionReadOnly, _f) = e {
             // as expected
         } else {
-            panic!("Got wrong error code (expecting SessionReadOnly): {}", e);
+            panic!("Got wrong error code (expecting SessionReadOnly): {e}");
         }
         ro_session.logout()?;
     }
@@ -2163,8 +2163,7 @@ fn wait_for_slot_event() {
                 Function::WaitForSlotEvent
             ))
         ),
-        "res = {:?}",
-        res
+        "res = {res:?}"
     );
 }
 
