@@ -22,7 +22,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   lints:
-    name: Check lints
+    name: Check lints with clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -134,10 +134,8 @@ jobs:
         env:
           TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
           SOFTHSM2_CONF: /tmp/softhsm2.conf
-          TARGET: ${{ matrix.target }}
-          RUST_BACKTRACE: 1
           RUSTFLAGS: "-D warnings"
-        run: ./ci.sh
+        run: RUST_BACKTRACE=1 cargo test --target ${{ matrix.target }}
 
   build-windows:
     name: Build on Windows
