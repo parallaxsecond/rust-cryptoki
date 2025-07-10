@@ -21,6 +21,7 @@ paste = "1.0.15"
 secrecy = "0.10.3"
 
 [dev-dependencies]
+hex = "0.4.3"
 serial_test = "3.2.0"
 testresult = "0.4.1"
 
