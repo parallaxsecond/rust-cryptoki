@@ -9,6 +9,7 @@ pub mod elliptic_curve;
 pub mod hkdf;
 pub mod kbkdf;
 mod mechanism_info;
+pub mod mldsa;
 pub mod rsa;
 pub mod vendor_defined;
 
@@ -339,6 +340,66 @@ impl MechanismType {
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
     pub const SP800_108_DOUBLE_PIPELINE_KDF: MechanismType = MechanismType {
         val: CKM_SP800_108_DOUBLE_PIPELINE_KDF,
+    };
+
+    // ML-KEM
+    /// ML-KEM key pair generation mechanism
+    pub const ML_KEM_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_ML_KEM_KEY_PAIR_GEN,
+    };
+    /// ML-KEM encapsulation and decapsulation mechanism
+    pub const ML_KEM: MechanismType = MechanismType { val: CKM_ML_KEM };
+
+    // ML-DSA
+    /// ML-DSA key pair generation mechanism
+    pub const ML_DSA_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_ML_DSA_KEY_PAIR_GEN,
+    };
+    /// ML-DSA signature mechanism
+    pub const ML_DSA: MechanismType = MechanismType { val: CKM_ML_DSA };
+    /// HashML-DSA signature mechanism
+    pub const HASH_ML_DSA: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA,
+    };
+    /// HashML-DSA signature mechanism with SHA224
+    pub const HASH_ML_DSA_SHA224: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA224,
+    };
+    /// HashML-DSA signature mechanism with SHA256
+    pub const HASH_ML_DSA_SHA256: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA256,
+    };
+    /// HashML-DSA signature mechanism with SHA384
+    pub const HASH_ML_DSA_SHA384: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA384,
+    };
+    /// HashML-DSA signature mechanism with SHA512
+    pub const HASH_ML_DSA_SHA512: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA512,
+    };
+    /// HashML-DSA signature mechanism with SHA3-224
+    pub const HASH_ML_DSA_SHA3_224: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA3_224,
+    };
+    /// HashML-DSA signature mechanism with SHA3-256
+    pub const HASH_ML_DSA_SHA3_256: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA3_256,
+    };
+    /// HashML-DSA signature mechanism with SHA3-384
+    pub const HASH_ML_DSA_SHA3_384: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA3_384,
+    };
+    /// HashML-DSA signature mechanism with SHA3-512
+    pub const HASH_ML_DSA_SHA3_512: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHA3_512,
+    };
+    /// HashML-DSA signature mechanism with SHAKE128
+    pub const HASH_ML_DSA_SHAKE128: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHAKE128,
+    };
+    /// HashML-DSA signature mechanism with SHAKE256
+    pub const HASH_ML_DSA_SHAKE256: MechanismType = MechanismType {
+        val: CKM_HASH_ML_DSA_SHAKE256,
     };
 
     /// Create vendor defined mechanism
@@ -735,6 +796,21 @@ impl MechanismType {
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => {
                 String::from(stringify!(CKM_SP800_108_DOUBLE_PIPELINE_KDF))
             }
+            CKM_ML_KEM_KEY_PAIR_GEN => String::from(stringify!(CKM_ML_KEM_KEY_PAIR_GEN)),
+            CKM_ML_KEM => String::from(stringify!(CKM_ML_KEM)),
+            CKM_ML_DSA_KEY_PAIR_GEN => String::from(stringify!(CKM_ML_DSA_KEY_PAIR_GEN)),
+            CKM_ML_DSA => String::from(stringify!(CKM_ML_DSA)),
+            CKM_HASH_ML_DSA => String::from(stringify!(CKM_HASH_ML_DSA)),
+            CKM_HASH_ML_DSA_SHA224 => String::from(stringify!(CKM_HASH_ML_DSA_SHA224)),
+            CKM_HASH_ML_DSA_SHA256 => String::from(stringify!(CKM_HASH_ML_DSA_SHA256)),
+            CKM_HASH_ML_DSA_SHA384 => String::from(stringify!(CKM_HASH_ML_DSA_SHA384)),
+            CKM_HASH_ML_DSA_SHA512 => String::from(stringify!(CKM_HASH_ML_DSA_SHA512)),
+            CKM_HASH_ML_DSA_SHA3_224 => String::from(stringify!(CKM_HASH_ML_DSA_SHA3_224)),
+            CKM_HASH_ML_DSA_SHA3_256 => String::from(stringify!(CKM_HASH_ML_DSA_SHA3_256)),
+            CKM_HASH_ML_DSA_SHA3_384 => String::from(stringify!(CKM_HASH_ML_DSA_SHA3_384)),
+            CKM_HASH_ML_DSA_SHA3_512 => String::from(stringify!(CKM_HASH_ML_DSA_SHA3_512)),
+            CKM_HASH_ML_DSA_SHAKE128 => String::from(stringify!(CKM_HASH_ML_DSA_SHAKE128)),
+            CKM_HASH_ML_DSA_SHAKE256 => String::from(stringify!(CKM_HASH_ML_DSA_SHAKE256)),
             _ => format!("unknown {mech:08x}"),
         }
     }
@@ -822,6 +898,20 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SP800_108_COUNTER_KDF => Ok(MechanismType::SP800_108_COUNTER_KDF),
             CKM_SP800_108_FEEDBACK_KDF => Ok(MechanismType::SP800_108_FEEDBACK_KDF),
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => Ok(MechanismType::SP800_108_DOUBLE_PIPELINE_KDF),
+            CKM_ML_KEM_KEY_PAIR_GEN => Ok(MechanismType::ML_KEM_KEY_PAIR_GEN),
+            CKM_ML_KEM => Ok(MechanismType::ML_KEM),
+            CKM_ML_DSA_KEY_PAIR_GEN => Ok(MechanismType::ML_DSA_KEY_PAIR_GEN),
+            CKM_ML_DSA => Ok(MechanismType::ML_DSA),
+            CKM_HASH_ML_DSA => Ok(MechanismType::HASH_ML_DSA),
+            CKM_HASH_ML_DSA_SHA224 => Ok(MechanismType::HASH_ML_DSA_SHA224),
+            CKM_HASH_ML_DSA_SHA256 => Ok(MechanismType::HASH_ML_DSA_SHA256),
+            CKM_HASH_ML_DSA_SHA384 => Ok(MechanismType::HASH_ML_DSA_SHA384),
+            CKM_HASH_ML_DSA_SHA512 => Ok(MechanismType::HASH_ML_DSA_SHA512),
+            CKM_HASH_ML_DSA_SHA3_224 => Ok(MechanismType::HASH_ML_DSA_SHA3_224),
+            CKM_HASH_ML_DSA_SHA3_256 => Ok(MechanismType::HASH_ML_DSA_SHA3_256),
+            CKM_HASH_ML_DSA_SHA3_384 => Ok(MechanismType::HASH_ML_DSA_SHA3_384),
+            CKM_HASH_ML_DSA_SHA3_512 => Ok(MechanismType::HASH_ML_DSA_SHA3_512),
+            CKM_HASH_ML_DSA_SHAKE128 => Ok(MechanismType::HASH_ML_DSA_SHAKE128),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -1052,6 +1142,40 @@ pub enum Mechanism<'a> {
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
     KbkdfDoublePipeline(kbkdf::KbkdfParams<'a>),
 
+    // ML-KEM
+    /// ML-KEM key pair generation mechanism
+    MlKemKeyPairGen,
+    /// ML-KEM key encacpsulation/decapsulation mechanism
+    MlKem,
+
+    // ML-DSA
+    /// ML-DSA key pair generation mechanism
+    MlDsaKeyPairGen,
+    /// ML-DSA signature mechanism
+    MlDsa(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism
+    HashMlDsa(mldsa::HashSignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA224
+    HashMlDsaSha224(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA256
+    HashMlDsaSha256(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA384
+    HashMlDsaSha384(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA512
+    HashMlDsaSha512(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA3-224
+    HashMlDsaSha3_224(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA3-256
+    HashMlDsaSha3_256(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA3-384
+    HashMlDsaSha3_384(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHA3-512
+    HashMlDsaSha3_512(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHAKE128
+    HashMlDsaShake128(mldsa::SignAdditionalContext<'a>),
+    /// HashML-DSA signature mechanism with SHAKE256
+    HashMlDsaShake256(mldsa::SignAdditionalContext<'a>),
+
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),
 }
@@ -1137,6 +1261,23 @@ impl Mechanism<'_> {
             Mechanism::KbkdfFeedback(_) => MechanismType::SP800_108_FEEDBACK_KDF,
             Mechanism::KbkdfDoublePipeline(_) => MechanismType::SP800_108_DOUBLE_PIPELINE_KDF,
 
+            Mechanism::MlKemKeyPairGen => MechanismType::ML_KEM_KEY_PAIR_GEN,
+            Mechanism::MlKem => MechanismType::ML_KEM,
+
+            Mechanism::MlDsaKeyPairGen => MechanismType::ML_DSA_KEY_PAIR_GEN,
+            Mechanism::MlDsa(_) => MechanismType::ML_DSA,
+            Mechanism::HashMlDsa(_) => MechanismType::HASH_ML_DSA,
+            Mechanism::HashMlDsaSha224(_) => MechanismType::HASH_ML_DSA_SHA224,
+            Mechanism::HashMlDsaSha256(_) => MechanismType::HASH_ML_DSA_SHA256,
+            Mechanism::HashMlDsaSha384(_) => MechanismType::HASH_ML_DSA_SHA384,
+            Mechanism::HashMlDsaSha512(_) => MechanismType::HASH_ML_DSA_SHA512,
+            Mechanism::HashMlDsaSha3_224(_) => MechanismType::HASH_ML_DSA_SHA3_224,
+            Mechanism::HashMlDsaSha3_256(_) => MechanismType::HASH_ML_DSA_SHA3_256,
+            Mechanism::HashMlDsaSha3_384(_) => MechanismType::HASH_ML_DSA_SHA3_384,
+            Mechanism::HashMlDsaSha3_512(_) => MechanismType::HASH_ML_DSA_SHA3_512,
+            Mechanism::HashMlDsaShake128(_) => MechanismType::HASH_ML_DSA_SHAKE128,
+            Mechanism::HashMlDsaShake256(_) => MechanismType::HASH_ML_DSA_SHAKE256,
+
             Mechanism::VendorDefined(vm) => MechanismType {
                 val: vm.inner.mechanism,
             },
@@ -1193,6 +1334,25 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
                 make_mechanism(mechanism, params.inner())
             }
             Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params.inner()),
+            Mechanism::HashMlDsa(params) => make_mechanism(mechanism, params),
+            Mechanism::MlDsa(params)
+            | Mechanism::HashMlDsaSha224(params)
+            | Mechanism::HashMlDsaSha256(params)
+            | Mechanism::HashMlDsaSha384(params)
+            | Mechanism::HashMlDsaSha512(params)
+            | Mechanism::HashMlDsaSha3_224(params)
+            | Mechanism::HashMlDsaSha3_256(params)
+            | Mechanism::HashMlDsaSha3_384(params)
+            | Mechanism::HashMlDsaSha3_512(params)
+            | Mechanism::HashMlDsaShake128(params)
+            | Mechanism::HashMlDsaShake256(params) => match params.inner() {
+                None => CK_MECHANISM {
+                    mechanism,
+                    pParameter: null_mut(),
+                    ulParameterLen: 0,
+                },
+                Some(params) => make_mechanism(mechanism, params),
+            },
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
@@ -1237,7 +1397,10 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha384KeyGen
             | Mechanism::Sha512KeyGen
             | Mechanism::GenericSecretKeyGen
-            | Mechanism::HkdfKeyGen => CK_MECHANISM {
+            | Mechanism::HkdfKeyGen
+            | Mechanism::MlKemKeyPairGen
+            | Mechanism::MlKem
+            | Mechanism::MlDsaKeyPairGen => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,

@@ -43,12 +43,11 @@ use std::sync::RwLock;
 #[derive(Debug)]
 enum FunctionList {
     /// PKCS #11 2.40 CK_FUNCTION_LIST
-    V2(cryptoki_sys::CK_FUNCTION_LIST_3_0),
+    V2(cryptoki_sys::CK_FUNCTION_LIST_3_2),
     /// PKCS #11 3.0 CK_FUNCTION_LIST_3_0
-    V3_0(cryptoki_sys::CK_FUNCTION_LIST_3_0),
-    // TODO when PKCS #11 3.2 will be imported, change the above to 3_2 too!
-    // PKCS #11 3.2 CK_FUNCTION_LIST_3_2
-    //V3_2(cryptoki_sys::CK_FUNCTION_LIST_3_2),
+    V3_0(cryptoki_sys::CK_FUNCTION_LIST_3_2),
+    /// PKCS #11 3.2 CK_FUNCTION_LIST_3_2
+    V3_2(cryptoki_sys::CK_FUNCTION_LIST_3_2),
 }
 
 // Implementation of Pkcs11 class that can be enclosed in a single Arc
@@ -69,10 +68,11 @@ impl fmt::Debug for Pkcs11Impl {
 
 impl Pkcs11Impl {
     #[inline(always)]
-    pub(crate) fn get_function_list(&self) -> cryptoki_sys::CK_FUNCTION_LIST_3_0 {
+    pub(crate) fn get_function_list(&self) -> cryptoki_sys::CK_FUNCTION_LIST_3_2 {
         match self.function_list {
             FunctionList::V2(l) => l,
             FunctionList::V3_0(l) => l,
+            FunctionList::V3_2(l) => l,
         }
     }
 
@@ -132,8 +132,8 @@ impl Pkcs11 {
     }
 
     unsafe fn _new(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
-        /* First try the 3.0 API to get default interface. It might have some more functions than
-         * the 2.4 API */
+        /* First try the 3.* API to get default interface. It might have some more functions than
+         * the 2.40 API */
         let mut interface: *mut cryptoki_sys::CK_INTERFACE = ptr::null_mut();
         if pkcs11_lib.C_GetInterface.is_ok() {
             Rv::from(pkcs11_lib.C_GetInterface(
@@ -150,12 +150,23 @@ impl Pkcs11 {
                     ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST;
                 let list: cryptoki_sys::CK_FUNCTION_LIST = *list_ptr;
                 if list.version.major >= 3 {
+                    if list.version.minor >= 2 {
+                        let list32_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_2 =
+                            ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_2;
+                        return Ok(Pkcs11 {
+                            impl_: Arc::new(Pkcs11Impl {
+                                _pkcs11_lib: pkcs11_lib,
+                                function_list: FunctionList::V3_2(*list32_ptr),
+                            }),
+                            initialized: Arc::new(RwLock::new(false)),
+                        });
+                    }
                     let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
                         ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
                     return Ok(Pkcs11 {
                         impl_: Arc::new(Pkcs11Impl {
                             _pkcs11_lib: pkcs11_lib,
-                            function_list: FunctionList::V3_0(*list30_ptr),
+                            function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
                         }),
                         initialized: Arc::new(RwLock::new(false)),
                     });
@@ -214,9 +225,9 @@ impl Pkcs11 {
     }
 }
 
-/// This would be great to be From/Into, but it would have to live inside of the cryptoki-sys
-fn v2tov3(f: cryptoki_sys::CK_FUNCTION_LIST) -> cryptoki_sys::CK_FUNCTION_LIST_3_0 {
-    cryptoki_sys::CK_FUNCTION_LIST_3_0 {
+// This would be great to be From/Into, but it would have to live inside of the cryptoki-sys
+fn v2tov3(f: cryptoki_sys::CK_FUNCTION_LIST) -> cryptoki_sys::CK_FUNCTION_LIST_3_2 {
+    cryptoki_sys::CK_FUNCTION_LIST_3_2 {
         version: f.version,
         C_Initialize: f.C_Initialize,
         C_Finalize: f.C_Finalize,
@@ -310,5 +321,127 @@ fn v2tov3(f: cryptoki_sys::CK_FUNCTION_LIST) -> cryptoki_sys::CK_FUNCTION_LIST_3
         C_VerifyMessageBegin: None,
         C_VerifyMessageNext: None,
         C_MessageVerifyFinal: None,
+        C_EncapsulateKey: None,
+        C_DecapsulateKey: None,
+        C_VerifySignatureInit: None,
+        C_VerifySignature: None,
+        C_VerifySignatureUpdate: None,
+        C_VerifySignatureFinal: None,
+        C_GetSessionValidationFlags: None,
+        C_AsyncComplete: None,
+        C_AsyncGetID: None,
+        C_AsyncJoin: None,
+        C_WrapKeyAuthenticated: None,
+        C_UnwrapKeyAuthenticated: None,
+    }
+}
+
+fn v30tov32(f: cryptoki_sys::CK_FUNCTION_LIST_3_0) -> cryptoki_sys::CK_FUNCTION_LIST_3_2 {
+    cryptoki_sys::CK_FUNCTION_LIST_3_2 {
+        version: f.version,
+        C_Initialize: f.C_Initialize,
+        C_Finalize: f.C_Finalize,
+        C_GetInfo: f.C_GetInfo,
+        C_GetFunctionList: f.C_GetFunctionList,
+        C_GetSlotList: f.C_GetSlotList,
+        C_GetSlotInfo: f.C_GetSlotInfo,
+        C_GetTokenInfo: f.C_GetTokenInfo,
+        C_GetMechanismList: f.C_GetMechanismList,
+        C_GetMechanismInfo: f.C_GetMechanismInfo,
+        C_InitToken: f.C_InitToken,
+        C_InitPIN: f.C_InitPIN,
+        C_SetPIN: f.C_SetPIN,
+        C_OpenSession: f.C_OpenSession,
+        C_CloseSession: f.C_CloseSession,
+        C_CloseAllSessions: f.C_CloseAllSessions,
+        C_GetSessionInfo: f.C_GetSessionInfo,
+        C_GetOperationState: f.C_GetOperationState,
+        C_SetOperationState: f.C_SetOperationState,
+        C_Login: f.C_Login,
+        C_Logout: f.C_Logout,
+        C_CreateObject: f.C_CreateObject,
+        C_CopyObject: f.C_CopyObject,
+        C_DestroyObject: f.C_DestroyObject,
+        C_GetObjectSize: f.C_GetObjectSize,
+        C_GetAttributeValue: f.C_GetAttributeValue,
+        C_SetAttributeValue: f.C_SetAttributeValue,
+        C_FindObjectsInit: f.C_FindObjectsInit,
+        C_FindObjects: f.C_FindObjects,
+        C_FindObjectsFinal: f.C_FindObjectsFinal,
+        C_EncryptInit: f.C_EncryptInit,
+        C_Encrypt: f.C_Encrypt,
+        C_EncryptUpdate: f.C_EncryptUpdate,
+        C_EncryptFinal: f.C_EncryptFinal,
+        C_DecryptInit: f.C_DecryptInit,
+        C_Decrypt: f.C_Decrypt,
+        C_DecryptUpdate: f.C_DecryptUpdate,
+        C_DecryptFinal: f.C_DecryptFinal,
+        C_DigestInit: f.C_DigestInit,
+        C_Digest: f.C_Digest,
+        C_DigestUpdate: f.C_DigestUpdate,
+        C_DigestKey: f.C_DigestKey,
+        C_DigestFinal: f.C_DigestFinal,
+        C_SignInit: f.C_SignInit,
+        C_Sign: f.C_Sign,
+        C_SignUpdate: f.C_SignUpdate,
+        C_SignFinal: f.C_SignFinal,
+        C_SignRecoverInit: f.C_SignRecoverInit,
+        C_SignRecover: f.C_SignRecover,
+        C_VerifyInit: f.C_VerifyInit,
+        C_Verify: f.C_Verify,
+        C_VerifyUpdate: f.C_VerifyUpdate,
+        C_VerifyFinal: f.C_VerifyFinal,
+        C_VerifyRecoverInit: f.C_VerifyRecoverInit,
+        C_VerifyRecover: f.C_VerifyRecover,
+        C_DigestEncryptUpdate: f.C_DigestEncryptUpdate,
+        C_DecryptDigestUpdate: f.C_DecryptDigestUpdate,
+        C_SignEncryptUpdate: f.C_SignEncryptUpdate,
+        C_DecryptVerifyUpdate: f.C_DecryptVerifyUpdate,
+        C_GenerateKey: f.C_GenerateKey,
+        C_GenerateKeyPair: f.C_GenerateKeyPair,
+        C_WrapKey: f.C_WrapKey,
+        C_UnwrapKey: f.C_UnwrapKey,
+        C_DeriveKey: f.C_DeriveKey,
+        C_SeedRandom: f.C_SeedRandom,
+        C_GenerateRandom: f.C_GenerateRandom,
+        C_GetFunctionStatus: f.C_GetFunctionStatus,
+        C_CancelFunction: f.C_CancelFunction,
+        C_WaitForSlotEvent: f.C_WaitForSlotEvent,
+        C_GetInterfaceList: f.C_GetInterfaceList,
+        C_GetInterface: f.C_GetInterface,
+        C_LoginUser: f.C_LoginUser,
+        C_SessionCancel: f.C_SessionCancel,
+        C_MessageEncryptInit: f.C_MessageEncryptInit,
+        C_EncryptMessage: f.C_EncryptMessage,
+        C_EncryptMessageBegin: f.C_EncryptMessageBegin,
+        C_EncryptMessageNext: f.C_EncryptMessageNext,
+        C_MessageEncryptFinal: f.C_MessageEncryptFinal,
+        C_MessageDecryptInit: f.C_MessageDecryptInit,
+        C_DecryptMessage: f.C_DecryptMessage,
+        C_DecryptMessageBegin: f.C_DecryptMessageBegin,
+        C_DecryptMessageNext: f.C_DecryptMessageNext,
+        C_MessageDecryptFinal: f.C_MessageDecryptFinal,
+        C_MessageSignInit: f.C_MessageSignInit,
+        C_SignMessage: f.C_SignMessage,
+        C_SignMessageBegin: f.C_SignMessageBegin,
+        C_SignMessageNext: f.C_SignMessageNext,
+        C_MessageSignFinal: f.C_MessageSignFinal,
+        C_MessageVerifyInit: f.C_MessageVerifyInit,
+        C_VerifyMessage: f.C_VerifyMessage,
+        C_VerifyMessageBegin: f.C_VerifyMessageBegin,
+        C_VerifyMessageNext: f.C_VerifyMessageNext,
+        C_MessageVerifyFinal: f.C_MessageVerifyFinal,
+        C_EncapsulateKey: None,
+        C_DecapsulateKey: None,
+        C_VerifySignatureInit: None,
+        C_VerifySignature: None,
+        C_VerifySignatureUpdate: None,
+        C_VerifySignatureFinal: None,
+        C_GetSessionValidationFlags: None,
+        C_AsyncComplete: None,
+        C_AsyncGetID: None,
+        C_AsyncJoin: None,
+        C_WrapKeyAuthenticated: None,
+        C_UnwrapKeyAuthenticated: None,
     }
 }
