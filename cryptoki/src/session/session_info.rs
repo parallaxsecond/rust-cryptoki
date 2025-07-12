@@ -11,6 +11,7 @@ use std::fmt::Debug;
 
 bitflags! {
     /// Collection of flags defined for [`CK_SESSION_INFO`]
+    #[derive(Debug, Clone, Copy)]
     struct SessionInfoFlags: CK_FLAGS {
         const RW_SESSION = CKF_RW_SESSION;
         const SERIAL_SESSION = CKF_SERIAL_SESSION;
@@ -109,7 +110,9 @@ mod test {
 
     #[test]
     fn debug_flags_all() {
-        let expected = "RW_SESSION | SERIAL_SESSION";
+        let expected = "SessionInfoFlags(
+    RW_SESSION | SERIAL_SESSION,
+)";
         let all = SessionInfoFlags::all();
         let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
@@ -128,7 +131,9 @@ mod test {
         slot_id: 100,
     },
     state: RoPublic,
-    flags: (empty),
+    flags: SessionInfoFlags(
+        0x0,
+    ),
     device_error: 0,
 }"#;
         let observed = format!("{info:#?}");

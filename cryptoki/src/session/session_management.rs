@@ -26,8 +26,8 @@ impl Drop for Session {
             }
         }
 
-        if let Err(e) = close(self) {
-            error!("Failed to close session: {}", e);
+        if let Err(err) = close(self) {
+            error!("Failed to close session: {err}");
         }
     }
 }
