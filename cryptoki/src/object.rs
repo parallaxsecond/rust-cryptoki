@@ -14,7 +14,7 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
-const MAX_CU_ULONG: CK_ULONG = !0;
+pub(crate) const MAX_CU_ULONG: CK_ULONG = !0;
 
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
