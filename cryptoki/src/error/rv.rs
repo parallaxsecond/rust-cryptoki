@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Function types
 
-use crate::context::Function;
+use crate::{context::Function, object::MAX_CU_ULONG};
 
 use super::{Error, Result, RvError};
 use cryptoki_sys::*;
 use log::error;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 /// Return value of a PKCS11 function
 pub enum Rv {
     /// The function exited successfully
@@ -116,7 +116,8 @@ impl From<CK_RV> for Rv {
             CKR_PIN_TOO_WEAK => Rv::Error(RvError::PinTooWeak),
             CKR_PUBLIC_KEY_INVALID => Rv::Error(RvError::PublicKeyInvalid),
             CKR_FUNCTION_REJECTED => Rv::Error(RvError::FunctionRejected),
-            CKR_VENDOR_DEFINED => Rv::Error(RvError::VendorDefined),
+            // Section 3.6 of v3.1: "Return values CKR_VENDOR_DEFINED and above are permanently reserved for token vendors."
+            CKR_VENDOR_DEFINED..=MAX_CU_ULONG => Rv::Error(RvError::VendorDefined(ck_rv)),
             other => {
                 error!(
                     "Can not find a corresponding error for {}, converting to GeneralError.",
@@ -135,5 +136,34 @@ impl Rv {
             Rv::Ok => Ok(()),
             Rv::Error(rv_error) => Err(Error::Pkcs11(rv_error, function)),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{Rv, RvError};
+    use cryptoki_sys::*;
+
+    #[test]
+    fn vendor_defined_exact() {
+        let code = CKR_VENDOR_DEFINED;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::VendorDefined(code));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn vendor_defined_higher() {
+        let code = CKR_VENDOR_DEFINED + 42;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::VendorDefined(code));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn unknown_code() {
+        let actual = Rv::from(CKR_VENDOR_DEFINED - 42);
+        let expected = Rv::Error(RvError::GeneralError);
+        assert_eq!(actual, expected);
     }
 }
