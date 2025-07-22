@@ -513,7 +513,11 @@ impl Session {
             .zip(attributes.iter())
             .filter_map(|(attr_info, attr_type)| {
                 if let AttributeInfo::Available(size) = attr_info {
-                    Some((*attr_type, vec![0; *size]))
+                    if *size != usize::MAX {
+                        Some((*attr_type, vec![0; *size]))
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
