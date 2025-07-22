@@ -196,6 +196,8 @@ pub enum RvError {
     FunctionRejected,
     /// A vendor defined error code, CKR_VENDOR_DEFINED and above.
     VendorDefined(CK_RV),
+    /// An unknown error code
+    UnknownErrorCode(CK_RV),
 }
 
 impl fmt::Display for RvError {
@@ -295,6 +297,7 @@ impl fmt::Display for RvError {
             RvError::PublicKeyInvalid => write!(f, "The public key fails a public key validation.  For example, an EC public key fails the public key validation specified in Section 5.2.2 of ANSI X9.62. This error code may be returned by C_CreateObject, when the public key is created, or by C_VerifyInit or C_VerifyRecoverInit, when the public key is used.  It may also be returned by C_DeriveKey, in preference to  CKR_MECHANISM_PARAM_INVALID, if the other party's public key specified in the mechanism's parameters is invalid."),
             RvError::FunctionRejected => write!(f, "The signature request is rejected by the user."),
             RvError::VendorDefined(code) => write!(f, "CKR_VENDOR_DEFINED({code:#x})"),
+            RvError::UnknownErrorCode(code) => write!(f, "Unknown error code: {code:#x}"),
         }
     }
 }

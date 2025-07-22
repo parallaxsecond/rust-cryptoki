@@ -120,10 +120,10 @@ impl From<CK_RV> for Rv {
             CKR_VENDOR_DEFINED..=CK_ULONG::MAX => Rv::Error(RvError::VendorDefined(ck_rv)),
             other => {
                 error!(
-                    "Can not find a corresponding error for {}, converting to GeneralError.",
+                    "Can not find a corresponding error for {}, converting to UnknownErrorCode.",
                     other
                 );
-                Rv::Error(RvError::GeneralError)
+                Rv::Error(RvError::UnknownErrorCode(other))
             }
         }
     }
@@ -157,6 +157,14 @@ mod test {
         let code = CKR_VENDOR_DEFINED + 42;
         let actual = Rv::from(code);
         let expected = Rv::Error(RvError::VendorDefined(code));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn unknown_code() {
+        let code = CKR_VENDOR_DEFINED - 42;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::UnknownErrorCode(code));
         assert_eq!(actual, expected);
     }
 }
