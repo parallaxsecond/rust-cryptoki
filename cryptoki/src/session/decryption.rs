@@ -56,7 +56,7 @@ impl Session {
             .into_result(Function::Decrypt)?;
         }
 
-        data.resize(data_len.try_into()?, 0);
+        data.truncate(data_len.try_into()?);
 
         Ok(data)
     }
@@ -136,7 +136,7 @@ impl Session {
             .into_result(Function::DecryptFinal)?;
         }
 
-        data.resize(data_len.try_into()?, 0);
+        data.truncate(data_len.try_into()?);
 
         Ok(data)
     }

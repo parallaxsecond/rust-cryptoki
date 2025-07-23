@@ -51,7 +51,7 @@ impl Session {
             .into_result(Function::Sign)?;
         }
 
-        signature.resize(signature_len.try_into()?, 0);
+        signature.truncate(signature_len.try_into()?);
 
         Ok(signature)
     }
@@ -113,7 +113,7 @@ impl Session {
             .into_result(Function::SignFinal)?;
         }
 
-        signature.resize(signature_len.try_into()?, 0);
+        signature.truncate(signature_len.try_into()?);
 
         Ok(signature)
     }

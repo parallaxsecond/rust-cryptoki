@@ -54,7 +54,7 @@ impl Session {
             .into_result(Function::EncapsulateKey)?;
         }
 
-        encapsulated.resize(encapsulated_len.try_into()?, 0);
+        encapsulated.truncate(encapsulated_len.try_into()?);
 
         Ok((encapsulated, ObjectHandle::new(handle)))
     }
