@@ -8,7 +8,7 @@ use super::{Error, Result, RvError};
 use cryptoki_sys::*;
 use log::error;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 /// Return value of a PKCS11 function
 pub enum Rv {
     /// The function exited successfully
@@ -116,13 +116,14 @@ impl From<CK_RV> for Rv {
             CKR_PIN_TOO_WEAK => Rv::Error(RvError::PinTooWeak),
             CKR_PUBLIC_KEY_INVALID => Rv::Error(RvError::PublicKeyInvalid),
             CKR_FUNCTION_REJECTED => Rv::Error(RvError::FunctionRejected),
-            CKR_VENDOR_DEFINED => Rv::Error(RvError::VendorDefined),
+            // Section 3.6 of v3.1: "Return values CKR_VENDOR_DEFINED and above are permanently reserved for token vendors."
+            CKR_VENDOR_DEFINED..=CK_ULONG::MAX => Rv::Error(RvError::VendorDefined(ck_rv)),
             other => {
                 error!(
-                    "Can not find a corresponding error for {}, converting to GeneralError.",
+                    "Can not find a corresponding error for {}, converting to UnknownErrorCode.",
                     other
                 );
-                Rv::Error(RvError::GeneralError)
+                Rv::Error(RvError::UnknownErrorCode(other))
             }
         }
     }
@@ -135,5 +136,35 @@ impl Rv {
             Rv::Ok => Ok(()),
             Rv::Error(rv_error) => Err(Error::Pkcs11(rv_error, function)),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{Rv, RvError};
+    use cryptoki_sys::*;
+
+    #[test]
+    fn vendor_defined_exact() {
+        let code = CKR_VENDOR_DEFINED;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::VendorDefined(code));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn vendor_defined_higher() {
+        let code = CKR_VENDOR_DEFINED + 42;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::VendorDefined(code));
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn unknown_code() {
+        let code = CKR_VENDOR_DEFINED - 42;
+        let actual = Rv::from(code);
+        let expected = Rv::Error(RvError::UnknownErrorCode(code));
+        assert_eq!(actual, expected);
     }
 }

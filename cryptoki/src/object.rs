@@ -14,8 +14,6 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
-const MAX_CU_ULONG: CK_ULONG = !0;
-
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
@@ -261,7 +259,7 @@ impl AttributeType {
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
             CKA_UNIQUE_ID => String::from(stringify!(CKA_UNIQUE_ID)),
-            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => {
+            CKA_VENDOR_DEFINED..=CK_ULONG::MAX => {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
             _ => format!("unknown ({val:08x})"),
@@ -409,7 +407,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_VERIFY_RECOVER => Ok(AttributeType::VerifyRecover),
             CKA_WRAP => Ok(AttributeType::Wrap),
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
-            CKA_VENDOR_DEFINED..=MAX_CU_ULONG => Ok(AttributeType::VendorDefined(attribute_type)),
+            CKA_VENDOR_DEFINED..=CK_ULONG::MAX => Ok(AttributeType::VendorDefined(attribute_type)),
             attr_type => {
                 error!("Attribute type {} not supported.", attr_type);
                 Err(Error::NotSupported)
@@ -1296,7 +1294,7 @@ impl KeyType {
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
             CKK_EC_MONTGOMERY => String::from(stringify!(CKK_EC_MONTGOMERY)),
             CKK_HKDF => String::from(stringify!(CKK_HKDF)),
-            CKK_VENDOR_DEFINED..=MAX_CU_ULONG => String::from(stringify!(key_type)),
+            CKK_VENDOR_DEFINED..=CK_ULONG::MAX => String::from(stringify!(key_type)),
             _ => format!("unknown ({key_type:08x})"),
         }
     }
@@ -1371,7 +1369,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_HKDF => Ok(KeyType::HKDF),
-            CKK_VENDOR_DEFINED..=MAX_CU_ULONG => KeyType::new_vendor_defined(key_type),
+            CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
                 error!("Key type {} is not supported.", key_type);
                 Err(Error::NotSupported)
