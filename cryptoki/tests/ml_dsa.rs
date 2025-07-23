@@ -7,7 +7,7 @@ use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::mldsa::{HashSignAdditionalContext, HedgeType, SignAdditionalContext};
 use cryptoki::mechanism::{Mechanism, MechanismType};
-use cryptoki::object::{Attribute, MlDsaParameterSetType};
+use cryptoki::object::{Attribute, AttributeType, MlDsaParameterSetType};
 use cryptoki::session::UserType;
 use cryptoki::types::AuthPin;
 use serial_test::serial;
@@ -99,6 +99,17 @@ fn ml_dsa() -> TestResult {
         result.unwrap_err(),
         Error::Pkcs11(_, Function::VerifySignature)
     ));
+
+    // Test convrting ParameterSet attributes back to algorithm specific values
+    let param_attribute = session
+        .get_attributes(public, &[AttributeType::ParameterSet])?
+        .remove(0);
+    let param: MlDsaParameterSetType = if let Attribute::ParameterSet(num) = param_attribute {
+        num.into()
+    } else {
+        panic!("Expected ParameterSet attribute.");
+    };
+    assert_eq!(param, MlDsaParameterSetType::ML_DSA_65);
 
     // delete keys
     session.destroy_object(public)?;

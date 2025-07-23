@@ -95,6 +95,17 @@ fn ml_kem() -> TestResult {
     let ptext = session.decrypt(&Mechanism::AesEcb, secret, &ctext)?;
     assert_eq!(data, ptext);
 
+    // Test convrting ParameterSet attributes back to algorithm specific values
+    let param_attribute = session
+        .get_attributes(public, &[AttributeType::ParameterSet])?
+        .remove(0);
+    let param: MlKemParameterSetType = if let Attribute::ParameterSet(num) = param_attribute {
+        num.into()
+    } else {
+        panic!("Expected ParameterSet attribute.");
+    };
+    assert_eq!(param, MlKemParameterSetType::ML_KEM_768);
+
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
