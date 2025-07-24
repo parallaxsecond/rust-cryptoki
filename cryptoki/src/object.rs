@@ -94,6 +94,8 @@ pub enum AttributeType {
     ObjectId,
     /// DER encoding of the attribute certificate's subject field
     Owner,
+    /// Algorithm-specific parameter set
+    ParameterSet,
     /// Prime number value of a key
     Prime,
     /// The prime `p` of an RSA private key
@@ -108,6 +110,8 @@ pub enum AttributeType {
     PublicExponent,
     /// DER-encoding of the SubjectPublicKeyInfo
     PublicKeyInfo,
+    /// Seed to derive private key
+    Seed,
     /// Determines if the key is sensitive
     Sensitive,
     /// DER encoding of the certificate serial number
@@ -144,10 +148,6 @@ pub enum AttributeType {
     Wrap,
     /// Indicates that the key can only be wrapped with a wrapping key that has the Trusted attribute
     WrapWithTrusted,
-    /// Seed to derive private key
-    Seed,
-    /// Algorithm-specific parameter set
-    ParameterSet,
 }
 
 impl AttributeType {
