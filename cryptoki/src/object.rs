@@ -1278,6 +1278,12 @@ impl ObjectClass {
     pub const MECHANISM: ObjectClass = ObjectClass { val: CKO_MECHANISM };
     /// An OTP key object
     pub const OTP_KEY: ObjectClass = ObjectClass { val: CKO_OTP_KEY };
+    /// Profile object
+    pub const PROFILE: ObjectClass = ObjectClass { val: CKO_PROFILE };
+    /// Validation object
+    pub const VALIDATION: ObjectClass = ObjectClass {
+        val: CKO_VALIDATION,
+    };
 
     pub(crate) fn stringify(class: CK_OBJECT_CLASS) -> String {
         match class {
@@ -1290,6 +1296,8 @@ impl ObjectClass {
             CKO_DOMAIN_PARAMETERS => String::from(stringify!(CKO_DOMAIN_PARAMETERS)),
             CKO_MECHANISM => String::from(stringify!(CKO_MECHANISM)),
             CKO_OTP_KEY => String::from(stringify!(CKO_OTP_KEY)),
+            CKO_PROFILE => String::from(stringify!(CKO_PROFILE)),
+            CKO_VALIDATION => String::from(stringify!(CKO_VALIDATION)),
             _ => format!("unknown ({class:08x})"),
         }
     }
@@ -1329,6 +1337,8 @@ impl TryFrom<CK_OBJECT_CLASS> for ObjectClass {
             CKO_DOMAIN_PARAMETERS => Ok(ObjectClass::DOMAIN_PARAMETERS),
             CKO_MECHANISM => Ok(ObjectClass::MECHANISM),
             CKO_OTP_KEY => Ok(ObjectClass::OTP_KEY),
+            CKO_PROFILE => Ok(ObjectClass::PROFILE),
+            CKO_VALIDATION => Ok(ObjectClass::VALIDATION),
 
             _ => {
                 error!("Object class {} is not supported.", object_class);
