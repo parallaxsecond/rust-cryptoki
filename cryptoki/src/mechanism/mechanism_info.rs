@@ -32,6 +32,8 @@ bitflags! {
         const MESSAGE_ENCRYPT = CKF_MESSAGE_ENCRYPT;
         const MESSAGE_DECRYPT = CKF_MESSAGE_DECRYPT;
         const MULTI_MESSAGE = CKF_MULTI_MESSAGE;
+        const ENCAPSULATE = CKF_ENCAPSULATE;
+        const DECAPSULATE = CKF_DECAPSULATE;
     }
 }
 
@@ -252,6 +254,20 @@ impl MechanismInfo {
     pub fn multi_message(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::MULTI_MESSAGE)
     }
+
+    /// True if the mechanism can be used to encapsulate other keys
+    ///
+    /// See [`Session::encapsulate_key`](crate::session::Session::encapsulate_key)
+    pub fn encapsulate(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::ENCAPSULATE)
+    }
+
+    /// True if the mechanism can be used to decapsulate other keys
+    ///
+    /// See [`Session::decapsulate_key`](crate::session::Session::decapsulate_key)
+    pub fn decapsulate(&self) -> bool {
+        self.flags.contains(MechanismInfoFlags::DECAPSULATE)
+    }
 }
 
 impl std::fmt::Display for MechanismInfo {
@@ -294,7 +310,7 @@ HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
 VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
 EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
 EC_OID | EC_UNCOMPRESS | EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | \
-MULTI_MESSAGE";
+MULTI_MESSAGE | ENCAPSULATE | DECAPSULATE";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");

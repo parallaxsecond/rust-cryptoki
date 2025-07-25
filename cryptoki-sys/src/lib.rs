@@ -7,6 +7,8 @@
 #![allow(clippy::missing_safety_doc)]
 #![allow(clippy::string_lit_as_bytes)]
 #![allow(clippy::too_many_arguments)]
+// Public items exportedby this crate should match the C API
+#![allow(clippy::type_complexity)]
 // Public items exportedby this crate should match the C style
 #![allow(clippy::upper_case_acronyms)]
 // Suppress warnings from bindgen-generated code

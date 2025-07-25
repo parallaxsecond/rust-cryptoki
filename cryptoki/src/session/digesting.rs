@@ -49,7 +49,7 @@ impl Session {
             .into_result(Function::Digest)?;
         }
 
-        digest.resize(digest_len.try_into()?, 0);
+        digest.truncate(digest_len.try_into()?);
 
         Ok(digest)
     }
@@ -124,7 +124,7 @@ impl Session {
             .into_result(Function::DigestFinal)?;
         }
 
-        digest.resize(digest_len.try_into()?, 0);
+        digest.truncate(digest_len.try_into()?);
 
         Ok(digest)
     }

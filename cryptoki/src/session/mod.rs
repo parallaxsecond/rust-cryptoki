@@ -10,6 +10,7 @@ use std::marker::PhantomData;
 
 mod decryption;
 mod digesting;
+mod encapsulation;
 mod encryption;
 mod key_management;
 mod message_decryption;

@@ -68,7 +68,7 @@ impl Session {
             .into_result(Function::EncryptMessage)?;
         }
 
-        encrypted_data.resize(encrypted_data_len.try_into()?, 0);
+        encrypted_data.truncate(encrypted_data_len.try_into()?);
 
         Ok(encrypted_data)
     }
@@ -123,7 +123,7 @@ impl Session {
             ))
             .into_result(Function::EncryptMessageNext)?;
         }
-        encrypted_data.resize(encrypted_data_len.try_into()?, 0);
+        encrypted_data.truncate(encrypted_data_len.try_into()?);
 
         Ok(encrypted_data)
     }

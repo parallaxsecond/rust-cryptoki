@@ -42,6 +42,8 @@ pub enum AttributeType {
     Coefficient,
     /// Determines if an object can be copied
     Copyable,
+    /// Determines if a key supports key decapsulation
+    Decapsulate,
     /// Determines if a key supports decryption
     Decrypt,
     /// Determines if it is possible to derive other keys from the key
@@ -52,6 +54,8 @@ pub enum AttributeType {
     EcParams,
     /// DER-encoded Elliptic Curve point
     EcPoint,
+    /// Determines if a key supports key encapsulation
+    Encapsulate,
     /// Determines if a key supports encryption
     Encrypt,
     /// The end date for the object
@@ -140,6 +144,10 @@ pub enum AttributeType {
     Wrap,
     /// Indicates that the key can only be wrapped with a wrapping key that has the Trusted attribute
     WrapWithTrusted,
+    /// Seed to derive private key
+    Seed,
+    /// Algorithm-specific parameter set
+    ParameterSet,
 }
 
 impl AttributeType {
@@ -259,6 +267,8 @@ impl AttributeType {
             CKA_DERIVE_TEMPLATE => String::from(stringify!(CKA_DERIVE_TEMPLATE)),
             CKA_ALLOWED_MECHANISMS => String::from(stringify!(CKA_ALLOWED_MECHANISMS)),
             CKA_UNIQUE_ID => String::from(stringify!(CKA_UNIQUE_ID)),
+            CKA_SEED => String::from(stringify!(CKA_SEED)),
+            CKA_PARAMETER_SET => String::from(stringify!(CKA_PARAMETER_SET)),
             CKA_VENDOR_DEFINED..=CK_ULONG::MAX => {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
@@ -289,11 +299,13 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Class => CKA_CLASS,
             AttributeType::Coefficient => CKA_COEFFICIENT,
             AttributeType::Copyable => CKA_COPYABLE,
+            AttributeType::Decapsulate => CKA_DECAPSULATE,
             AttributeType::Decrypt => CKA_DECRYPT,
             AttributeType::Derive => CKA_DERIVE,
             AttributeType::Destroyable => CKA_DESTROYABLE,
             AttributeType::EcParams => CKA_EC_PARAMS,
             AttributeType::EcPoint => CKA_EC_POINT,
+            AttributeType::Encapsulate => CKA_ENCAPSULATE,
             AttributeType::Encrypt => CKA_ENCRYPT,
             AttributeType::EndDate => CKA_END_DATE,
             AttributeType::Exponent1 => CKA_EXPONENT_1,
@@ -313,6 +325,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::NeverExtractable => CKA_NEVER_EXTRACTABLE,
             AttributeType::ObjectId => CKA_OBJECT_ID,
             AttributeType::Owner => CKA_OWNER,
+            AttributeType::ParameterSet => CKA_PARAMETER_SET,
             AttributeType::Prime => CKA_PRIME,
             AttributeType::Prime1 => CKA_PRIME_1,
             AttributeType::Prime2 => CKA_PRIME_2,
@@ -320,6 +333,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::PrivateExponent => CKA_PRIVATE_EXPONENT,
             AttributeType::PublicExponent => CKA_PUBLIC_EXPONENT,
             AttributeType::PublicKeyInfo => CKA_PUBLIC_KEY_INFO,
+            AttributeType::Seed => CKA_SEED,
             AttributeType::Sensitive => CKA_SENSITIVE,
             AttributeType::SerialNumber => CKA_SERIAL_NUMBER,
             AttributeType::Sign => CKA_SIGN,
@@ -359,11 +373,13 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_CLASS => Ok(AttributeType::Class),
             CKA_COEFFICIENT => Ok(AttributeType::Coefficient),
             CKA_COPYABLE => Ok(AttributeType::Copyable),
+            CKA_DECAPSULATE => Ok(AttributeType::Decapsulate),
             CKA_DECRYPT => Ok(AttributeType::Decrypt),
             CKA_DERIVE => Ok(AttributeType::Derive),
             CKA_DESTROYABLE => Ok(AttributeType::Destroyable),
             CKA_EC_PARAMS => Ok(AttributeType::EcParams),
             CKA_EC_POINT => Ok(AttributeType::EcPoint),
+            CKA_ENCAPSULATE => Ok(AttributeType::Encapsulate),
             CKA_ENCRYPT => Ok(AttributeType::Encrypt),
             CKA_END_DATE => Ok(AttributeType::EndDate),
             CKA_EXPONENT_1 => Ok(AttributeType::Exponent1),
@@ -383,6 +399,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_NEVER_EXTRACTABLE => Ok(AttributeType::NeverExtractable),
             CKA_OBJECT_ID => Ok(AttributeType::ObjectId),
             CKA_OWNER => Ok(AttributeType::Owner),
+            CKA_PARAMETER_SET => Ok(AttributeType::ParameterSet),
             CKA_PRIME => Ok(AttributeType::Prime),
             CKA_PRIME_1 => Ok(AttributeType::Prime1),
             CKA_PRIME_2 => Ok(AttributeType::Prime2),
@@ -390,6 +407,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_PRIVATE_EXPONENT => Ok(AttributeType::PrivateExponent),
             CKA_PUBLIC_EXPONENT => Ok(AttributeType::PublicExponent),
             CKA_PUBLIC_KEY_INFO => Ok(AttributeType::PublicKeyInfo),
+            CKA_SEED => Ok(AttributeType::Seed),
             CKA_SENSITIVE => Ok(AttributeType::Sensitive),
             CKA_SERIAL_NUMBER => Ok(AttributeType::SerialNumber),
             CKA_SIGN => Ok(AttributeType::Sign),
@@ -444,6 +462,8 @@ pub enum Attribute {
     Coefficient(Vec<u8>),
     /// Determines if an object can be copied
     Copyable(bool),
+    /// Determines if a key supports key decapsulation
+    Decapsulate(bool),
     /// Determines if a key supports decryption
     Decrypt(bool),
     /// Determines if it is possible to derive other keys from the key
@@ -454,6 +474,8 @@ pub enum Attribute {
     EcParams(Vec<u8>),
     /// Elliptic Curve point
     EcPoint(Vec<u8>),
+    /// Determines if a key supports key encapsulation
+    Encapsulate(bool),
     /// Determines if a key supports encryption
     Encrypt(bool),
     /// The end date of the object
@@ -492,6 +514,8 @@ pub enum Attribute {
     ObjectId(Vec<u8>),
     /// DER encoding of the attribute certificate's subject field
     Owner(Vec<u8>),
+    /// Algorithm specific parameter set, now used for ML-DSA and ML-KEM algorithms
+    ParameterSet(ParameterSetType),
     /// Prime number value of a key
     Prime(Vec<u8>),
     /// The prime `p` of an RSA private key
@@ -506,6 +530,8 @@ pub enum Attribute {
     PublicExponent(Vec<u8>),
     /// DER-encoding of the SubjectPublicKeyInfo
     PublicKeyInfo(Vec<u8>),
+    /// Seed to derive private key
+    Seed(Vec<u8>),
     /// Determines if the key is sensitive
     Sensitive(bool),
     /// DER encoding of the certificate serial number
@@ -560,11 +586,13 @@ impl Attribute {
             Attribute::Class(_) => AttributeType::Class,
             Attribute::Coefficient(_) => AttributeType::Coefficient,
             Attribute::Copyable(_) => AttributeType::Copyable,
+            Attribute::Decapsulate(_) => AttributeType::Decapsulate,
             Attribute::Decrypt(_) => AttributeType::Decrypt,
             Attribute::Derive(_) => AttributeType::Derive,
             Attribute::Destroyable(_) => AttributeType::Destroyable,
             Attribute::EcParams(_) => AttributeType::EcParams,
             Attribute::EcPoint(_) => AttributeType::EcPoint,
+            Attribute::Encapsulate(_) => AttributeType::Encapsulate,
             Attribute::Encrypt(_) => AttributeType::Encrypt,
             Attribute::EndDate(_) => AttributeType::EndDate,
             Attribute::Exponent1(_) => AttributeType::Exponent1,
@@ -584,6 +612,7 @@ impl Attribute {
             Attribute::NeverExtractable(_) => AttributeType::NeverExtractable,
             Attribute::ObjectId(_) => AttributeType::ObjectId,
             Attribute::Owner(_) => AttributeType::Owner,
+            Attribute::ParameterSet(_) => AttributeType::ParameterSet,
             Attribute::Prime(_) => AttributeType::Prime,
             Attribute::Prime1(_) => AttributeType::Prime1,
             Attribute::Prime2(_) => AttributeType::Prime2,
@@ -591,6 +620,7 @@ impl Attribute {
             Attribute::PrivateExponent(_) => AttributeType::PrivateExponent,
             Attribute::PublicExponent(_) => AttributeType::PublicExponent,
             Attribute::PublicKeyInfo(_) => AttributeType::PublicKeyInfo,
+            Attribute::Seed(_) => AttributeType::Seed,
             Attribute::Sensitive(_) => AttributeType::Sensitive,
             Attribute::SerialNumber(_) => AttributeType::SerialNumber,
             Attribute::Sign(_) => AttributeType::Sign,
@@ -618,9 +648,11 @@ impl Attribute {
             Attribute::AlwaysAuthenticate(_)
             | Attribute::AlwaysSensitive(_)
             | Attribute::Copyable(_)
+            | Attribute::Decapsulate(_)
             | Attribute::Decrypt(_)
             | Attribute::Derive(_)
             | Attribute::Destroyable(_)
+            | Attribute::Encapsulate(_)
             | Attribute::Encrypt(_)
             | Attribute::Extractable(_)
             | Attribute::Local(_)
@@ -661,12 +693,14 @@ impl Attribute {
             Attribute::ModulusBits(_) => size_of::<CK_ULONG>(),
             Attribute::ObjectId(bytes) => bytes.len(),
             Attribute::Owner(bytes) => bytes.len(),
+            Attribute::ParameterSet(_) => size_of::<CK_ULONG>(),
             Attribute::Prime(bytes) => bytes.len(),
             Attribute::Prime1(bytes) => bytes.len(),
             Attribute::Prime2(bytes) => bytes.len(),
             Attribute::PrivateExponent(bytes) => bytes.len(),
             Attribute::PublicExponent(bytes) => bytes.len(),
             Attribute::PublicKeyInfo(bytes) => bytes.len(),
+            Attribute::Seed(bytes) => bytes.len(),
             Attribute::SerialNumber(bytes) => bytes.len(),
             Attribute::Subject(bytes) => bytes.len(),
             Attribute::UniqueId(bytes) => bytes.len(),
@@ -699,9 +733,11 @@ impl Attribute {
             Attribute::AlwaysAuthenticate(b)
             | Attribute::AlwaysSensitive(b)
             | Attribute::Copyable(b)
+            | Attribute::Decapsulate(b)
             | Attribute::Decrypt(b)
             | Attribute::Derive(b)
             | Attribute::Destroyable(b)
+            | Attribute::Encapsulate(b)
             | Attribute::Encrypt(b)
             | Attribute::Extractable(b)
             | Attribute::Local(b)
@@ -746,6 +782,7 @@ impl Attribute {
             | Attribute::PublicKeyInfo(bytes)
             | Attribute::Modulus(bytes)
             | Attribute::Owner(bytes)
+            | Attribute::Seed(bytes)
             | Attribute::SerialNumber(bytes)
             | Attribute::Subject(bytes)
             | Attribute::UniqueId(bytes)
@@ -754,6 +791,7 @@ impl Attribute {
             | Attribute::VendorDefined((_, bytes))
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
+            Attribute::ParameterSet(val) => val as *const _ as *mut c_void,
             Attribute::CertificateType(certificate_type) => {
                 certificate_type as *const _ as *mut c_void
             }
@@ -816,9 +854,11 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                 Ok(Attribute::AlwaysSensitive(try_u8_into_bool(val)?))
             }
             AttributeType::Copyable => Ok(Attribute::Copyable(try_u8_into_bool(val)?)),
+            AttributeType::Decapsulate => Ok(Attribute::Decapsulate(try_u8_into_bool(val)?)),
             AttributeType::Decrypt => Ok(Attribute::Decrypt(try_u8_into_bool(val)?)),
             AttributeType::Derive => Ok(Attribute::Derive(try_u8_into_bool(val)?)),
             AttributeType::Destroyable => Ok(Attribute::Destroyable(try_u8_into_bool(val)?)),
+            AttributeType::Encapsulate => Ok(Attribute::Encapsulate(try_u8_into_bool(val)?)),
             AttributeType::Encrypt => Ok(Attribute::Encrypt(try_u8_into_bool(val)?)),
             AttributeType::Extractable => Ok(Attribute::Extractable(try_u8_into_bool(val)?)),
             AttributeType::Local => Ok(Attribute::Local(try_u8_into_bool(val)?)),
@@ -874,6 +914,7 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Modulus => Ok(Attribute::Modulus(val.to_vec())),
             AttributeType::ObjectId => Ok(Attribute::ObjectId(val.to_vec())),
             AttributeType::Owner => Ok(Attribute::Owner(val.to_vec())),
+            AttributeType::Seed => Ok(Attribute::Seed(val.to_vec())),
             AttributeType::SerialNumber => Ok(Attribute::SerialNumber(val.to_vec())),
             AttributeType::Subject => Ok(Attribute::Subject(val.to_vec())),
             AttributeType::UniqueId => Ok(Attribute::UniqueId(val.to_vec())),
@@ -881,6 +922,9 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
+            AttributeType::ParameterSet => Ok(Attribute::ParameterSet(ParameterSetType {
+                val: CK_ULONG::from_ne_bytes(val.try_into()?).into(),
+            })),
             AttributeType::CertificateType => Ok(Attribute::CertificateType(
                 CK_CERTIFICATE_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
@@ -992,6 +1036,207 @@ impl std::fmt::LowerHex for ObjectHandle {
 impl std::fmt::UpperHex for ObjectHandle {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:08X}", self.handle)
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// Generic parameter set
+pub struct ParameterSetType {
+    val: Ulong,
+}
+
+impl ParameterSetType {
+    pub(crate) fn stringify(val: Ulong) -> String {
+        format!("unknown ({:08x})", *val)
+    }
+}
+
+impl std::fmt::Display for ParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", ParameterSetType::stringify(self.val))
+    }
+}
+
+impl Deref for ParameterSetType {
+    type Target = Ulong;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<ParameterSetType> for Ulong {
+    fn from(val: ParameterSetType) -> Self {
+        *val
+    }
+}
+
+impl TryFrom<Ulong> for ParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: Ulong) -> Result<Self> {
+        Ok(ParameterSetType { val })
+    }
+}
+
+impl From<MlKemParameterSetType> for ParameterSetType {
+    fn from(val: MlKemParameterSetType) -> Self {
+        ParameterSetType {
+            val: Ulong::new(*val),
+        }
+    }
+}
+
+impl From<MlDsaParameterSetType> for ParameterSetType {
+    fn from(val: MlDsaParameterSetType) -> Self {
+        ParameterSetType {
+            val: Ulong::new(*val),
+        }
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// Identifier of the ML-KEM parameter set
+pub struct MlKemParameterSetType {
+    val: CK_ML_KEM_PARAMETER_SET_TYPE,
+}
+
+impl MlKemParameterSetType {
+    /// ML-KEM 512
+    pub const ML_KEM_512: MlKemParameterSetType = MlKemParameterSetType {
+        val: CKP_ML_KEM_512,
+    };
+    /// ML-KEM 768
+    pub const ML_KEM_768: MlKemParameterSetType = MlKemParameterSetType {
+        val: CKP_ML_KEM_768,
+    };
+    /// ML-KEM 1024
+    pub const ML_KEM_1024: MlKemParameterSetType = MlKemParameterSetType {
+        val: CKP_ML_KEM_1024,
+    };
+
+    pub(crate) fn stringify(val: CK_ML_KEM_PARAMETER_SET_TYPE) -> String {
+        match val {
+            CKP_ML_KEM_512 => String::from(stringify!(CKP_ML_KEM_512)),
+            CKP_ML_KEM_768 => String::from(stringify!(CKP_ML_KEM_768)),
+            CKP_ML_KEM_1024 => String::from(stringify!(CKP_ML_KEM_1024)),
+            _ => format!("unknown ({val:08x})"),
+        }
+    }
+}
+
+impl std::fmt::Display for MlKemParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", MlKemParameterSetType::stringify(self.val))
+    }
+}
+
+impl Deref for MlKemParameterSetType {
+    type Target = CK_ML_KEM_PARAMETER_SET_TYPE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<MlKemParameterSetType> for CK_ML_KEM_PARAMETER_SET_TYPE {
+    fn from(val: MlKemParameterSetType) -> Self {
+        *val
+    }
+}
+
+impl TryFrom<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: CK_ML_KEM_PARAMETER_SET_TYPE) -> Result<Self> {
+        match val {
+            CKP_ML_KEM_512 => Ok(MlKemParameterSetType::ML_KEM_512),
+            CKP_ML_KEM_768 => Ok(MlKemParameterSetType::ML_KEM_768),
+            CKP_ML_KEM_1024 => Ok(MlKemParameterSetType::ML_KEM_1024),
+            _ => {
+                error!("ML-KEM parameter set {} is not supported.", val);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+impl From<ParameterSetType> for MlKemParameterSetType {
+    fn from(val: ParameterSetType) -> Self {
+        MlKemParameterSetType {
+            val: CK_ULONG::from(*val),
+        }
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// Identifier of the ML-DSA parameter set
+pub struct MlDsaParameterSetType {
+    val: CK_ML_DSA_PARAMETER_SET_TYPE,
+}
+
+impl MlDsaParameterSetType {
+    /// ML-DSA 44
+    pub const ML_DSA_44: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_44 };
+    /// ML-DSA 65
+    pub const ML_DSA_65: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_65 };
+    /// ML-DSA 87
+    pub const ML_DSA_87: MlDsaParameterSetType = MlDsaParameterSetType { val: CKP_ML_DSA_87 };
+
+    pub(crate) fn stringify(val: CK_ML_DSA_PARAMETER_SET_TYPE) -> String {
+        match val {
+            CKP_ML_DSA_44 => String::from(stringify!(CKP_ML_DSA_44)),
+            CKP_ML_DSA_65 => String::from(stringify!(CKP_ML_DSA_65)),
+            CKP_ML_DSA_87 => String::from(stringify!(CKP_ML_DSA_87)),
+            _ => format!("unknown ({val:08x})"),
+        }
+    }
+}
+
+impl std::fmt::Display for MlDsaParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", MlDsaParameterSetType::stringify(self.val))
+    }
+}
+
+impl Deref for MlDsaParameterSetType {
+    type Target = CK_ML_DSA_PARAMETER_SET_TYPE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<MlDsaParameterSetType> for CK_ML_DSA_PARAMETER_SET_TYPE {
+    fn from(val: MlDsaParameterSetType) -> Self {
+        *val
+    }
+}
+
+impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: CK_ML_DSA_PARAMETER_SET_TYPE) -> Result<Self> {
+        match val {
+            CKP_ML_DSA_44 => Ok(MlDsaParameterSetType::ML_DSA_44),
+            CKP_ML_DSA_65 => Ok(MlDsaParameterSetType::ML_DSA_65),
+            CKP_ML_DSA_87 => Ok(MlDsaParameterSetType::ML_DSA_87),
+            _ => {
+                error!("ML-DSA parameter set {} is not supported.", val);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+impl From<ParameterSetType> for MlDsaParameterSetType {
+    fn from(val: ParameterSetType) -> Self {
+        MlDsaParameterSetType {
+            val: CK_ULONG::from(*val),
+        }
     }
 }
 
@@ -1222,6 +1467,12 @@ impl KeyType {
     /// HKDF key
     pub const HKDF: KeyType = KeyType { val: CKK_HKDF };
 
+    /// ML-KEM key
+    pub const ML_KEM: KeyType = KeyType { val: CKK_ML_KEM };
+
+    /// ML-DSA key
+    pub const ML_DSA: KeyType = KeyType { val: CKK_ML_DSA };
+
     /// Create vendor defined key type
     ///
     /// # Arguments
@@ -1294,6 +1545,8 @@ impl KeyType {
             CKK_EC_EDWARDS => String::from(stringify!(CKK_EC_EDWARDS)),
             CKK_EC_MONTGOMERY => String::from(stringify!(CKK_EC_MONTGOMERY)),
             CKK_HKDF => String::from(stringify!(CKK_HKDF)),
+            CKK_ML_KEM => String::from(stringify!(CKK_ML_KEM)),
+            CKK_ML_DSA => String::from(stringify!(CKK_ML_DSA)),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => String::from(stringify!(key_type)),
             _ => format!("unknown ({key_type:08x})"),
         }
@@ -1369,6 +1622,8 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_EC_EDWARDS => Ok(KeyType::EC_EDWARDS),
             CKK_EC_MONTGOMERY => Ok(KeyType::EC_MONTGOMERY),
             CKK_HKDF => Ok(KeyType::HKDF),
+            CKK_ML_KEM => Ok(KeyType::ML_KEM),
+            CKK_ML_DSA => Ok(KeyType::ML_DSA),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
                 error!("Key type {} is not supported.", key_type);
