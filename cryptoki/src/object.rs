@@ -110,6 +110,8 @@ pub enum AttributeType {
     PublicExponent,
     /// DER-encoding of the SubjectPublicKeyInfo
     PublicKeyInfo,
+    /// Profile ID
+    ProfileId,
     /// Seed to derive private key
     Seed,
     /// Determines if the key is sensitive
@@ -269,6 +271,7 @@ impl AttributeType {
             CKA_UNIQUE_ID => String::from(stringify!(CKA_UNIQUE_ID)),
             CKA_SEED => String::from(stringify!(CKA_SEED)),
             CKA_PARAMETER_SET => String::from(stringify!(CKA_PARAMETER_SET)),
+            CKA_PROFILE_ID => String::from(stringify!(CKA_PROFILE_ID)),
             CKA_VENDOR_DEFINED..=CK_ULONG::MAX => {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
@@ -331,6 +334,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Prime2 => CKA_PRIME_2,
             AttributeType::Private => CKA_PRIVATE,
             AttributeType::PrivateExponent => CKA_PRIVATE_EXPONENT,
+            AttributeType::ProfileId => CKA_PROFILE_ID,
             AttributeType::PublicExponent => CKA_PUBLIC_EXPONENT,
             AttributeType::PublicKeyInfo => CKA_PUBLIC_KEY_INFO,
             AttributeType::Seed => CKA_SEED,
@@ -405,6 +409,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_PRIME_2 => Ok(AttributeType::Prime2),
             CKA_PRIVATE => Ok(AttributeType::Private),
             CKA_PRIVATE_EXPONENT => Ok(AttributeType::PrivateExponent),
+            CKA_PROFILE_ID => Ok(AttributeType::ProfileId),
             CKA_PUBLIC_EXPONENT => Ok(AttributeType::PublicExponent),
             CKA_PUBLIC_KEY_INFO => Ok(AttributeType::PublicKeyInfo),
             CKA_SEED => Ok(AttributeType::Seed),
@@ -526,6 +531,8 @@ pub enum Attribute {
     Private(bool),
     /// The private exponent `d`
     PrivateExponent(Vec<u8>),
+    /// The Profile ID
+    ProfileId(ProfileIdType),
     /// Public exponent value of a key
     PublicExponent(Vec<u8>),
     /// DER-encoding of the SubjectPublicKeyInfo
@@ -618,6 +625,7 @@ impl Attribute {
             Attribute::Prime2(_) => AttributeType::Prime2,
             Attribute::Private(_) => AttributeType::Private,
             Attribute::PrivateExponent(_) => AttributeType::PrivateExponent,
+            Attribute::ProfileId(_) => AttributeType::ProfileId,
             Attribute::PublicExponent(_) => AttributeType::PublicExponent,
             Attribute::PublicKeyInfo(_) => AttributeType::PublicKeyInfo,
             Attribute::Seed(_) => AttributeType::Seed,
@@ -698,6 +706,7 @@ impl Attribute {
             Attribute::Prime1(bytes) => bytes.len(),
             Attribute::Prime2(bytes) => bytes.len(),
             Attribute::PrivateExponent(bytes) => bytes.len(),
+            Attribute::ProfileId(_) => size_of::<CK_PROFILE_ID>(),
             Attribute::PublicExponent(bytes) => bytes.len(),
             Attribute::PublicKeyInfo(bytes) => bytes.len(),
             Attribute::Seed(bytes) => bytes.len(),
@@ -792,6 +801,7 @@ impl Attribute {
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
             Attribute::ParameterSet(val) => val as *const _ as *mut c_void,
+            Attribute::ProfileId(val) => val as *const _ as *mut c_void,
             Attribute::CertificateType(certificate_type) => {
                 certificate_type as *const _ as *mut c_void
             }
@@ -922,6 +932,9 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
+            AttributeType::ProfileId => Ok(Attribute::ProfileId(ProfileIdType {
+                val: CK_ULONG::from_ne_bytes(val.try_into()?),
+            })),
             AttributeType::ParameterSet => Ok(Attribute::ParameterSet(ParameterSetType {
                 val: CK_ULONG::from_ne_bytes(val.try_into()?).into(),
             })),
@@ -1713,6 +1726,95 @@ impl TryFrom<CK_CERTIFICATE_TYPE> for CertificateType {
             CKC_WTLS => Ok(CertificateType::WTLS),
             _ => {
                 error!("Certificate type {} is not supported.", certificate_type);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// The PKCS#11 Profile ID
+///
+/// The profiles and their meaning is defined in the following document:
+///
+/// <https://docs.oasis-open.org/pkcs11/pkcs11-profiles/v3.1/os/pkcs11-profiles-v3.1-os.html>
+pub struct ProfileIdType {
+    val: CK_PROFILE_ID,
+}
+
+impl ProfileIdType {
+    /// Baseline Provider
+    pub const BASELINE_PROFIDER: ProfileIdType = ProfileIdType {
+        val: CKP_BASELINE_PROVIDER,
+    };
+    /// Extended Provider
+    pub const EXTENDED_PROFIDER: ProfileIdType = ProfileIdType {
+        val: CKP_EXTENDED_PROVIDER,
+    };
+    /// Authentication Token Provider or Consumer
+    pub const AUTHENTICATION_TOKEN: ProfileIdType = ProfileIdType {
+        val: CKP_AUTHENTICATION_TOKEN,
+    };
+    /// Public Certificates Token Provider or Consumer
+    pub const PUBLIC_CERTIFICATES_TOKEN: ProfileIdType = ProfileIdType {
+        val: CKP_PUBLIC_CERTIFICATES_TOKEN,
+    };
+    /// Complete Provider
+    pub const COMPLETE_PROVIDER: ProfileIdType = ProfileIdType {
+        val: CKP_COMPLETE_PROVIDER,
+    };
+    /// HKDF TLS Token
+    pub const HKDF_TLS_TOKEN: ProfileIdType = ProfileIdType {
+        val: CKP_HKDF_TLS_TOKEN,
+    };
+}
+
+impl std::fmt::Display for ProfileIdType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self.val {
+                CKP_BASELINE_PROVIDER => stringify!(CKP_BASELINE_PROVIDER),
+                CKP_EXTENDED_PROVIDER => stringify!(CKP_EXTENDED_PROVIDER),
+                CKP_AUTHENTICATION_TOKEN => stringify!(CKP_AUTHENTICATION_TOKEN),
+                CKP_PUBLIC_CERTIFICATES_TOKEN => {
+                    stringify!(CKP_PUBLIC_CERTIFICATES_TOKEN)
+                }
+                CKP_COMPLETE_PROVIDER => stringify!(CKP_COMPLETE_PROVIDER),
+                CKP_HKDF_TLS_TOKEN => stringify!(CKP_HKDF_TLS_TOKEN),
+                profile_id => return write!(f, "unknown ({profile_id:08x})"),
+            }
+        )
+    }
+}
+
+impl AsRef<CK_PROFILE_ID> for ProfileIdType {
+    fn as_ref(&self) -> &CK_PROFILE_ID {
+        &self.val
+    }
+}
+
+impl From<ProfileIdType> for CK_PROFILE_ID {
+    fn from(profile_id: ProfileIdType) -> Self {
+        *profile_id.as_ref()
+    }
+}
+
+impl TryFrom<CK_PROFILE_ID> for ProfileIdType {
+    type Error = Error;
+
+    fn try_from(profile_id: CK_PROFILE_ID) -> Result<Self> {
+        match profile_id {
+            CKP_BASELINE_PROVIDER => Ok(ProfileIdType::BASELINE_PROFIDER),
+            CKP_EXTENDED_PROVIDER => Ok(ProfileIdType::EXTENDED_PROFIDER),
+            CKP_AUTHENTICATION_TOKEN => Ok(ProfileIdType::AUTHENTICATION_TOKEN),
+            CKP_PUBLIC_CERTIFICATES_TOKEN => Ok(ProfileIdType::PUBLIC_CERTIFICATES_TOKEN),
+            CKP_COMPLETE_PROVIDER => Ok(ProfileIdType::COMPLETE_PROVIDER),
+            CKP_HKDF_TLS_TOKEN => Ok(ProfileIdType::HKDF_TLS_TOKEN),
+            _ => {
+                error!("Profile Id {} is not supported.", profile_id);
                 Err(Error::NotSupported)
             }
         }
