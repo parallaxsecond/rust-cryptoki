@@ -1156,7 +1156,7 @@ impl TryFrom<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
             CKP_ML_KEM_768 => Ok(MlKemParameterSetType::ML_KEM_768),
             CKP_ML_KEM_1024 => Ok(MlKemParameterSetType::ML_KEM_1024),
             _ => {
-                error!("ML-KEM parameter set {} is not supported.", val);
+                error!("ML-KEM parameter set {val} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1225,7 +1225,7 @@ impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
             CKP_ML_DSA_65 => Ok(MlDsaParameterSetType::ML_DSA_65),
             CKP_ML_DSA_87 => Ok(MlDsaParameterSetType::ML_DSA_87),
             _ => {
-                error!("ML-DSA parameter set {} is not supported.", val);
+                error!("ML-DSA parameter set {val} is not supported.");
                 Err(Error::NotSupported)
             }
         }
