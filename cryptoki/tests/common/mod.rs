@@ -1,7 +1,8 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 use cryptoki::context::{CInitializeArgs, Pkcs11};
-use cryptoki::session::UserType;
+use cryptoki::object::{Attribute, ObjectClass};
+use cryptoki::session::{Session, UserType};
 use cryptoki::slot::Slot;
 use cryptoki::types::AuthPin;
 use std::env;
@@ -24,6 +25,16 @@ pub fn is_softhsm() -> bool {
 #[allow(dead_code)]
 pub fn is_kryoptic() -> bool {
     get_pkcs11_path().contains("kryoptic")
+}
+
+#[allow(dead_code)]
+pub fn is_fips(session: &Session) -> bool {
+    let template = vec![Attribute::Class(ObjectClass::VALIDATION)];
+
+    match session.find_objects(&template) {
+        Ok(l) => !l.is_empty(),
+        Err(_) => false,
+    }
 }
 
 pub fn get_pkcs11() -> Pkcs11 {
