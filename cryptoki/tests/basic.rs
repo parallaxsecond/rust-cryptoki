@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 mod common;
 
-use crate::common::{get_firmware_version, get_pkcs11, is_kryoptic, is_softhsm, SO_PIN, USER_PIN};
+use crate::common::{
+    get_firmware_version, get_pkcs11, is_fips, is_kryoptic, is_softhsm, SO_PIN, USER_PIN,
+};
 use common::init_pins;
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
@@ -4040,7 +4042,6 @@ fn aes_cmac_verify_impl(key: [u8; 16], message: &[u8], expected_mac: [u8; 16]) -
     Ok(())
 }
 
-/// AES-CMAC test vectors from RFC 4493
 #[test]
 #[serial]
 fn unique_id() -> TestResult {
@@ -4093,6 +4094,88 @@ fn unique_id() -> TestResult {
 
     // we can not set the UniqueId attribute
     let update_template = vec![Attribute::UniqueId(vec![0x01, 0x02, 0x03])];
+    let res = session.update_attributes(key, &update_template);
+    assert!(res.is_err());
+    if is_softhsm() {
+        // SoftHSM does not support this attribute at all
+        assert!(matches!(
+            res,
+            Err(Error::Pkcs11(
+                RvError::AttributeTypeInvalid,
+                Function::SetAttributeValue
+            ))
+        ));
+    } else {
+        assert!(matches!(
+            res,
+            Err(Error::Pkcs11(
+                RvError::ActionProhibited,
+                Function::SetAttributeValue
+            ))
+        ));
+    }
+
+    session.destroy_object(key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn validation() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let key: [u8; 16] = [
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f,
+        0x3c,
+    ];
+
+    // Can not create object with ObjectValidationFlags
+    let key_template = vec![
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Token(true),
+        Attribute::Sensitive(true),
+        Attribute::Private(true),
+        Attribute::Value(key.into()),
+        Attribute::ObjectValidationFlags(0x03.into()),
+    ];
+    let res = session.create_object(&key_template);
+    assert!(res.is_err());
+    assert!(matches!(
+        res,
+        Err(Error::Pkcs11(
+            RvError::AttributeTypeInvalid,
+            Function::CreateObject
+        ))
+    ));
+
+    let generate_template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen(32.into()),
+        Attribute::Encrypt(true),
+    ];
+
+    // generate a secret key
+    let key = session.generate_key(&Mechanism::AesKeyGen, &generate_template)?;
+
+    // we can get the ObjectValidationFlags attribute
+    let attrs = session.get_attributes(key, &[AttributeType::ObjectValidationFlags])?;
+    if is_fips(&session) {
+        // Kryoptic supports the ObjectValidationFlag only if it is built as a FIPS provider
+        if let Attribute::ObjectValidationFlags(flag) = attrs.first().unwrap() {
+            assert_eq!(flag, &Ulong::new(1));
+        } else {
+            panic!("The ObjectValidationFlags attribute was expected to be present.")
+        };
+    } else {
+        assert_eq!(attrs.len(), 0);
+    }
+
+    // we can not set the ObjectValidationFlags attribute
+    let update_template = vec![Attribute::ObjectValidationFlags(0x03.into())];
     let res = session.update_attributes(key, &update_template);
     assert!(res.is_err());
     if is_softhsm() {
