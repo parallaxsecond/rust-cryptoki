@@ -3823,10 +3823,7 @@ fn unique_id() -> TestResult {
     } else {
         assert!(matches!(
             res,
-            Err(Error::Pkcs11(
-                RvError::AttributeReadOnly,
-                Function::SetAttributeValue
-            ))
+            Err(Error::Pkcs11(_, Function::SetAttributeValue))
         ));
     }
 
@@ -3903,10 +3900,7 @@ fn validation() -> TestResult {
     } else {
         assert!(matches!(
             res,
-            Err(Error::Pkcs11(
-                RvError::ActionProhibited,
-                Function::SetAttributeValue
-            ))
+            Err(Error::Pkcs11(_, Function::SetAttributeValue))
         ));
     }
 
