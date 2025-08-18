@@ -73,7 +73,7 @@ let pub_key_template = vec![
     Attribute::Token(true),
     Attribute::Private(false),
     Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
-    Attribute::ModulusBits(1024.into()),
+    Attribute::ModulusBits(2048.into()),
 ];
 
 let priv_key_template = vec![Attribute::Token(true)];
