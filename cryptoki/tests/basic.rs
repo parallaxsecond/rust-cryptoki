@@ -45,7 +45,7 @@ fn sign_verify() -> TestResult {
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
+    let modulus_bits = 2048;
 
     // pub key template
     let pub_key_template = vec![
@@ -231,7 +231,7 @@ fn sign_verify_multipart() -> TestResult {
 
     // Define parameters for keypair
     let public_exponent = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
+    let modulus_bits = 2048;
 
     let pub_key_template = vec![
         Attribute::Token(true),
@@ -340,7 +340,7 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
 
     // Define parameters for keypair
     let public_exponent = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
+    let modulus_bits = 2048;
 
     let pub_key_template = vec![
         Attribute::Token(true),
@@ -405,7 +405,7 @@ fn encrypt_decrypt() -> TestResult {
     let mechanism = Mechanism::RsaPkcsKeyPairGen;
 
     let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 1024;
+    let modulus_bits = 2048;
 
     // pub key template
     let pub_key_template = vec![
@@ -1025,7 +1025,7 @@ fn wrap_and_unwrap_key() {
         Attribute::Token(true),
         Attribute::Private(true),
         Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
-        Attribute::ModulusBits(1024.into()),
+        Attribute::ModulusBits(2048.into()),
         // key needs to have "wrap" attribute to wrap other keys
         Attribute::Wrap(true),
     ];
@@ -1044,7 +1044,7 @@ fn wrap_and_unwrap_key() {
     let wrapped_key = session
         .wrap_key(&Mechanism::RsaPkcs, wrapping_key, key_to_be_wrapped)
         .unwrap();
-    assert_eq!(wrapped_key.len(), 128);
+    assert_eq!(wrapped_key.len(), 256);
 
     let unwrapped_key = session
         .unwrap_key(
@@ -1665,7 +1665,7 @@ fn update_attributes_key() -> TestResult {
         Attribute::Token(true),
         Attribute::Private(true),
         Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
-        Attribute::ModulusBits(1024.into()),
+        Attribute::ModulusBits(2048.into()),
     ];
 
     // priv key template
