@@ -8,9 +8,9 @@ use cryptoki::types::AuthPin;
 use std::env;
 
 // The default user pin
-pub static USER_PIN: &str = "fedcba";
+pub static USER_PIN: &str = "fedcba123456";
 // The default SO pin
-pub static SO_PIN: &str = "abcdef";
+pub static SO_PIN: &str = "abcdef654321";
 
 fn get_pkcs11_path() -> String {
     env::var("TEST_PKCS11_MODULE")

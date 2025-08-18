@@ -1515,7 +1515,7 @@ fn generate_random_test() -> TestResult {
 #[test]
 #[serial]
 fn set_pin_test() -> TestResult {
-    let new_user_pin = "123456";
+    let new_user_pin = "123456abcdef";
     let (pkcs11, slot) = init_pins();
 
     let session = pkcs11.open_rw_session(slot)?;

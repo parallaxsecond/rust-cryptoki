@@ -410,7 +410,7 @@ impl Session {
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
     ///
     /// let session = pkcs11.open_ro_session(slot).unwrap();
-    /// session.login(UserType::User, Some(&AuthPin::new("fedcba".into())));
+    /// session.login(UserType::User, Some(&AuthPin::new("fedcba123456".into())));
     ///
     /// let empty_attrib= vec![];
     /// if let Some(object) = session.find_objects(&empty_attrib).unwrap().first() {
