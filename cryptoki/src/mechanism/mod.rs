@@ -10,6 +10,7 @@ pub mod elliptic_curve;
 pub mod hkdf;
 pub mod kbkdf;
 mod mechanism_info;
+pub mod misc;
 pub mod rsa;
 pub mod vendor_defined;
 
