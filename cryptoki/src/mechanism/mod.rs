@@ -3,13 +3,13 @@
 //! Data types for mechanisms
 
 pub mod aead;
+pub mod dsa;
 pub mod eddsa;
 pub mod ekdf;
 pub mod elliptic_curve;
 pub mod hkdf;
 pub mod kbkdf;
 mod mechanism_info;
-pub mod mldsa;
 pub mod rsa;
 pub mod vendor_defined;
 
@@ -1152,29 +1152,29 @@ pub enum Mechanism<'a> {
     /// ML-DSA key pair generation mechanism
     MlDsaKeyPairGen,
     /// ML-DSA signature mechanism
-    MlDsa(mldsa::SignAdditionalContext<'a>),
+    MlDsa(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism
-    HashMlDsa(mldsa::HashSignAdditionalContext<'a>),
+    HashMlDsa(dsa::HashSignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA224
-    HashMlDsaSha224(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha224(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA256
-    HashMlDsaSha256(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha256(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA384
-    HashMlDsaSha384(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha384(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA512
-    HashMlDsaSha512(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha512(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA3-224
-    HashMlDsaSha3_224(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha3_224(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA3-256
-    HashMlDsaSha3_256(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha3_256(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA3-384
-    HashMlDsaSha3_384(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha3_384(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHA3-512
-    HashMlDsaSha3_512(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaSha3_512(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHAKE128
-    HashMlDsaShake128(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaShake128(dsa::SignAdditionalContext<'a>),
     /// HashML-DSA signature mechanism with SHAKE256
-    HashMlDsaShake256(mldsa::SignAdditionalContext<'a>),
+    HashMlDsaShake256(dsa::SignAdditionalContext<'a>),
 
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),

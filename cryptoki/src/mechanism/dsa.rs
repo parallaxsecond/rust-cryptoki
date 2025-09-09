@@ -1,11 +1,11 @@
-//! ML-DSA mechanism types
+//! ML-DSA and SLH-DSA mechanism parameters
 
 use crate::mechanism::{Mechanism, MechanismType};
 
 use cryptoki_sys::*;
 use std::{convert::TryInto, marker::PhantomData, ptr::null_mut};
 
-/// The hedge type for ML-DSA signature
+/// The hedge type for ML-DSA and SLH-DSA signature
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum HedgeType {
     /// Token may create either a hedged signature or a deterministic signature
@@ -33,7 +33,7 @@ impl From<HedgeType> for CK_ULONG {
     }
 }
 
-/// The ML-DSA additional context for signatures
+/// The ML-DSA and SLH-DSA additional context for signatures
 ///
 /// This structure wraps `CK_SIGN_ADDITIONAL_CONTEXT` structure.
 #[derive(Debug, Clone, Copy)]
@@ -44,7 +44,7 @@ pub struct SignAdditionalContext<'a> {
 }
 
 impl SignAdditionalContext<'_> {
-    /// Construct ML-DSA signature parameters.
+    /// Construct ML-DSA and SLH-DSA signature parameters.
     ///
     /// # Arguments
     ///
@@ -94,7 +94,7 @@ impl SignAdditionalContext<'_> {
     }
 }
 
-/// The ML-DSA additional context for signatures with hashing information
+/// The ML-DSA and SLH-DSA additional context for signatures with hashing information
 ///
 /// This structure wraps `CK_HASH_SIGN_ADDITIONAL_CONTEXT` structure.
 #[derive(Debug, Clone, Copy)]
@@ -105,7 +105,7 @@ pub struct HashSignAdditionalContext<'a> {
 }
 
 impl HashSignAdditionalContext<'_> {
-    /// Construct HashML-DSA Signature parameters.
+    /// Construct HashML-DSA or HashSLH-DSA Signature parameters.
     ///
     /// # Arguments
     ///
