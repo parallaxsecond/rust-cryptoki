@@ -432,7 +432,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_WRAP_WITH_TRUSTED => Ok(AttributeType::WrapWithTrusted),
             CKA_VENDOR_DEFINED..=CK_ULONG::MAX => Ok(AttributeType::VendorDefined(attribute_type)),
             attr_type => {
-                error!("Attribute type {} not supported.", attr_type);
+                error!("Attribute type {attr_type} not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1169,7 +1169,7 @@ impl TryFrom<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
             CKP_ML_KEM_768 => Ok(MlKemParameterSetType::ML_KEM_768),
             CKP_ML_KEM_1024 => Ok(MlKemParameterSetType::ML_KEM_1024),
             _ => {
-                error!("ML-KEM parameter set {} is not supported.", val);
+                error!("ML-KEM parameter set {val} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1238,7 +1238,7 @@ impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
             CKP_ML_DSA_65 => Ok(MlDsaParameterSetType::ML_DSA_65),
             CKP_ML_DSA_87 => Ok(MlDsaParameterSetType::ML_DSA_87),
             _ => {
-                error!("ML-DSA parameter set {} is not supported.", val);
+                error!("ML-DSA parameter set {val} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1354,7 +1354,7 @@ impl TryFrom<CK_OBJECT_CLASS> for ObjectClass {
             CKO_VALIDATION => Ok(ObjectClass::VALIDATION),
 
             _ => {
-                error!("Object class {} is not supported.", object_class);
+                error!("Object class {object_class} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1649,7 +1649,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_ML_DSA => Ok(KeyType::ML_DSA),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
-                error!("Key type {} is not supported.", key_type);
+                error!("Key type {key_type} is not supported.");
                 Err(Error::NotSupported)
             }
         }
@@ -1725,7 +1725,7 @@ impl TryFrom<CK_CERTIFICATE_TYPE> for CertificateType {
             CKC_X_509_ATTR_CERT => Ok(CertificateType::X_509_ATTR),
             CKC_WTLS => Ok(CertificateType::WTLS),
             _ => {
-                error!("Certificate type {} is not supported.", certificate_type);
+                error!("Certificate type {certificate_type} is not supported.");
                 Err(Error::NotSupported)
             }
         }

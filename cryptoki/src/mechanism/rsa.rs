@@ -66,10 +66,7 @@ impl TryFrom<CK_RSA_PKCS_MGF_TYPE> for PkcsMgfType {
             CKG_MGF1_SHA384 => Ok(PkcsMgfType::MGF1_SHA384),
             CKG_MGF1_SHA512 => Ok(PkcsMgfType::MGF1_SHA512),
             other => {
-                error!(
-                    "Mask Generation Function type {} is not one of the valid values.",
-                    other
-                );
+                error!("Mask Generation Function type {other} is not one of the valid values.");
                 Err(Error::InvalidValue)
             }
         }
