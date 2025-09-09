@@ -402,6 +402,58 @@ impl MechanismType {
         val: CKM_HASH_ML_DSA_SHAKE256,
     };
 
+    // SLH-DSA
+    /// SLH-DSA key pair generation mechanism
+    pub const SLH_DSA_KEY_PAIR_GEN: MechanismType = MechanismType {
+        val: CKM_SLH_DSA_KEY_PAIR_GEN,
+    };
+    /// SLH-DSA signature mechanism
+    pub const SLH_DSA: MechanismType = MechanismType { val: CKM_SLH_DSA };
+    /// HashSLH-DSA signature mechanism
+    pub const HASH_SLH_DSA: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA,
+    };
+    /// HashSLH-DSA signature mechanism with SHA224
+    pub const HASH_SLH_DSA_SHA224: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA224,
+    };
+    /// HashSLH-DSA signature mechanism with SHA256
+    pub const HASH_SLH_DSA_SHA256: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA256,
+    };
+    /// HashSLH-DSA signature mechanism with SHA384
+    pub const HASH_SLH_DSA_SHA384: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA384,
+    };
+    /// HashSLH-DSA signature mechanism with SHA512
+    pub const HASH_SLH_DSA_SHA512: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA512,
+    };
+    /// HashSLH-DSA signature mechanism with SHA3-224
+    pub const HASH_SLH_DSA_SHA3_224: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA3_224,
+    };
+    /// HashML-DSA signature mechanism with SHA3-256
+    pub const HASH_SLH_DSA_SHA3_256: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA3_256,
+    };
+    /// HashML-DSA signature mechanism with SHA3-384
+    pub const HASH_SLH_DSA_SHA3_384: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA3_384,
+    };
+    /// HashML-DSA signature mechanism with SHA3-512
+    pub const HASH_SLH_DSA_SHA3_512: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHA3_512,
+    };
+    /// HashSLH-DSA signature mechanism with SHAKE128
+    pub const HASH_SLH_DSA_SHAKE128: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHAKE128,
+    };
+    /// HashML-DSA signature mechanism with SHAKE256
+    pub const HASH_SLH_DSA_SHAKE256: MechanismType = MechanismType {
+        val: CKM_HASH_SLH_DSA_SHAKE256,
+    };
+
     /// Create vendor defined mechanism
     ///
     /// # Arguments
@@ -811,6 +863,19 @@ impl MechanismType {
             CKM_HASH_ML_DSA_SHA3_512 => String::from(stringify!(CKM_HASH_ML_DSA_SHA3_512)),
             CKM_HASH_ML_DSA_SHAKE128 => String::from(stringify!(CKM_HASH_ML_DSA_SHAKE128)),
             CKM_HASH_ML_DSA_SHAKE256 => String::from(stringify!(CKM_HASH_ML_DSA_SHAKE256)),
+            CKM_SLH_DSA_KEY_PAIR_GEN => String::from(stringify!(CKM_SLH_DSA_KEY_PAIR_GEN)),
+            CKM_SLH_DSA => String::from(stringify!(CKM_SLH_DSA)),
+            CKM_HASH_SLH_DSA => String::from(stringify!(CKM_HASH_SLH_DSA)),
+            CKM_HASH_SLH_DSA_SHA224 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA224)),
+            CKM_HASH_SLH_DSA_SHA256 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA256)),
+            CKM_HASH_SLH_DSA_SHA384 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA384)),
+            CKM_HASH_SLH_DSA_SHA512 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA512)),
+            CKM_HASH_SLH_DSA_SHA3_224 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA3_224)),
+            CKM_HASH_SLH_DSA_SHA3_256 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA3_256)),
+            CKM_HASH_SLH_DSA_SHA3_384 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA3_384)),
+            CKM_HASH_SLH_DSA_SHA3_512 => String::from(stringify!(CKM_HASH_SLH_DSA_SHA3_512)),
+            CKM_HASH_SLH_DSA_SHAKE128 => String::from(stringify!(CKM_HASH_SLH_DSA_SHAKE128)),
+            CKM_HASH_SLH_DSA_SHAKE256 => String::from(stringify!(CKM_HASH_SLH_DSA_SHAKE256)),
             _ => format!("unknown {mech:08x}"),
         }
     }
@@ -912,6 +977,18 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_HASH_ML_DSA_SHA3_384 => Ok(MechanismType::HASH_ML_DSA_SHA3_384),
             CKM_HASH_ML_DSA_SHA3_512 => Ok(MechanismType::HASH_ML_DSA_SHA3_512),
             CKM_HASH_ML_DSA_SHAKE128 => Ok(MechanismType::HASH_ML_DSA_SHAKE128),
+            CKM_SLH_DSA_KEY_PAIR_GEN => Ok(MechanismType::SLH_DSA_KEY_PAIR_GEN),
+            CKM_SLH_DSA => Ok(MechanismType::SLH_DSA),
+            CKM_HASH_SLH_DSA => Ok(MechanismType::HASH_SLH_DSA),
+            CKM_HASH_SLH_DSA_SHA224 => Ok(MechanismType::HASH_SLH_DSA_SHA224),
+            CKM_HASH_SLH_DSA_SHA256 => Ok(MechanismType::HASH_SLH_DSA_SHA256),
+            CKM_HASH_SLH_DSA_SHA384 => Ok(MechanismType::HASH_SLH_DSA_SHA384),
+            CKM_HASH_SLH_DSA_SHA512 => Ok(MechanismType::HASH_SLH_DSA_SHA512),
+            CKM_HASH_SLH_DSA_SHA3_224 => Ok(MechanismType::HASH_SLH_DSA_SHA3_224),
+            CKM_HASH_SLH_DSA_SHA3_256 => Ok(MechanismType::HASH_SLH_DSA_SHA3_256),
+            CKM_HASH_SLH_DSA_SHA3_384 => Ok(MechanismType::HASH_SLH_DSA_SHA3_384),
+            CKM_HASH_SLH_DSA_SHA3_512 => Ok(MechanismType::HASH_SLH_DSA_SHA3_512),
+            CKM_HASH_SLH_DSA_SHAKE128 => Ok(MechanismType::HASH_SLH_DSA_SHAKE128),
             other => {
                 error!("Mechanism type {} is not supported.", other);
                 Err(Error::NotSupported)
@@ -1176,6 +1253,34 @@ pub enum Mechanism<'a> {
     /// HashML-DSA signature mechanism with SHAKE256
     HashMlDsaShake256(dsa::SignAdditionalContext<'a>),
 
+    // SLH-DSA
+    /// SLH-DSA key pair generation mechanism
+    SlhDsaKeyPairGen,
+    /// SLH-DSA signature mechanism
+    SlhDsa(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism
+    HashSlhDsa(dsa::HashSignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA224
+    HashSlhDsaSha224(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA256
+    HashSlhDsaSha256(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA384
+    HashSlhDsaSha384(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA512
+    HashSlhDsaSha512(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA3-224
+    HashSlhDsaSha3_224(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA3-256
+    HashSlhDsaSha3_256(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA3-384
+    HashSlhDsaSha3_384(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHA3-512
+    HashSlhDsaSha3_512(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHAKE128
+    HashSlhDsaShake128(dsa::SignAdditionalContext<'a>),
+    /// HashSLH-DSA signature mechanism with SHAKE256
+    HashSlhDsaShake256(dsa::SignAdditionalContext<'a>),
+
     /// Vendor defined mechanism
     VendorDefined(VendorDefinedMechanism<'a>),
 }
@@ -1278,6 +1383,20 @@ impl Mechanism<'_> {
             Mechanism::HashMlDsaShake128(_) => MechanismType::HASH_ML_DSA_SHAKE128,
             Mechanism::HashMlDsaShake256(_) => MechanismType::HASH_ML_DSA_SHAKE256,
 
+            Mechanism::SlhDsaKeyPairGen => MechanismType::SLH_DSA_KEY_PAIR_GEN,
+            Mechanism::SlhDsa(_) => MechanismType::SLH_DSA,
+            Mechanism::HashSlhDsa(_) => MechanismType::HASH_SLH_DSA,
+            Mechanism::HashSlhDsaSha224(_) => MechanismType::HASH_SLH_DSA_SHA224,
+            Mechanism::HashSlhDsaSha256(_) => MechanismType::HASH_SLH_DSA_SHA256,
+            Mechanism::HashSlhDsaSha384(_) => MechanismType::HASH_SLH_DSA_SHA384,
+            Mechanism::HashSlhDsaSha512(_) => MechanismType::HASH_SLH_DSA_SHA512,
+            Mechanism::HashSlhDsaSha3_224(_) => MechanismType::HASH_SLH_DSA_SHA3_224,
+            Mechanism::HashSlhDsaSha3_256(_) => MechanismType::HASH_SLH_DSA_SHA3_256,
+            Mechanism::HashSlhDsaSha3_384(_) => MechanismType::HASH_SLH_DSA_SHA3_384,
+            Mechanism::HashSlhDsaSha3_512(_) => MechanismType::HASH_SLH_DSA_SHA3_512,
+            Mechanism::HashSlhDsaShake128(_) => MechanismType::HASH_SLH_DSA_SHAKE128,
+            Mechanism::HashSlhDsaShake256(_) => MechanismType::HASH_SLH_DSA_SHAKE256,
+
             Mechanism::VendorDefined(vm) => MechanismType {
                 val: vm.inner.mechanism,
             },
@@ -1353,6 +1472,25 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
                 },
                 Some(params) => make_mechanism(mechanism, params),
             },
+            Mechanism::HashSlhDsa(params) => make_mechanism(mechanism, params),
+            Mechanism::SlhDsa(params)
+            | Mechanism::HashSlhDsaSha224(params)
+            | Mechanism::HashSlhDsaSha256(params)
+            | Mechanism::HashSlhDsaSha384(params)
+            | Mechanism::HashSlhDsaSha512(params)
+            | Mechanism::HashSlhDsaSha3_224(params)
+            | Mechanism::HashSlhDsaSha3_256(params)
+            | Mechanism::HashSlhDsaSha3_384(params)
+            | Mechanism::HashSlhDsaSha3_512(params)
+            | Mechanism::HashSlhDsaShake128(params)
+            | Mechanism::HashSlhDsaShake256(params) => match params.inner() {
+                None => CK_MECHANISM {
+                    mechanism,
+                    pParameter: null_mut(),
+                    ulParameterLen: 0,
+                },
+                Some(params) => make_mechanism(mechanism, params),
+            },
             // Mechanisms without parameters
             Mechanism::AesKeyGen
             | Mechanism::AesEcb
@@ -1400,7 +1538,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::HkdfKeyGen
             | Mechanism::MlKemKeyPairGen
             | Mechanism::MlKem
-            | Mechanism::MlDsaKeyPairGen => CK_MECHANISM {
+            | Mechanism::MlDsaKeyPairGen
+            | Mechanism::SlhDsaKeyPairGen => CK_MECHANISM {
                 mechanism,
                 pParameter: null_mut(),
                 ulParameterLen: 0,
