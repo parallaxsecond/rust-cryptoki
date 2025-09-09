@@ -224,7 +224,7 @@ impl Session {
     /// * [`ObjectHandleIterator`] for more information on how to use the iterator
     /// * [`Session::iter_objects_with_cache_size`] for a way to specify the cache size
     #[inline(always)]
-    pub fn iter_objects(&self, template: &[Attribute]) -> Result<ObjectHandleIterator> {
+    pub fn iter_objects(&self, template: &[Attribute]) -> Result<ObjectHandleIterator<'_>> {
         self.iter_objects_with_cache_size(template, MAX_OBJECT_COUNT)
     }
 
@@ -248,7 +248,7 @@ impl Session {
         &self,
         template: &[Attribute],
         cache_size: NonZeroUsize,
-    ) -> Result<ObjectHandleIterator> {
+    ) -> Result<ObjectHandleIterator<'_>> {
         let template: Vec<CK_ATTRIBUTE> = template.iter().map(Into::into).collect();
         ObjectHandleIterator::new(self, template, cache_size)
     }
