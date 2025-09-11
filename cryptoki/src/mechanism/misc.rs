@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Miscellaneous mechanisms:
 //! - Simple key derivation mechanisms
-//! See: <https://docs.oasis-open.org/pkcs11/pkcs11-spec/v3.1/os/pkcs11-spec-v3.1-os.html#_Toc111203697>
+//!   See: <https://docs.oasis-open.org/pkcs11/pkcs11-spec/v3.1/os/pkcs11-spec-v3.1-os.html#_Toc111203697>
 
 use std::marker::PhantomData;
 

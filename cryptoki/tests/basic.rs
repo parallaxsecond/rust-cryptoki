@@ -944,11 +944,8 @@ fn derive_key_xor_key_and_data() -> TestResult {
         Attribute::Extractable(true),
     ];
     let data = KeyDerivationStringData::new(&data_value);
-    let derived_key = session.derive_key(
-        &Mechanism::XorBaseAndData(data),
-        key,
-        &derived_key_template,
-    )?;
+    let derived_key =
+        session.derive_key(&Mechanism::XorBaseAndData(data), key, &derived_key_template)?;
 
     let derived_key_value = session
         .get_attributes(derived_key, &[AttributeType::Value])?
