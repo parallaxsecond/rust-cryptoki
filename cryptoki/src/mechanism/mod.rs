@@ -1465,20 +1465,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
             | Mechanism::Des3CbcPad(params) => make_mechanism(mechanism, params),
-            Mechanism::AesGcm(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: size_of::<CK_GCM_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
-            Mechanism::AesGcmMessage(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: size_of::<CK_GCM_MESSAGE_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
+            Mechanism::AesGcm(params) => make_mechanism(mechanism, params),
+            Mechanism::AesGcmMessage(params) => make_mechanism(mechanism, params),
             Mechanism::RsaPkcsPss(params)
             | Mechanism::Sha1RsaPkcsPss(params)
             | Mechanism::Sha256RsaPkcsPss(params)
