@@ -31,6 +31,7 @@ mod generate {
                 ("CKC_", "CK_CERTIFICATE_TYPE"),
                 ("CKD_", "CK_EC_KDF_TYPE"),
                 ("CKF_", "CK_FLAGS"),
+                ("CKV_", "CK_ULONG"),
                 ("CKG_MGF1_", "CK_RSA_PKCS_MGF_TYPE"),
                 ("CKG", "CK_GENERATOR_FUNCTION"),
                 ("CKH_", "CK_HW_FEATURE_TYPE"),

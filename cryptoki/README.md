@@ -55,7 +55,7 @@ let slot = pkcs11.get_slots_with_token()?[0];
 let so_pin = AuthPin::new("abcdef".into());
 pkcs11.init_token(slot, &so_pin, "Test Token")?;
 
-let user_pin = AuthPin::new("fedcba".into());
+let user_pin = AuthPin::new("fedcba123456".into());
 
 // initialize user PIN
 {
