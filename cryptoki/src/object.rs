@@ -1096,7 +1096,7 @@ impl TryFrom<Ulong> for ParameterSetType {
 impl From<MlKemParameterSetType> for ParameterSetType {
     fn from(val: MlKemParameterSetType) -> Self {
         ParameterSetType {
-            val: Ulong::new(*val),
+            val: Ulong::new(*val.as_ref()),
         }
     }
 }
@@ -1104,7 +1104,15 @@ impl From<MlKemParameterSetType> for ParameterSetType {
 impl From<MlDsaParameterSetType> for ParameterSetType {
     fn from(val: MlDsaParameterSetType) -> Self {
         ParameterSetType {
-            val: Ulong::new(*val),
+            val: Ulong::new(*val.as_ref()),
+        }
+    }
+}
+
+impl From<SlhDsaParameterSetType> for ParameterSetType {
+    fn from(val: SlhDsaParameterSetType) -> Self {
+        ParameterSetType {
+            val: Ulong::new(*val.as_ref()),
         }
     }
 }
@@ -1146,17 +1154,15 @@ impl std::fmt::Display for MlKemParameterSetType {
     }
 }
 
-impl Deref for MlKemParameterSetType {
-    type Target = CK_ML_KEM_PARAMETER_SET_TYPE;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<CK_ML_KEM_PARAMETER_SET_TYPE> for MlKemParameterSetType {
+    fn as_ref(&self) -> &CK_ML_KEM_PARAMETER_SET_TYPE {
         &self.val
     }
 }
 
 impl From<MlKemParameterSetType> for CK_ML_KEM_PARAMETER_SET_TYPE {
     fn from(val: MlKemParameterSetType) -> Self {
-        *val
+        *val.as_ref()
     }
 }
 
@@ -1215,17 +1221,15 @@ impl std::fmt::Display for MlDsaParameterSetType {
     }
 }
 
-impl Deref for MlDsaParameterSetType {
-    type Target = CK_ML_DSA_PARAMETER_SET_TYPE;
-
-    fn deref(&self) -> &Self::Target {
+impl AsRef<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
+    fn as_ref(&self) -> &CK_ML_DSA_PARAMETER_SET_TYPE {
         &self.val
     }
 }
 
 impl From<MlDsaParameterSetType> for CK_ML_DSA_PARAMETER_SET_TYPE {
     fn from(val: MlDsaParameterSetType) -> Self {
-        *val
+        *val.as_ref()
     }
 }
 
@@ -1248,6 +1252,133 @@ impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for MlDsaParameterSetType {
 impl From<ParameterSetType> for MlDsaParameterSetType {
     fn from(val: ParameterSetType) -> Self {
         MlDsaParameterSetType {
+            val: CK_ULONG::from(*val),
+        }
+    }
+}
+
+#[derive(Copy, Debug, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// Identifier of the SLH-DSA parameter set
+pub struct SlhDsaParameterSetType {
+    val: CK_SLH_DSA_PARAMETER_SET_TYPE,
+}
+
+impl SlhDsaParameterSetType {
+    /// SLH-DSA-SHA2-128s
+    pub const SHA2_128S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_128S,
+    };
+    /// SLH-DSA-SHAKE-128s
+    pub const SHAKE_128S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_128S,
+    };
+    /// SLH-DSA-SHA2-128f
+    pub const SHA2_128F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_128F,
+    };
+    /// SLH-DSA-SHAKE-128f
+    pub const SHAKE_128F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_128F,
+    };
+    /// SLH-DSA-SHA2-192s
+    pub const SHA2_192S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_192S,
+    };
+    /// SLH-DSA-SHAKE-192s
+    pub const SHAKE_192S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_192S,
+    };
+    /// SLH-DSA-SHA2-192f
+    pub const SHA2_192F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_192F,
+    };
+    /// SLH-DSA-SHAKE-192f
+    pub const SHAKE_192F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_192F,
+    };
+    /// SLH-DSA-SHA2-256s
+    pub const SHA2_256S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_256S,
+    };
+    /// SLH-DSA-SHAKE-256s
+    pub const SHAKE_256S: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_256S,
+    };
+    /// SLH-DSA-SHA2-256f
+    pub const SHA2_256F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHA2_256F,
+    };
+    /// SLH-DSA-SHAKE-256f
+    pub const SHAKE_256F: SlhDsaParameterSetType = SlhDsaParameterSetType {
+        val: CKP_SLH_DSA_SHAKE_256F,
+    };
+}
+
+impl std::fmt::Display for SlhDsaParameterSetType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self.val {
+                CKP_SLH_DSA_SHA2_128S => stringify!(CKP_SLH_DSA_SHA2_128S),
+                CKP_SLH_DSA_SHAKE_128S => stringify!(CKP_SLH_DSA_SHAKE_128S),
+                CKP_SLH_DSA_SHA2_128F => stringify!(CKP_SLH_DSA_SHA2_128F),
+                CKP_SLH_DSA_SHAKE_128F => stringify!(CKP_SLH_DSA_SHAKE_128F),
+                CKP_SLH_DSA_SHA2_192S => stringify!(CKP_SLH_DSA_SHA2_192S),
+                CKP_SLH_DSA_SHAKE_192S => stringify!(CKP_SLH_DSA_SHAKE_192S),
+                CKP_SLH_DSA_SHA2_192F => stringify!(CKP_SLH_DSA_SHA2_192F),
+                CKP_SLH_DSA_SHAKE_192F => stringify!(CKP_SLH_DSA_SHAKE_192F),
+                CKP_SLH_DSA_SHA2_256S => stringify!(CKP_SLH_DSA_SHA2_256S),
+                CKP_SLH_DSA_SHAKE_256S => stringify!(CKP_SLH_DSA_SHAKE_256S),
+                CKP_SLH_DSA_SHA2_256F => stringify!(CKP_SLH_DSA_SHA2_256F),
+                CKP_SLH_DSA_SHAKE_256F => stringify!(CKP_SLH_DSA_SHAKE_256F),
+                v => return write!(f, "unknown ({v:08x})"),
+            }
+        )
+    }
+}
+
+impl AsRef<CK_SLH_DSA_PARAMETER_SET_TYPE> for SlhDsaParameterSetType {
+    fn as_ref(&self) -> &CK_SLH_DSA_PARAMETER_SET_TYPE {
+        &self.val
+    }
+}
+
+impl From<SlhDsaParameterSetType> for CK_SLH_DSA_PARAMETER_SET_TYPE {
+    fn from(val: SlhDsaParameterSetType) -> Self {
+        *val.as_ref()
+    }
+}
+
+impl TryFrom<CK_ML_DSA_PARAMETER_SET_TYPE> for SlhDsaParameterSetType {
+    type Error = Error;
+
+    fn try_from(val: CK_ML_DSA_PARAMETER_SET_TYPE) -> Result<Self> {
+        match val {
+            CKP_SLH_DSA_SHA2_128S => Ok(SlhDsaParameterSetType::SHA2_128S),
+            CKP_SLH_DSA_SHAKE_128S => Ok(SlhDsaParameterSetType::SHAKE_128S),
+            CKP_SLH_DSA_SHA2_128F => Ok(SlhDsaParameterSetType::SHA2_128F),
+            CKP_SLH_DSA_SHAKE_128F => Ok(SlhDsaParameterSetType::SHAKE_128F),
+            CKP_SLH_DSA_SHA2_192S => Ok(SlhDsaParameterSetType::SHA2_192S),
+            CKP_SLH_DSA_SHAKE_192S => Ok(SlhDsaParameterSetType::SHAKE_192S),
+            CKP_SLH_DSA_SHA2_192F => Ok(SlhDsaParameterSetType::SHA2_192F),
+            CKP_SLH_DSA_SHAKE_192F => Ok(SlhDsaParameterSetType::SHAKE_192F),
+            CKP_SLH_DSA_SHA2_256S => Ok(SlhDsaParameterSetType::SHA2_256S),
+            CKP_SLH_DSA_SHAKE_256S => Ok(SlhDsaParameterSetType::SHAKE_256S),
+            CKP_SLH_DSA_SHA2_256F => Ok(SlhDsaParameterSetType::SHA2_256F),
+            CKP_SLH_DSA_SHAKE_256F => Ok(SlhDsaParameterSetType::SHAKE_256F),
+            _ => {
+                error!("SLH-DSA parameter set {} is not supported.", val);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+impl From<ParameterSetType> for SlhDsaParameterSetType {
+    fn from(val: ParameterSetType) -> Self {
+        SlhDsaParameterSetType {
             val: CK_ULONG::from(*val),
         }
     }
@@ -1496,6 +1627,9 @@ impl KeyType {
     /// ML-DSA key
     pub const ML_DSA: KeyType = KeyType { val: CKK_ML_DSA };
 
+    /// SLH-DSA key
+    pub const SLH_DSA: KeyType = KeyType { val: CKK_SLH_DSA };
+
     /// Create vendor defined key type
     ///
     /// # Arguments
@@ -1570,6 +1704,7 @@ impl KeyType {
             CKK_HKDF => String::from(stringify!(CKK_HKDF)),
             CKK_ML_KEM => String::from(stringify!(CKK_ML_KEM)),
             CKK_ML_DSA => String::from(stringify!(CKK_ML_DSA)),
+            CKK_SLH_DSA => String::from(stringify!(CKK_SLH_DSA)),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => String::from(stringify!(key_type)),
             _ => format!("unknown ({key_type:08x})"),
         }
@@ -1647,6 +1782,7 @@ impl TryFrom<CK_KEY_TYPE> for KeyType {
             CKK_HKDF => Ok(KeyType::HKDF),
             CKK_ML_KEM => Ok(KeyType::ML_KEM),
             CKK_ML_DSA => Ok(KeyType::ML_DSA),
+            CKK_SLH_DSA => Ok(KeyType::SLH_DSA),
             CKK_VENDOR_DEFINED..=CK_ULONG::MAX => KeyType::new_vendor_defined(key_type),
             _ => {
                 error!("Key type {} is not supported.", key_type);

@@ -5,7 +5,7 @@ mod common;
 use crate::common::{init_pins, USER_PIN};
 use cryptoki::context::Function;
 use cryptoki::error::{Error, RvError};
-use cryptoki::mechanism::mldsa::{HashSignAdditionalContext, HedgeType, SignAdditionalContext};
+use cryptoki::mechanism::dsa::{HashSignAdditionalContext, HedgeType, SignAdditionalContext};
 use cryptoki::mechanism::{Mechanism, MechanismType};
 use cryptoki::object::{Attribute, AttributeType, MlDsaParameterSetType};
 use cryptoki::session::UserType;
