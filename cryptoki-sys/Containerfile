@@ -1,0 +1,17 @@
+# Simple ubuntu container that can be used to regenerate bindings with the provided script
+# when one does not use ubuntu
+#
+# Instructions:
+# $ podman build -t rust-cryptoki .
+# $ podman run -v $PWD:/src:z rust-cryptoki
+#
+FROM ubuntu:latest
+RUN export DEBIAN_FRONTEND=noninteractive; \
+    export DEBCONF_NONINTERACTIVE_SEEN=true; \
+    echo 'tzdata tzdata/Areas select Etc' | debconf-set-selections; \
+    echo 'tzdata tzdata/Zones/Etc select UTC' | debconf-set-selections; \
+    apt-get update -q && apt-get install -y rustup clang && rustup default stable
+
+WORKDIR /src
+ENV CARGO_TARGET_DIR /src/target
+CMD [ "/bin/bash", "regenerate_bindings.sh" ]

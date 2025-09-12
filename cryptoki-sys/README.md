@@ -20,4 +20,22 @@ available, feel free to raise a Pull Request to add it or to use build-time
 generation of bindings. All the committed bindings **MUST** be generated from
 the library version found under the `vendor` submodule.
 
+## Generate bindings in container
+
+To simplify generating bindings, we provide a simple container that ca be
+executed regardless of the operating system in use from the `cryptoki-sys`
+directory.
+
+To generate the bindings in container, just build the container from the
+`Containerfile` in this directory:
+```
+$ podman build -t rust-cryptoki .
+```
+And then run it with the current working directory mounted in the container:
+```
+$ podman run -v $PWD:/src:z rust-cryptoki
+```
+It will download all the rust dependencies and regenerate all the binding
+tiplets.
+
 *Copyright 2021 Contributors to the Parsec project.*
