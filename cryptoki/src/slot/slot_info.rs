@@ -9,6 +9,7 @@ use std::fmt::Debug;
 
 bitflags! {
     /// Collection of flags defined for [`CK_SLOT_INFO`]
+    #[derive(Debug, Clone, Copy)]
     struct SlotInfoFlags: CK_FLAGS {
         const TOKEN_PRESENT = CKF_TOKEN_PRESENT;
         const REMOVABLE_DEVICE = CKF_REMOVABLE_DEVICE;
@@ -98,7 +99,9 @@ mod test {
 
     #[test]
     fn debug_flags_all() {
-        let expected = "TOKEN_PRESENT | REMOVABLE_DEVICE | HW_SLOT";
+        let expected = "SlotInfoFlags(
+    TOKEN_PRESENT | REMOVABLE_DEVICE | HW_SLOT,
+)";
         let all = SlotInfoFlags::all();
         let observed = format!("{all:#?}");
         assert_eq!(observed, expected);
@@ -116,7 +119,9 @@ mod test {
         let expected = r#"SlotInfo {
     slot_description: "Slot Description",
     manufacturer_id: "Manufacturer ID",
-    flags: (empty),
+    flags: SlotInfoFlags(
+        0x0,
+    ),
     hardware_version: Version {
         major: 0,
         minor: 255,
