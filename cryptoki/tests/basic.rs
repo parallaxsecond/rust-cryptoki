@@ -401,6 +401,11 @@ fn encrypt_decrypt() -> TestResult {
     // open a session
     let session = pkcs11.open_rw_session(slot)?;
 
+    if is_fips(&session) {
+        eprintln!("The RSA PKCS#1 encryption is not allowed in FIPS Mode");
+        return Ok(());
+    }
+
     // log in the session
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
