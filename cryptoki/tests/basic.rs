@@ -2700,12 +2700,8 @@ fn kbkdf_feedback_mode() -> TestResult {
         PrfDataParam::new(PrfDataParamType::IterationVariable(None)),
         PrfDataParam::new(PrfDataParamType::Counter(&counter_format)),
     ];
-    let params = KbkdfFeedbackParams::new(
-        MechanismType::AES_CMAC,
-        &data_params,
-        Some(b"some_initialization_vector"),
-        None,
-    );
+    let iv = b"sixteen bytes iv";
+    let params = KbkdfFeedbackParams::new(MechanismType::AES_CMAC, &data_params, Some(iv), None);
 
     // Derive key
     let derived_key_feedback_iv = session.derive_key(
@@ -3103,10 +3099,11 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
         .iter()
         .map(|template| DerivedKey::new(template))
         .collect::<Vec<_>>();
+    let iv = b"sixteen bytes iv";
     let params = KbkdfFeedbackParams::new(
         MechanismType::AES_CMAC,
         &data_params,
-        Some(b"some_initialization_vector"),
+        Some(iv),
         Some(&mut additional_derived_keys),
     );
 
