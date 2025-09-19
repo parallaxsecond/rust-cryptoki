@@ -3825,7 +3825,7 @@ fn unique_id() -> TestResult {
         assert!(matches!(
             res,
             Err(Error::Pkcs11(
-                RvError::AttributeReadOnly,
+                RvError::ActionProhibited,
                 Function::SetAttributeValue
             ))
         ));
