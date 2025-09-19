@@ -2295,9 +2295,9 @@ fn kbkdf_counter_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     // Instantiate KBKDF in counter-mode without additional keys
@@ -2390,7 +2390,7 @@ fn kbkdf_feedback_mode() -> TestResult {
     let dkm_length_format = KbkdfDkmLengthFormat::new(
         KbkdfDkmLengthMethod::SumOfKeys,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     /* FEEDBACK-MODE - no IV */
@@ -2504,9 +2504,9 @@ fn kbkdf_double_pipeline_mode() -> TestResult {
 
     // Some variables we will use throughout
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     // Instantiate KBKDF in feedback-mode without additional keys
@@ -2613,9 +2613,9 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     // Instantiate KBKDF in counter-mode without additional keys
@@ -2771,7 +2771,7 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
     let dkm_length_format = KbkdfDkmLengthFormat::new(
         KbkdfDkmLengthMethod::SumOfKeys,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     let mut derived_keys = vec![];
@@ -2953,9 +2953,9 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
 
     // Some variables we will use throughout
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     // Instantiate KBKDF in feedback-mode without additional keys
@@ -3087,9 +3087,9 @@ fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     /* MISSING ITERATION VARIABLE */
@@ -3236,9 +3236,9 @@ fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     /* MISSING ITERATION VARIABLE */
@@ -3359,9 +3359,9 @@ fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
     // Some variables we will use throughout
     let counter_format = KbkdfCounterFormat::new(Endianness::Big, NonZeroUsize::new(16).unwrap());
     let dkm_length_format = KbkdfDkmLengthFormat::new(
-        KbkdfDkmLengthMethod::SumOfKeys,
+        KbkdfDkmLengthMethod::SumOfSegments,
         Endianness::Big,
-        NonZeroUsize::new(16).unwrap(),
+        NonZeroUsize::new(32).unwrap(),
     );
 
     /* MISSING ITERATION VARIABLE */
