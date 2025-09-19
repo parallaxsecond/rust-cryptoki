@@ -52,10 +52,10 @@ pkcs11.initialize(CInitializeArgs::OsThreads)?;
 let slot = pkcs11.get_slots_with_token()?[0];
 
 // initialize a test token
-let so_pin = AuthPin::new("abcdef".into());
+let so_pin = AuthPin::new("abcdef654321".into());
 pkcs11.init_token(slot, &so_pin, "Test Token")?;
 
-let user_pin = AuthPin::new("fedcba".into());
+let user_pin = AuthPin::new("fedcba123456".into());
 
 // initialize user PIN
 {
@@ -73,7 +73,7 @@ let pub_key_template = vec![
     Attribute::Token(true),
     Attribute::Private(false),
     Attribute::PublicExponent(vec![0x01, 0x00, 0x01]),
-    Attribute::ModulusBits(1024.into()),
+    Attribute::ModulusBits(2048.into()),
 ];
 
 let priv_key_template = vec![Attribute::Token(true)];
