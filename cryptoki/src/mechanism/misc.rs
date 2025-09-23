@@ -40,19 +40,19 @@ impl<'a> KeyDerivationStringData<'a> {
     }
 }
 
-/// A parameter indicating the index of the base key from which to extract the
-/// derived key.
+/// A parameter indicating the index of the bit in the the base key from which
+/// to extract the derived key.
 #[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct ExtractParams(CK_EXTRACT_PARAMS);
 
 impl ExtractParams {
-    /// Construct parameter from index to extract the derived key from the base
-    /// key.
+    /// Construct parameter from index of bit from which to extract the derived
+    /// key from the base key.
     ///
     /// # Arguments
     ///
-    /// * `index` - The index from which to extract the derived key from the base key.
+    /// * `index` - The bit index from which to extract the derived key from the base key.
     pub fn new(index: usize) -> Self {
         Self(
             index
