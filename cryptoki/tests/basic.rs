@@ -775,8 +775,13 @@ fn derive_key_sp800() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment. See latchset/kryoptic#323 to track support"]
 fn derive_key_concatenation_two_keys() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
@@ -840,8 +845,13 @@ fn derive_key_concatenation_two_keys() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment. See latchset/kryoptic#323 to track support"]
 fn derive_key_concatenation_key_and_data() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
@@ -914,8 +924,13 @@ fn derive_key_concatenation_key_and_data() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment. See latchset/kryoptic#323 to track support"]
 fn derive_key_xor_key_and_data() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
@@ -967,8 +982,13 @@ fn derive_key_xor_key_and_data() -> TestResult {
 
 #[test]
 #[serial]
-#[ignore = "unsupported by both SoftHSM and Kryoptic for the moment. See latchset/kryoptic#323 to track support"]
 fn derive_key_extract_from_key() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
     let (pkcs11, slot) = init_pins();
 
     // Open a session and log in
