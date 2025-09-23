@@ -993,6 +993,7 @@ fn derive_key_extract_from_key() -> TestResult {
     let derived_key_template = [
         Attribute::Token(true),
         Attribute::Private(false),
+        Attribute::ValueLen(2.into()),
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
     ];
@@ -1012,7 +1013,12 @@ fn derive_key_extract_from_key() -> TestResult {
         panic!("Expected value attribute.");
     };
 
-    assert_eq!(&derived_key_value, &data_value[3..]);
+    // Manually extract exactly the same part of the original value, to compare
+    let mut result_value = u32::from_be_bytes(data_value[..4].try_into().unwrap());
+    result_value <<= 3;
+    result_value &= 0xFFFF0000;
+
+    assert_eq!(&derived_key_value, &result_value.to_be_bytes()[..2]);
 
     // Delete keys
     session.destroy_object(key)?;
