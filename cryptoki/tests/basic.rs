@@ -815,6 +815,7 @@ fn derive_key_concatenation_two_keys() -> TestResult {
     let derived_key_template = [
         Attribute::Token(true),
         Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
     ];
@@ -876,6 +877,7 @@ fn derive_key_concatenation_key_and_data() -> TestResult {
     let derived_key_template = [
         Attribute::Token(true),
         Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
     ];
@@ -955,6 +957,7 @@ fn derive_key_xor_key_and_data() -> TestResult {
     let derived_key_template = [
         Attribute::Token(true),
         Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
     ];
@@ -1013,6 +1016,7 @@ fn derive_key_extract_from_key() -> TestResult {
     let derived_key_template = [
         Attribute::Token(true),
         Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
         Attribute::ValueLen(2.into()),
         Attribute::Sensitive(false),
         Attribute::Extractable(true),
