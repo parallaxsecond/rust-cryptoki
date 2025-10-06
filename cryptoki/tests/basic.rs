@@ -798,6 +798,8 @@ fn derive_key_concatenation_two_keys() -> TestResult {
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Value(key_value[..3].to_vec()),
         Attribute::Derive(true),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
     ];
     let key2_template = [
         Attribute::Token(true),
@@ -806,6 +808,8 @@ fn derive_key_concatenation_two_keys() -> TestResult {
         Attribute::KeyType(KeyType::GENERIC_SECRET),
         Attribute::Value(key_value[3..].to_vec()),
         Attribute::Derive(true),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
     ];
 
     let key1 = session.create_object(&key1_template)?;
