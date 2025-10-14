@@ -4296,3 +4296,55 @@ fn validation() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn object_handle_new_from_raw() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // get mechanism
+    let mechanism = Mechanism::RsaPkcsKeyPairGen;
+
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 2048;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+
+    // generate a key pair
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    let private_cloned = unsafe { ObjectHandle::new_from_raw(private.handle()) };
+    let public_cloned = unsafe { ObjectHandle::new_from_raw(public.handle()) };
+
+    // data to sign
+    let data = [0xFF, 0x55, 0xDD];
+
+    // sign something with it
+    let signature = session.sign(&Mechanism::RsaPkcs, private_cloned, &data)?;
+
+    // verify the signature
+    session.verify(&Mechanism::RsaPkcs, public_cloned, &data, &signature)?;
+
+    // delete keys
+    session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}
