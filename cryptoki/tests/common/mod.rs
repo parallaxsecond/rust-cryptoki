@@ -11,7 +11,7 @@ pub static USER_PIN: &str = "fedcba";
 // The default SO pin
 pub static SO_PIN: &str = "abcdef";
 
-fn get_pkcs11_path() -> String {
+pub fn get_pkcs11_path() -> String {
     env::var("TEST_PKCS11_MODULE")
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
 }
@@ -26,13 +26,26 @@ pub fn is_kryoptic() -> bool {
     get_pkcs11_path().contains("kryoptic")
 }
 
+#[allow(dead_code)]
 pub fn get_pkcs11() -> Pkcs11 {
     Pkcs11::new(get_pkcs11_path()).unwrap()
 }
 
+#[allow(dead_code)]
+pub fn get_pkcs11_from_self() -> Pkcs11 {
+    Pkcs11::new_from_self().unwrap()
+}
+
+#[allow(dead_code)]
 pub fn init_pins() -> (Pkcs11, Slot) {
     let pkcs11 = get_pkcs11();
 
+    let slot = init_pins_from_pkcs11(&pkcs11);
+
+    (pkcs11, slot)
+}
+
+pub fn init_pins_from_pkcs11(pkcs11: &Pkcs11) -> Slot {
     // initialize the library
     pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
 
@@ -50,7 +63,7 @@ pub fn init_pins() -> (Pkcs11, Slot) {
         session.init_pin(&AuthPin::new(USER_PIN.into())).unwrap();
     }
 
-    (pkcs11, slot)
+    slot
 }
 
 #[allow(dead_code)]
