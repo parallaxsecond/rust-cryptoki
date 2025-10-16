@@ -1030,7 +1030,21 @@ impl ObjectHandle {
         ObjectHandle { handle }
     }
 
+    /// Create a new object handle from a raw handle.
+    /// # Safety
+    /// Considered unsafe due to ability for client to arbitrarily create object handles.
+    pub unsafe fn new_from_raw(handle: CK_OBJECT_HANDLE) -> Self {
+        ObjectHandle { handle }
+    }
+
     pub(crate) fn handle(&self) -> CK_OBJECT_HANDLE {
+        self.handle
+    }
+
+    /// Get the raw handle of the object.
+    /// # Safety
+    /// Considered unsafe because of pub access to the underlying handle type.
+    pub unsafe fn raw_handle(&self) -> CK_OBJECT_HANDLE {
         self.handle
     }
 }

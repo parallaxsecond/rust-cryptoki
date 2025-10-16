@@ -80,6 +80,13 @@ impl Session {
         self.handle
     }
 
+    /// Get the raw handle of the session.
+    /// # Safety
+    /// Considered unsafe because of pub access to the underlying handle type.
+    pub unsafe fn raw_handle(&self) -> CK_SESSION_HANDLE {
+        self.handle
+    }
+
     pub(crate) fn client(&self) -> &Pkcs11 {
         &self.client
     }
