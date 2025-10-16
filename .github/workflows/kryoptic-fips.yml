@@ -82,12 +82,12 @@ jobs:
       ### kryoptic build ###
       ######################
       - name: Setup kryoptic
+        env:
+          KRYOPTIC_REVISION: b38f56bf5dc281fa750146d0378fc62b7c23f95f
         run: |
-          KRYOPTIC_REVISION="v1.3.1"
-
           cd ..
           git clone https://github.com/latchset/kryoptic.git \
-              --depth 1 --single-branch --revision $KRYOPTIC_REVISION kryoptic
+              --depth 1 --single-branch --revision "$KRYOPTIC_REVISION" kryoptic
 
       - name: Generate lock file
         run: |
