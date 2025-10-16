@@ -12,6 +12,7 @@ use cryptoki::mechanism::kbkdf::{
     DerivedKey, Endianness, KbkdfCounterFormat, KbkdfDkmLengthFormat, KbkdfDkmLengthMethod,
     KbkdfFeedbackParams, KbkdfParams, PrfDataParam, PrfDataParamType,
 };
+use cryptoki::mechanism::misc::{ExtractParams, KeyDerivationStringData};
 use cryptoki::mechanism::rsa::{PkcsMgfType, PkcsOaepParams, PkcsOaepSource};
 use cryptoki::mechanism::{Mechanism, MechanismType, MessageParam};
 use cryptoki::object::{
@@ -768,6 +769,288 @@ fn derive_key_sp800() -> TestResult {
 
     // delete keys
     session.destroy_object(private)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn derive_key_concatenation_two_keys() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define keys to concatenate
+    let key_value = [0x12, 0x34, 0x56, 0x78, 0x90, 0x01];
+
+    let key1_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Value(key_value[..3].to_vec()),
+        Attribute::Derive(true),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let key2_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Value(key_value[3..].to_vec()),
+        Attribute::Derive(true),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+
+    let key1 = session.create_object(&key1_template)?;
+    let key2 = session.create_object(&key2_template)?;
+
+    // Derive key from two input keys
+    let derived_key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let derived_key = session.derive_key(
+        &Mechanism::ConcatenateBaseAndKey(key2),
+        key1,
+        &derived_key_template,
+    )?;
+
+    let derived_key_value = session
+        .get_attributes(derived_key, &[AttributeType::Value])?
+        .remove(0);
+    let derived_key_value = if let Attribute::Value(value) = derived_key_value {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    assert_eq!(&derived_key_value, &key_value);
+
+    // Delete keys
+    session.destroy_object(key1)?;
+    session.destroy_object(key2)?;
+    session.destroy_object(derived_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn derive_key_concatenation_key_and_data() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define key/data to concatenate
+    let mut data_value = [0x12, 0x34, 0x56, 0x78, 0x90, 0x01];
+
+    let key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Value(data_value[..3].to_vec()),
+        Attribute::Derive(true),
+    ];
+
+    let key = session.create_object(&key_template)?;
+
+    // Derive keys from input key and data, both appended and prepended
+    let derived_key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let data = KeyDerivationStringData::new(&data_value[3..]);
+    let derived_key1 = session.derive_key(
+        &Mechanism::ConcatenateBaseAndData(data),
+        key,
+        &derived_key_template,
+    )?;
+    let derived_key2 = session.derive_key(
+        &Mechanism::ConcatenateDataAndBase(data),
+        key,
+        &derived_key_template,
+    )?;
+
+    let derived_key1_value = session
+        .get_attributes(derived_key1, &[AttributeType::Value])?
+        .remove(0);
+    let derived_key1_value = if let Attribute::Value(value) = derived_key1_value {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+    let derived_key2_value = session
+        .get_attributes(derived_key2, &[AttributeType::Value])?
+        .remove(0);
+    let derived_key2_value = if let Attribute::Value(value) = derived_key2_value {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    assert_eq!(&derived_key1_value, &data_value);
+    // Swap halves of the data_value in-place
+    let (first_half, second_half) = data_value.split_at_mut(3);
+    first_half.swap_with_slice(second_half);
+    assert_eq!(&derived_key2_value, &data_value);
+
+    // Delete keys
+    session.destroy_object(key)?;
+    session.destroy_object(derived_key1)?;
+    session.destroy_object(derived_key2)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn derive_key_xor_key_and_data() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define key/data to xor
+    let data_value = [0x12, 0x34, 0x56, 0x78, 0x90, 0x01];
+
+    let key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Value(data_value.to_vec()),
+        Attribute::Derive(true),
+    ];
+
+    let key = session.create_object(&key_template)?;
+
+    // Derive key by xor-ing input key and data
+    let derived_key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let data = KeyDerivationStringData::new(&data_value);
+    let derived_key =
+        session.derive_key(&Mechanism::XorBaseAndData(data), key, &derived_key_template)?;
+
+    let derived_key_value = session
+        .get_attributes(derived_key, &[AttributeType::Value])?
+        .remove(0);
+    let derived_key_value = if let Attribute::Value(value) = derived_key_value {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    assert_eq!(&derived_key_value, &[0; 6]);
+
+    // Delete keys
+    session.destroy_object(key)?;
+    session.destroy_object(derived_key)?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn derive_key_extract_from_key() -> TestResult {
+    // Mechanism not supported by SoftHSM
+    if is_softhsm() {
+        /* return Ignore(); */
+        return Ok(());
+    }
+
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define key to extract from
+    let data_value = [0x12, 0x34, 0x56, 0x78, 0x90, 0x01];
+
+    let key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::GENERIC_SECRET),
+        Attribute::Value(data_value.to_vec()),
+        Attribute::Derive(true),
+    ];
+
+    let key = session.create_object(&key_template)?;
+
+    // Derive key by extracting subset of base key
+    let derived_key_template = [
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::ValueLen(2.into()),
+        Attribute::Sensitive(false),
+        Attribute::Extractable(true),
+    ];
+    let params = ExtractParams::new(3);
+    let derived_key = session.derive_key(
+        &Mechanism::ExtractKeyFromKey(params),
+        key,
+        &derived_key_template,
+    )?;
+
+    let derived_key_value = session
+        .get_attributes(derived_key, &[AttributeType::Value])?
+        .remove(0);
+    let derived_key_value = if let Attribute::Value(value) = derived_key_value {
+        value
+    } else {
+        panic!("Expected value attribute.");
+    };
+
+    // Manually extract exactly the same part of the original value, to compare
+    let mut result_value = u32::from_be_bytes(data_value[..4].try_into().unwrap());
+    result_value <<= 3;
+    result_value &= 0xFFFF0000;
+
+    assert_eq!(&derived_key_value, &result_value.to_be_bytes()[..2]);
+
+    // Delete keys
+    session.destroy_object(key)?;
+    session.destroy_object(derived_key)?;
 
     Ok(())
 }

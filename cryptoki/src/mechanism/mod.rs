@@ -10,6 +10,7 @@ pub mod elliptic_curve;
 pub mod hkdf;
 pub mod kbkdf;
 mod mechanism_info;
+pub mod misc;
 pub mod rsa;
 pub mod vendor_defined;
 
@@ -24,7 +25,9 @@ use std::ptr::null_mut;
 use vendor_defined::VendorDefinedMechanism;
 
 use crate::error::Error;
+use crate::mechanism::misc::{ExtractParams, KeyDerivationStringData};
 use crate::mechanism::rsa::PkcsOaepParams;
+use crate::object::ObjectHandle;
 pub use mechanism_info::MechanismInfo;
 
 #[derive(Copy, Debug, Clone, PartialEq, Eq)]
@@ -340,6 +343,28 @@ impl MechanismType {
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
     pub const SP800_108_DOUBLE_PIPELINE_KDF: MechanismType = MechanismType {
         val: CKM_SP800_108_DOUBLE_PIPELINE_KDF,
+    };
+
+    // Other simple key derivation mechanisms
+    /// Concatenation of a base key and another key
+    pub const CONCATENATE_BASE_AND_KEY: MechanismType = MechanismType {
+        val: CKM_CONCATENATE_BASE_AND_KEY,
+    };
+    /// Concatenation of a base key and data (i.e. data appended)
+    pub const CONCATENATE_BASE_AND_DATA: MechanismType = MechanismType {
+        val: CKM_CONCATENATE_BASE_AND_DATA,
+    };
+    /// Concatenation of data and a base key (i.e. data prepended)
+    pub const CONCATENATE_DATA_AND_BASE: MechanismType = MechanismType {
+        val: CKM_CONCATENATE_DATA_AND_BASE,
+    };
+    /// XOR-ing of a base key and data
+    pub const XOR_BASE_AND_DATA: MechanismType = MechanismType {
+        val: CKM_XOR_BASE_AND_DATA,
+    };
+    /// Extraction of a key from bits of another key
+    pub const EXTRACT_KEY_FROM_KEY: MechanismType = MechanismType {
+        val: CKM_EXTRACT_KEY_FROM_KEY,
     };
 
     // ML-KEM
@@ -963,6 +988,11 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SP800_108_COUNTER_KDF => Ok(MechanismType::SP800_108_COUNTER_KDF),
             CKM_SP800_108_FEEDBACK_KDF => Ok(MechanismType::SP800_108_FEEDBACK_KDF),
             CKM_SP800_108_DOUBLE_PIPELINE_KDF => Ok(MechanismType::SP800_108_DOUBLE_PIPELINE_KDF),
+            CKM_CONCATENATE_BASE_AND_KEY => Ok(MechanismType::CONCATENATE_BASE_AND_KEY),
+            CKM_CONCATENATE_BASE_AND_DATA => Ok(MechanismType::CONCATENATE_BASE_AND_DATA),
+            CKM_CONCATENATE_DATA_AND_BASE => Ok(MechanismType::CONCATENATE_DATA_AND_BASE),
+            CKM_XOR_BASE_AND_DATA => Ok(MechanismType::XOR_BASE_AND_DATA),
+            CKM_EXTRACT_KEY_FROM_KEY => Ok(MechanismType::EXTRACT_KEY_FROM_KEY),
             CKM_ML_KEM_KEY_PAIR_GEN => Ok(MechanismType::ML_KEM_KEY_PAIR_GEN),
             CKM_ML_KEM => Ok(MechanismType::ML_KEM),
             CKM_ML_DSA_KEY_PAIR_GEN => Ok(MechanismType::ML_DSA_KEY_PAIR_GEN),
@@ -1219,6 +1249,18 @@ pub enum Mechanism<'a> {
     /// NIST SP 800-108 KDF (aka KBKDF) mechanism in double pipeline-mode
     KbkdfDoublePipeline(kbkdf::KbkdfParams<'a>),
 
+    // Other simple key derivation mechanisms
+    /// Concatenation of a base key and another key
+    ConcatenateBaseAndKey(ObjectHandle),
+    /// Concatenation of a base key and data (i.e. data appended)
+    ConcatenateBaseAndData(KeyDerivationStringData<'a>),
+    /// Concatenation of data and a base key (i.e. data prepended)
+    ConcatenateDataAndBase(KeyDerivationStringData<'a>),
+    /// XOR-ing of a base key and data
+    XorBaseAndData(KeyDerivationStringData<'a>),
+    /// Extraction of a key from bits of another key
+    ExtractKeyFromKey(ExtractParams),
+
     // ML-KEM
     /// ML-KEM key pair generation mechanism
     MlKemKeyPairGen,
@@ -1366,6 +1408,12 @@ impl Mechanism<'_> {
             Mechanism::KbkdfFeedback(_) => MechanismType::SP800_108_FEEDBACK_KDF,
             Mechanism::KbkdfDoublePipeline(_) => MechanismType::SP800_108_DOUBLE_PIPELINE_KDF,
 
+            Mechanism::ConcatenateBaseAndKey(_) => MechanismType::CONCATENATE_BASE_AND_KEY,
+            Mechanism::ConcatenateBaseAndData(_) => MechanismType::CONCATENATE_BASE_AND_DATA,
+            Mechanism::ConcatenateDataAndBase(_) => MechanismType::CONCATENATE_DATA_AND_BASE,
+            Mechanism::XorBaseAndData(_) => MechanismType::XOR_BASE_AND_DATA,
+            Mechanism::ExtractKeyFromKey(_) => MechanismType::EXTRACT_KEY_FROM_KEY,
+
             Mechanism::MlKemKeyPairGen => MechanismType::ML_KEM_KEY_PAIR_GEN,
             Mechanism::MlKem => MechanismType::ML_KEM,
 
@@ -1417,20 +1465,8 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Des3Cbc(params)
             | Mechanism::DesCbcPad(params)
             | Mechanism::Des3CbcPad(params) => make_mechanism(mechanism, params),
-            Mechanism::AesGcm(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: size_of::<CK_GCM_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
-            Mechanism::AesGcmMessage(params) => CK_MECHANISM {
-                mechanism,
-                pParameter: params as *const _ as *mut c_void,
-                ulParameterLen: size_of::<CK_GCM_MESSAGE_PARAMS>()
-                    .try_into()
-                    .expect("usize can not fit in CK_ULONG"),
-            },
+            Mechanism::AesGcm(params) => make_mechanism(mechanism, params),
+            Mechanism::AesGcmMessage(params) => make_mechanism(mechanism, params),
             Mechanism::RsaPkcsPss(params)
             | Mechanism::Sha1RsaPkcsPss(params)
             | Mechanism::Sha256RsaPkcsPss(params)
@@ -1453,6 +1489,11 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
                 make_mechanism(mechanism, params.inner())
             }
             Mechanism::KbkdfFeedback(params) => make_mechanism(mechanism, params.inner()),
+            Mechanism::ConcatenateBaseAndKey(params) => make_mechanism(mechanism, params),
+            Mechanism::ConcatenateBaseAndData(params)
+            | Mechanism::ConcatenateDataAndBase(params)
+            | Mechanism::XorBaseAndData(params) => make_mechanism(mechanism, params),
+            Mechanism::ExtractKeyFromKey(params) => make_mechanism(mechanism, params),
             Mechanism::HashMlDsa(params) => make_mechanism(mechanism, params),
             Mechanism::MlDsa(params)
             | Mechanism::HashMlDsaSha224(params)
