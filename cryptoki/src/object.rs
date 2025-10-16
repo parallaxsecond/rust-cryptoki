@@ -4,7 +4,7 @@
 
 use crate::error::{Error, Result};
 use crate::mechanism::MechanismType;
-use crate::types::{Date, Ulong};
+use crate::types::{Date, Ulong, Version};
 use cryptoki_sys::*;
 use log::error;
 use std::convert::TryFrom;
@@ -92,6 +92,8 @@ pub enum AttributeType {
     NeverExtractable,
     /// Object ID
     ObjectId,
+    /// Object Validation flags
+    ObjectValidationFlags,
     /// DER encoding of the attribute certificate's subject field
     Owner,
     /// Algorithm-specific parameter set
@@ -136,6 +138,30 @@ pub enum AttributeType {
     Unwrap,
     /// Gives the URL where the complete certificate can be obtained
     Url,
+    /// Identifier indicating the validation type
+    ValidationType,
+    /// Version of the validation standard or specification
+    ValidationVersion,
+    /// Validation level, Meaning is Validation type specific
+    ValidationLevel,
+    /// How the module is identified in the validation documentation
+    ValidationModuleId,
+    /// Flags identifying this validation in sessions and objects
+    ValidationFlag,
+    /// Identifies the authority that issues the validation
+    ValidationAuthorityType,
+    /// 2 letter ISO country code
+    ValidationCountry,
+    /// Identifier of the validation certificate
+    ValidationCertificateIdentifier,
+    /// Validation authority URI from which information related to the validation is available.
+    /// If the Validation Certificate URI is not provided, the validation object SHOULD include
+    /// a Validation Vendor URI.
+    ValidationCertificateUri,
+    /// Validation Vendor URI from which information related to the validation is available.
+    ValidationVendorUri,
+    /// Profile used for validation
+    ValidationProfile,
     /// Value of the object
     Value,
     /// Length in bytes of the value
@@ -272,6 +298,24 @@ impl AttributeType {
             CKA_SEED => String::from(stringify!(CKA_SEED)),
             CKA_PARAMETER_SET => String::from(stringify!(CKA_PARAMETER_SET)),
             CKA_PROFILE_ID => String::from(stringify!(CKA_PROFILE_ID)),
+            CKA_OBJECT_VALIDATION_FLAGS => String::from(stringify!(CKA_OBJECT_VALIDATION_FLAGS)),
+            CKA_VALIDATION_TYPE => String::from(stringify!(CKA_VALIDATION_TYPE)),
+            CKA_VALIDATION_VERSION => String::from(stringify!(CKA_VALIDATION_VERSION)),
+            CKA_VALIDATION_LEVEL => String::from(stringify!(CKA_VALIDATION_LEVEL)),
+            CKA_VALIDATION_MODULE_ID => String::from(stringify!(CKA_VALIDATION_MODULE_ID)),
+            CKA_VALIDATION_FLAG => String::from(stringify!(CKA_VALIDATION_FLAG)),
+            CKA_VALIDATION_AUTHORITY_TYPE => {
+                String::from(stringify!(CKA_VALIDATION_AUTHORITY_TYPE))
+            }
+            CKA_VALIDATION_COUNTRY => String::from(stringify!(CKA_VALIDATION_COUNTRY)),
+            CKA_VALIDATION_CERTIFICATE_IDENTIFIER => {
+                String::from(stringify!(CKA_VALIDATION_CERTIFICATE_IDENTIFIER))
+            }
+            CKA_VALIDATION_CERTIFICATE_URI => {
+                String::from(stringify!(CKA_VALIDATION_CERTIFICATE_URI))
+            }
+            CKA_VALIDATION_VENDOR_URI => String::from(stringify!(CKA_VALIDATION_VENDOR_URI)),
+            CKA_VALIDATION_PROFILE => String::from(stringify!(CKA_VALIDATION_PROFILE)),
             CKA_VENDOR_DEFINED..=CK_ULONG::MAX => {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
@@ -326,6 +370,7 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::Modulus => CKA_MODULUS,
             AttributeType::ModulusBits => CKA_MODULUS_BITS,
             AttributeType::NeverExtractable => CKA_NEVER_EXTRACTABLE,
+            AttributeType::ObjectValidationFlags => CKA_OBJECT_VALIDATION_FLAGS,
             AttributeType::ObjectId => CKA_OBJECT_ID,
             AttributeType::Owner => CKA_OWNER,
             AttributeType::ParameterSet => CKA_PARAMETER_SET,
@@ -349,6 +394,17 @@ impl From<AttributeType> for CK_ATTRIBUTE_TYPE {
             AttributeType::UniqueId => CKA_UNIQUE_ID,
             AttributeType::Unwrap => CKA_UNWRAP,
             AttributeType::Url => CKA_URL,
+            AttributeType::ValidationType => CKA_VALIDATION_TYPE,
+            AttributeType::ValidationVersion => CKA_VALIDATION_VERSION,
+            AttributeType::ValidationLevel => CKA_VALIDATION_LEVEL,
+            AttributeType::ValidationModuleId => CKA_VALIDATION_MODULE_ID,
+            AttributeType::ValidationFlag => CKA_VALIDATION_FLAG,
+            AttributeType::ValidationAuthorityType => CKA_VALIDATION_AUTHORITY_TYPE,
+            AttributeType::ValidationCountry => CKA_VALIDATION_COUNTRY,
+            AttributeType::ValidationCertificateIdentifier => CKA_VALIDATION_CERTIFICATE_IDENTIFIER,
+            AttributeType::ValidationCertificateUri => CKA_VALIDATION_CERTIFICATE_URI,
+            AttributeType::ValidationVendorUri => CKA_VALIDATION_VENDOR_URI,
+            AttributeType::ValidationProfile => CKA_VALIDATION_PROFILE,
             AttributeType::Value => CKA_VALUE,
             AttributeType::ValueLen => CKA_VALUE_LEN,
             AttributeType::VendorDefined(val) => val,
@@ -401,6 +457,7 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_MODULUS => Ok(AttributeType::Modulus),
             CKA_MODULUS_BITS => Ok(AttributeType::ModulusBits),
             CKA_NEVER_EXTRACTABLE => Ok(AttributeType::NeverExtractable),
+            CKA_OBJECT_VALIDATION_FLAGS => Ok(AttributeType::ObjectValidationFlags),
             CKA_OBJECT_ID => Ok(AttributeType::ObjectId),
             CKA_OWNER => Ok(AttributeType::Owner),
             CKA_PARAMETER_SET => Ok(AttributeType::ParameterSet),
@@ -424,6 +481,18 @@ impl TryFrom<CK_ATTRIBUTE_TYPE> for AttributeType {
             CKA_UNIQUE_ID => Ok(AttributeType::UniqueId),
             CKA_UNWRAP => Ok(AttributeType::Unwrap),
             CKA_URL => Ok(AttributeType::Url),
+            CKA_VALIDATION_TYPE => Ok(AttributeType::ValidationType),
+            CKA_VALIDATION_VERSION => Ok(AttributeType::ValidationVersion),
+            CKA_VALIDATION_LEVEL => Ok(AttributeType::ValidationLevel),
+            CKA_VALIDATION_MODULE_ID => Ok(AttributeType::ValidationModuleId),
+            CKA_VALIDATION_FLAG => Ok(AttributeType::ValidationFlag),
+            CKA_VALIDATION_AUTHORITY_TYPE => Ok(AttributeType::ValidationAuthorityType),
+            CKA_VALIDATION_COUNTRY => Ok(AttributeType::ValidationCountry),
+            CKA_VALIDATION_CERTIFICATE_IDENTIFIER => {
+                Ok(AttributeType::ValidationCertificateIdentifier)
+            }
+            CKA_VALIDATION_CERTIFICATE_URI => Ok(AttributeType::ValidationCertificateUri),
+            CKA_VALIDATION_PROFILE => Ok(AttributeType::ValidationProfile),
             CKA_VALUE => Ok(AttributeType::Value),
             CKA_VALUE_LEN => Ok(AttributeType::ValueLen),
             CKA_VERIFY => Ok(AttributeType::Verify),
@@ -515,6 +584,8 @@ pub enum Attribute {
     ModulusBits(Ulong),
     /// Indicates if the key has never had the Extractable attribute set to true
     NeverExtractable(bool),
+    /// Object Validation Flags
+    ObjectValidationFlags(Ulong),
     /// Object ID
     ObjectId(Vec<u8>),
     /// DER encoding of the attribute certificate's subject field
@@ -561,6 +632,29 @@ pub enum Attribute {
     Unwrap(bool),
     /// Gives the URL where the complete certificate can ber obtained
     Url(Vec<u8>),
+    /// Identifier indicating the validation type
+    ValidationType(ValidationType),
+    /// Version of the validation standard or specification
+    ValidationVersion(Version),
+    /// Validation level, Meaning is Validation type specific
+    ValidationLevel(Ulong),
+    /// How the module is identified in the validation documentation
+    ValidationModuleId(Vec<u8>),
+    /// Flags identifying this validation in sessions and objects
+    ValidationFlag(Ulong),
+    /// Identifies the authority that issues the validation
+    ValidationAuthorityType(ValidationAuthorityType),
+    /// 2 letter ISO country code
+    ValidationCountry(Vec<u8>),
+    /// Identifier of the validation certificate
+    ValidationCertificateIdentifier(Vec<u8>),
+    /// Validation authority URI from which information related to the validation is available. If the Validation
+    /// Certificate URI is not provided, the validation object SHOULD include a Validation Vendor URI.
+    ValidationCertificateUri(Vec<u8>),
+    /// Validation Vendor URI from which information related to the validation is available.
+    ValidationVendorUri(Vec<u8>),
+    /// Profile used for validation
+    ValidationProfile(Vec<u8>),
     /// Value of the object
     Value(Vec<u8>),
     /// Length in bytes of the value
@@ -617,6 +711,7 @@ impl Attribute {
             Attribute::Modulus(_) => AttributeType::Modulus,
             Attribute::ModulusBits(_) => AttributeType::ModulusBits,
             Attribute::NeverExtractable(_) => AttributeType::NeverExtractable,
+            Attribute::ObjectValidationFlags(_) => AttributeType::ObjectValidationFlags,
             Attribute::ObjectId(_) => AttributeType::ObjectId,
             Attribute::Owner(_) => AttributeType::Owner,
             Attribute::ParameterSet(_) => AttributeType::ParameterSet,
@@ -640,6 +735,19 @@ impl Attribute {
             Attribute::UniqueId(_) => AttributeType::UniqueId,
             Attribute::Unwrap(_) => AttributeType::Unwrap,
             Attribute::Url(_) => AttributeType::Url,
+            Attribute::ValidationType(_) => AttributeType::ValidationType,
+            Attribute::ValidationVersion(_) => AttributeType::ValidationVersion,
+            Attribute::ValidationLevel(_) => AttributeType::ValidationLevel,
+            Attribute::ValidationModuleId(_) => AttributeType::ValidationModuleId,
+            Attribute::ValidationFlag(_) => AttributeType::ValidationFlag,
+            Attribute::ValidationAuthorityType(_) => AttributeType::ValidationAuthorityType,
+            Attribute::ValidationCountry(_) => AttributeType::ValidationCountry,
+            Attribute::ValidationCertificateIdentifier(_) => {
+                AttributeType::ValidationCertificateIdentifier
+            }
+            Attribute::ValidationCertificateUri(_) => AttributeType::ValidationCertificateUri,
+            Attribute::ValidationVendorUri(_) => AttributeType::ValidationVendorUri,
+            Attribute::ValidationProfile(_) => AttributeType::ValidationProfile,
             Attribute::Value(_) => AttributeType::Value,
             Attribute::ValueLen(_) => AttributeType::ValueLen,
             Attribute::VendorDefined((num, _)) => *num,
@@ -678,9 +786,15 @@ impl Attribute {
             | Attribute::Wrap(_)
             | Attribute::WrapWithTrusted(_) => size_of::<bool>(),
             Attribute::Base(_) => 1,
-            Attribute::Application(bytes) | Attribute::Label(bytes) | Attribute::Url(bytes) => {
-                size_of::<CK_UTF8CHAR>() * bytes.len()
-            }
+            Attribute::Application(bytes)
+            | Attribute::Label(bytes)
+            | Attribute::Url(bytes)
+            | Attribute::ValidationModuleId(bytes)
+            | Attribute::ValidationCountry(bytes)
+            | Attribute::ValidationCertificateIdentifier(bytes)
+            | Attribute::ValidationCertificateUri(bytes)
+            | Attribute::ValidationVendorUri(bytes)
+            | Attribute::ValidationProfile(bytes) => size_of::<CK_UTF8CHAR>() * bytes.len(),
             Attribute::AcIssuer(bytes) => bytes.len(),
             Attribute::AttrTypes(bytes) => bytes.len(),
             Attribute::CertificateType(_) => size_of::<CK_CERTIFICATE_TYPE>(),
@@ -699,6 +813,7 @@ impl Attribute {
             Attribute::KeyType(_) => size_of::<CK_KEY_TYPE>(),
             Attribute::Modulus(bytes) => bytes.len(),
             Attribute::ModulusBits(_) => size_of::<CK_ULONG>(),
+            Attribute::ObjectValidationFlags(_) => size_of::<CK_ULONG>(),
             Attribute::ObjectId(bytes) => bytes.len(),
             Attribute::Owner(bytes) => bytes.len(),
             Attribute::ParameterSet(_) => size_of::<CK_ULONG>(),
@@ -713,6 +828,11 @@ impl Attribute {
             Attribute::SerialNumber(bytes) => bytes.len(),
             Attribute::Subject(bytes) => bytes.len(),
             Attribute::UniqueId(bytes) => bytes.len(),
+            Attribute::ValidationFlag(_) => size_of::<CK_FLAGS>(),
+            Attribute::ValidationType(_) => size_of::<CK_VALIDATION_TYPE>(),
+            Attribute::ValidationVersion(_) => size_of::<CK_VERSION>(),
+            Attribute::ValidationLevel(_) => size_of::<CK_ULONG>(),
+            Attribute::ValidationAuthorityType(_) => size_of::<CK_VALIDATION_AUTHORITY_TYPE>(),
             Attribute::Value(bytes) => bytes.len(),
             Attribute::ValueLen(_) => size_of::<CK_ULONG>(),
             Attribute::EndDate(_) | Attribute::StartDate(_) => size_of::<CK_DATE>(),
@@ -764,9 +884,10 @@ impl Attribute {
             | Attribute::Wrap(b)
             | Attribute::WrapWithTrusted(b) => b as *const _ as *mut c_void,
             // CK_ULONG
-            Attribute::ModulusBits(val) | Attribute::ValueLen(val) => {
-                val as *const _ as *mut c_void
-            }
+            Attribute::ModulusBits(val)
+            | Attribute::ValueLen(val)
+            | Attribute::ObjectValidationFlags(val)
+            | Attribute::ValidationLevel(val) => val as *const _ as *mut c_void,
             // Vec<u8>
             Attribute::AcIssuer(bytes)
             | Attribute::Application(bytes)
@@ -797,6 +918,12 @@ impl Attribute {
             | Attribute::UniqueId(bytes)
             | Attribute::Url(bytes)
             | Attribute::Value(bytes)
+            | Attribute::ValidationModuleId(bytes)
+            | Attribute::ValidationCountry(bytes)
+            | Attribute::ValidationCertificateIdentifier(bytes)
+            | Attribute::ValidationCertificateUri(bytes)
+            | Attribute::ValidationVendorUri(bytes)
+            | Attribute::ValidationProfile(bytes)
             | Attribute::VendorDefined((_, bytes))
             | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
             // Unique types
@@ -808,6 +935,14 @@ impl Attribute {
             Attribute::Class(object_class) => object_class as *const _ as *mut c_void,
             Attribute::KeyGenMechanism(mech) => mech as *const _ as *mut c_void,
             Attribute::KeyType(key_type) => key_type as *const _ as *mut c_void,
+            Attribute::ValidationFlag(flag) => flag as *const _ as *mut c_void,
+            Attribute::ValidationType(validation_type) => {
+                validation_type as *const _ as *mut c_void
+            }
+            Attribute::ValidationVersion(version) => version as *const _ as *mut c_void,
+            Attribute::ValidationAuthorityType(authority_type) => {
+                authority_type as *const _ as *mut c_void
+            }
             Attribute::AllowedMechanisms(mechanisms) => mechanisms.as_ptr() as *mut c_void,
             Attribute::EndDate(date) | Attribute::StartDate(date) => {
                 date as *const _ as *mut c_void
@@ -896,6 +1031,15 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::ValueLen => Ok(Attribute::ValueLen(
                 CK_ULONG::from_ne_bytes(val.try_into()?).into(),
             )),
+            AttributeType::ObjectValidationFlags => Ok(Attribute::ObjectValidationFlags(
+                CK_ULONG::from_ne_bytes(val.try_into()?).into(),
+            )),
+            AttributeType::ValidationLevel => Ok(Attribute::ValidationLevel(
+                CK_ULONG::from_ne_bytes(val.try_into()?).into(),
+            )),
+            AttributeType::ValidationFlag => Ok(Attribute::ValidationFlag(
+                CK_ULONG::from_ne_bytes(val.try_into()?).into(),
+            )),
             // Vec<u8>
             AttributeType::AcIssuer => Ok(Attribute::AcIssuer(val.to_vec())),
             AttributeType::Application => Ok(Attribute::Application(val.to_vec())),
@@ -929,6 +1073,16 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::Subject => Ok(Attribute::Subject(val.to_vec())),
             AttributeType::UniqueId => Ok(Attribute::UniqueId(val.to_vec())),
             AttributeType::Url => Ok(Attribute::Url(val.to_vec())),
+            AttributeType::ValidationModuleId => Ok(Attribute::ValidationModuleId(val.to_vec())),
+            AttributeType::ValidationCountry => Ok(Attribute::ValidationCountry(val.to_vec())),
+            AttributeType::ValidationCertificateIdentifier => {
+                Ok(Attribute::ValidationCertificateIdentifier(val.to_vec()))
+            }
+            AttributeType::ValidationCertificateUri => {
+                Ok(Attribute::ValidationCertificateUri(val.to_vec()))
+            }
+            AttributeType::ValidationVendorUri => Ok(Attribute::ValidationVendorUri(val.to_vec())),
+            AttributeType::ValidationProfile => Ok(Attribute::ValidationProfile(val.to_vec())),
             AttributeType::Value => Ok(Attribute::Value(val.to_vec())),
             AttributeType::Id => Ok(Attribute::Id(val.to_vec())),
             // Unique types
@@ -950,6 +1104,15 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
             AttributeType::KeyType => Ok(Attribute::KeyType(
                 CK_KEY_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
+            AttributeType::ValidationType => Ok(Attribute::ValidationType(
+                CK_VALIDATION_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
+            )),
+            AttributeType::ValidationAuthorityType => Ok(Attribute::ValidationAuthorityType(
+                CK_VALIDATION_AUTHORITY_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
+            )),
+            AttributeType::ValidationVersion => {
+                Ok(Attribute::ValidationVersion(Version::new(val[0], val[1])))
+            }
             AttributeType::AllowedMechanisms => {
                 let val = unsafe {
                     std::slice::from_raw_parts(
@@ -1952,6 +2115,163 @@ impl TryFrom<CK_PROFILE_ID> for ProfileIdType {
             CKP_HKDF_TLS_TOKEN => Ok(ProfileIdType::HKDF_TLS_TOKEN),
             _ => {
                 error!("Profile Id {} is not supported.", profile_id);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// The PKCS#11 3.2 Validation Type
+///
+/// identifies the type of validation
+pub struct ValidationType {
+    val: CK_VALIDATION_TYPE,
+}
+
+impl ValidationType {
+    /// Unspecified validation type
+    pub const UNSPECIFIED: ValidationType = ValidationType {
+        val: CKV_TYPE_UNSPECIFIED,
+    };
+    /// Software validation type
+    pub const SOFTWARE: ValidationType = ValidationType {
+        val: CKV_TYPE_SOFTWARE,
+    };
+    /// Hardware validation type
+    pub const HARDWARE: ValidationType = ValidationType {
+        val: CKV_TYPE_HARDWARE,
+    };
+    /// Firmware validation type
+    pub const FIRMWARE: ValidationType = ValidationType {
+        val: CKV_TYPE_FIRMWARE,
+    };
+    /// Hybrid validation type
+    pub const HYBRID: ValidationType = ValidationType {
+        val: CKV_TYPE_HYBRID,
+    };
+
+    pub(crate) fn stringify(validation_type: CK_VALIDATION_TYPE) -> String {
+        match validation_type {
+            CKV_TYPE_UNSPECIFIED => String::from(stringify!(CKV_TYPE_UNSPECIFIED)),
+            CKV_TYPE_SOFTWARE => String::from(stringify!(CKV_TYPE_SOFTWARE)),
+            CKV_TYPE_HARDWARE => String::from(stringify!(CKV_TYPE_HARDWARE)),
+            CKV_TYPE_FIRMWARE => String::from(stringify!(CKV_TYPE_FIRMWARE)),
+            CKV_TYPE_HYBRID => String::from(stringify!(CKV_TYPE_HYBRID)),
+            _ => format!("unknown ({validation_type:08x})"),
+        }
+    }
+}
+
+impl std::fmt::Display for ValidationType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", ValidationType::stringify(self.val))
+    }
+}
+
+impl Deref for ValidationType {
+    type Target = CK_VALIDATION_TYPE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<ValidationType> for CK_VALIDATION_TYPE {
+    fn from(validation_type: ValidationType) -> Self {
+        *validation_type
+    }
+}
+
+impl TryFrom<CK_VALIDATION_TYPE> for ValidationType {
+    type Error = Error;
+
+    fn try_from(validation_type: CK_VALIDATION_TYPE) -> Result<Self> {
+        match validation_type {
+            CKV_TYPE_UNSPECIFIED => Ok(ValidationType::UNSPECIFIED),
+            CKV_TYPE_SOFTWARE => Ok(ValidationType::SOFTWARE),
+            CKV_TYPE_HARDWARE => Ok(ValidationType::HARDWARE),
+            CKV_TYPE_FIRMWARE => Ok(ValidationType::FIRMWARE),
+            CKV_TYPE_HYBRID => Ok(ValidationType::HYBRID),
+            _ => {
+                error!("Validation type {} is not supported.", validation_type);
+                Err(Error::NotSupported)
+            }
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[repr(transparent)]
+/// The PKCS#11 3.2 Validation Authority Type
+///
+/// identifies the type of validation authority
+pub struct ValidationAuthorityType {
+    val: CK_VALIDATION_AUTHORITY_TYPE,
+}
+
+impl ValidationAuthorityType {
+    /// Unspecified validation authority type
+    pub const UNSPECIFIED: ValidationAuthorityType = ValidationAuthorityType {
+        val: CKV_AUTHORITY_TYPE_UNSPECIFIED,
+    };
+    /// NIST CMVP validation authority type
+    pub const NIST_CMVP: ValidationAuthorityType = ValidationAuthorityType {
+        val: CKV_AUTHORITY_TYPE_NIST_CMVP,
+    };
+    /// Common Criteria validation authority type
+    pub const COMMON_CRITERIA: ValidationAuthorityType = ValidationAuthorityType {
+        val: CKV_AUTHORITY_TYPE_COMMON_CRITERIA,
+    };
+
+    pub(crate) fn stringify(authority_type: CK_VALIDATION_AUTHORITY_TYPE) -> String {
+        match authority_type {
+            CKV_AUTHORITY_TYPE_UNSPECIFIED => {
+                String::from(stringify!(CKV_AUTHORITY_TYPE_UNSPECIFIED))
+            }
+            CKV_AUTHORITY_TYPE_NIST_CMVP => String::from(stringify!(CKV_AUTHORITY_TYPE_NIST_CMVP)),
+            CKV_AUTHORITY_TYPE_COMMON_CRITERIA => {
+                String::from(stringify!(CKV_AUTHORITY_TYPE_COMMON_CRITERIA))
+            }
+            _ => format!("unknown ({authority_type:08x})"),
+        }
+    }
+}
+
+impl std::fmt::Display for ValidationAuthorityType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", ValidationAuthorityType::stringify(self.val))
+    }
+}
+
+impl Deref for ValidationAuthorityType {
+    type Target = CK_VALIDATION_AUTHORITY_TYPE;
+
+    fn deref(&self) -> &Self::Target {
+        &self.val
+    }
+}
+
+impl From<ValidationAuthorityType> for CK_VALIDATION_AUTHORITY_TYPE {
+    fn from(validation_type: ValidationAuthorityType) -> Self {
+        *validation_type
+    }
+}
+
+impl TryFrom<CK_VALIDATION_AUTHORITY_TYPE> for ValidationAuthorityType {
+    type Error = Error;
+
+    fn try_from(authority_type: CK_VALIDATION_AUTHORITY_TYPE) -> Result<Self> {
+        match authority_type {
+            CKV_AUTHORITY_TYPE_UNSPECIFIED => Ok(ValidationAuthorityType::UNSPECIFIED),
+            CKV_AUTHORITY_TYPE_NIST_CMVP => Ok(ValidationAuthorityType::NIST_CMVP),
+            CKV_AUTHORITY_TYPE_COMMON_CRITERIA => Ok(ValidationAuthorityType::COMMON_CRITERIA),
+            _ => {
+                error!(
+                    "Validation Authority type {} is not supported.",
+                    authority_type
+                );
                 Err(Error::NotSupported)
             }
         }
