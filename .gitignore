@@ -11,3 +11,6 @@
 
 #build artifacts
 cryptoki-sys/pkcs11-precompile.h
+
+#link checker
+.lycheecache
