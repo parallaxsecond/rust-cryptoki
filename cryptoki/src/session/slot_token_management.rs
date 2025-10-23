@@ -9,7 +9,7 @@ use crate::types::AuthPin;
 use secrecy::ExposeSecret;
 use std::convert::TryInto;
 
-impl Session {
+impl Session<'_> {
     /// Initialize the normal user's pin for a token
     pub fn init_pin(&self, pin: &AuthPin) -> Result<()> {
         unsafe {

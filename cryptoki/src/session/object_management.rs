@@ -78,7 +78,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 /// ```
 #[derive(Debug)]
 pub struct ObjectHandleIterator<'a> {
-    session: &'a Session,
+    session: &'a Session<'a>,
     object_count: usize,
     index: usize,
     cache: Vec<CK_OBJECT_HANDLE>,
@@ -207,7 +207,7 @@ impl Drop for ObjectHandleIterator<'_> {
     }
 }
 
-impl Session {
+impl Session<'_> {
     /// Iterate over session objects matching a template.
     ///
     /// # Arguments

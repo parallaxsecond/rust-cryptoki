@@ -46,7 +46,7 @@ impl From<ValidationFlagsType> for CK_SESSION_VALIDATION_FLAGS_TYPE {
     }
 }
 
-impl Session {
+impl Session<'_> {
     /// Get requested validation flags from the session
     ///
     /// The only supported flag as for PKCS#11 3.2 is `ValidationFlagsType::VALIDATION_OK`
