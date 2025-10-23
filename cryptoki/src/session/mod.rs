@@ -34,37 +34,33 @@ pub use validation::ValidationFlagsType;
 /// threads. A Session needs to be created in its own thread or to be passed by ownership to
 /// another thread.
 #[derive(Debug)]
-pub struct Session {
+pub struct Session<'a> {
     handle: CK_SESSION_HANDLE,
-    client: Pkcs11,
+    client: &'a Pkcs11,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: PhantomData<*mut u32>,
 }
 
-impl std::fmt::Display for Session {
+impl<'a> std::fmt::Display for Session<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.handle)
     }
 }
 
-impl std::fmt::LowerHex for Session {
+impl<'a> std::fmt::LowerHex for Session<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:08x}", self.handle)
     }
 }
 
-impl std::fmt::UpperHex for Session {
+impl<'a> std::fmt::UpperHex for Session<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:08X}", self.handle)
     }
 }
 
-// Session does not implement Sync to prevent the same Session instance to be used from multiple
-// threads.
-unsafe impl Send for Session {}
-
-impl Session {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
+impl<'a> Session<'a> {
+    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: &'a Pkcs11) -> Self {
         Session {
             handle,
             client,
@@ -73,7 +69,7 @@ impl Session {
     }
 }
 
-impl Session {
+impl<'a> Session<'a> {
     /// Close a session
     /// This will be called on drop as well.
     pub fn close(self) {}
