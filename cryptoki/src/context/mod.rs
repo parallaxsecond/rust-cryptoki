@@ -34,7 +34,6 @@ use log::error;
 use std::fmt;
 use std::path::Path;
 use std::ptr;
-use std::sync::Arc;
 use std::sync::RwLock;
 
 /// Enum for various function lists
@@ -50,8 +49,12 @@ enum FunctionList {
     V3_2(cryptoki_sys::CK_FUNCTION_LIST_3_2),
 }
 
-// Implementation of Pkcs11 class that can be enclosed in a single Arc
-pub(crate) struct Pkcs11Impl {
+/// Implementation of Pkcs11 class that can be enclosed in a single [`std::sync::Arc`].
+///
+/// This object never finalizes the underlying PKCS#11 implementation.
+/// For most cases it is advisable to use [`Pkcs11`][`crate::context::Pkcs11`] object instead, which implements proper lifecycle functions.
+/// For advanced use cases, where the PKCS#11 lifecycle is managed externally use [`Pkcs11Impl::new_unchecked`].
+pub struct Pkcs11Impl {
     // Even if this field is never read, it is needed for the pointers in function_list to remain
     // valid.
     _pkcs11_lib: cryptoki_sys::Pkcs11,
@@ -76,62 +79,15 @@ impl Pkcs11Impl {
         }
     }
 
-    // Private finalize call
-    #[inline(always)]
-    fn finalize(&self) -> Result<()> {
-        unsafe {
-            Rv::from(self
-                .get_function_list()
-                .C_Finalize
-                .ok_or(Error::NullFunctionPointer)?(
-                ptr::null_mut()
-            ))
-            .into_result(Function::Finalize)
-        }
-    }
-}
-
-impl Drop for Pkcs11Impl {
-    fn drop(&mut self) {
-        if let Err(e) = self.finalize() {
-            error!("Failed to finalize: {}", e);
-        }
-    }
-}
-
-/// Main PKCS11 context. Should usually be unique per application.
-#[derive(Clone, Debug)]
-pub struct Pkcs11 {
-    pub(crate) impl_: Arc<Pkcs11Impl>,
-    initialized: Arc<RwLock<bool>>,
-}
-
-impl Pkcs11 {
-    /// Instantiate a new context from the path of a PKCS11 dynamic library implementation.
-    pub fn new<P>(filename: P) -> Result<Self>
-    where
-        P: AsRef<Path>,
-    {
-        unsafe {
-            let pkcs11_lib =
-                cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?;
-            Self::_new(pkcs11_lib)
-        }
-    }
-
-    /// Instantiate a new context from current executable, the PKCS11 implementation is contained in the current executable
-    pub fn new_from_self() -> Result<Self> {
-        unsafe {
-            #[cfg(not(windows))]
-            let this_lib = libloading::os::unix::Library::this();
-            #[cfg(windows)]
-            let this_lib = libloading::os::windows::Library::this()?;
-            let pkcs11_lib = cryptoki_sys::Pkcs11::from_library(this_lib)?;
-            Self::_new(pkcs11_lib)
-        }
-    }
-
-    unsafe fn _new(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
+    /// Initializes Pkcs11 using raw Pkcs11 object.
+    ///
+    /// The caller is responsible for ensuring the validity of `pkcs11_lib` object and managing its lifecycle (e.g. calling `finalize`).
+    /// For most use cases it is advisable to use [`crate::context::Pkcs11`] instead.
+    ///
+    /// # Safety
+    ///
+    /// `pkcs11_lib` must point to a valid Pkcs11 object.
+    pub unsafe fn new_unchecked(pkcs11_lib: cryptoki_sys::Pkcs11) -> Result<Self> {
         /* First try the 3.* API to get default interface. It might have some more functions than
          * the 2.40 API */
         let mut interface: *mut cryptoki_sys::CK_INTERFACE = ptr::null_mut();
@@ -153,22 +109,16 @@ impl Pkcs11 {
                     if list.version.minor >= 2 {
                         let list32_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_2 =
                             ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_2;
-                        return Ok(Pkcs11 {
-                            impl_: Arc::new(Pkcs11Impl {
-                                _pkcs11_lib: pkcs11_lib,
-                                function_list: FunctionList::V3_2(*list32_ptr),
-                            }),
-                            initialized: Arc::new(RwLock::new(false)),
+                        return Ok(Pkcs11Impl {
+                            _pkcs11_lib: pkcs11_lib,
+                            function_list: FunctionList::V3_2(*list32_ptr),
                         });
                     }
                     let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
                         ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
-                    return Ok(Pkcs11 {
-                        impl_: Arc::new(Pkcs11Impl {
-                            _pkcs11_lib: pkcs11_lib,
-                            function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
-                        }),
-                        initialized: Arc::new(RwLock::new(false)),
+                    return Ok(Pkcs11Impl {
+                        _pkcs11_lib: pkcs11_lib,
+                        function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
                     });
                 }
                 /* fall back to the 2.* API */
@@ -179,22 +129,81 @@ impl Pkcs11 {
         Rv::from(pkcs11_lib.C_GetFunctionList(&mut list_ptr))
             .into_result(Function::GetFunctionList)?;
 
-        Ok(Pkcs11 {
-            impl_: Arc::new(Pkcs11Impl {
-                _pkcs11_lib: pkcs11_lib,
-                function_list: FunctionList::V2(v2tov3(*list_ptr)),
-            }),
-            initialized: Arc::new(RwLock::new(false)),
+        Ok(Pkcs11Impl {
+            _pkcs11_lib: pkcs11_lib,
+            function_list: FunctionList::V2(v2tov3(*list_ptr)),
         })
+    }
+}
+
+/// Main PKCS11 context. Should usually be unique per application.
+///
+/// After this object goes out of scope the `Finalize` function of the PKCS#11 implementation will be called.
+#[derive(Debug)]
+pub struct Pkcs11 {
+    pub(crate) impl_: Pkcs11Impl,
+    initialized: RwLock<bool>,
+}
+
+impl Pkcs11 {
+    // Private finalize call
+    #[inline(always)]
+    fn finalize_ref(&self) -> Result<()> {
+        unsafe {
+            Rv::from(self
+                .impl_
+                .get_function_list()
+                .C_Finalize
+                .ok_or(Error::NullFunctionPointer)?(
+                ptr::null_mut()
+            ))
+            .into_result(Function::Finalize)
+        }
+    }
+}
+
+impl Drop for Pkcs11 {
+    fn drop(&mut self) {
+        if let Err(e) = self.finalize_ref() {
+            error!("Failed to finalize: {}", e);
+        }
+    }
+}
+
+impl Pkcs11 {
+    /// Instantiate a new context from the path of a PKCS11 dynamic library implementation.
+    pub fn new<P>(filename: P) -> Result<Self>
+    where
+        P: AsRef<Path>,
+    {
+        unsafe {
+            let pkcs11_lib =
+                cryptoki_sys::Pkcs11::new(filename.as_ref()).map_err(Error::LibraryLoading)?;
+            Ok(Self {
+                impl_: Pkcs11Impl::new_unchecked(pkcs11_lib)?,
+                initialized: RwLock::new(false),
+            })
+        }
+    }
+
+    /// Instantiate a new context from current executable, the PKCS11 implementation is contained in the current executable
+    pub fn new_from_self() -> Result<Self> {
+        unsafe {
+            #[cfg(not(windows))]
+            let this_lib = libloading::os::unix::Library::this();
+            #[cfg(windows)]
+            let this_lib = libloading::os::windows::Library::this()?;
+            let pkcs11_lib = cryptoki_sys::Pkcs11::from_library(this_lib)?;
+            Ok(Self {
+                impl_: Pkcs11Impl::new_unchecked(pkcs11_lib)?,
+                initialized: RwLock::new(false),
+            })
+        }
     }
 
     /// Initialize the PKCS11 library
     pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
-        let mut init_lock = self
-            .initialized
-            .as_ref()
-            .write()
-            .expect("lock not to be poisoned");
+        let mut init_lock = self.initialized.write().expect("lock not to be poisoned");
         if *init_lock {
             Err(Error::AlreadyInitialized)?
         }
@@ -203,11 +212,7 @@ impl Pkcs11 {
 
     /// Check whether the PKCS11 library has been initialized
     pub fn is_initialized(&self) -> bool {
-        *self
-            .initialized
-            .as_ref()
-            .read()
-            .expect("lock not to be poisoned")
+        *self.initialized.read().expect("lock not to be poisoned")
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.

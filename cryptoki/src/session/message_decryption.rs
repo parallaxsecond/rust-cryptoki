@@ -10,7 +10,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
-impl Session {
+impl Session<'_> {
     /// Prepare a session for one or more Message-based decryption using the same mechanism and key
     pub fn message_decrypt_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
