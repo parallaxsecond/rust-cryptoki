@@ -14,7 +14,7 @@ use log::error;
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
-impl Drop for Session {
+impl Drop for Session<'_> {
     fn drop(&mut self) {
         #[inline(always)]
         fn close(session: &Session) -> Result<()> {
@@ -32,7 +32,7 @@ impl Drop for Session {
     }
 }
 
-impl Session {
+impl Session<'_> {
     /// Log a session in.
     ///
     /// # Arguments
