@@ -78,7 +78,8 @@ impl Session {
     /// This will be called on drop as well.
     pub fn close(self) {}
 
-    pub(crate) fn handle(&self) -> CK_SESSION_HANDLE {
+    /// Get the raw handle of the session.
+    pub fn handle(&self) -> CK_SESSION_HANDLE {
         self.handle
     }
 
