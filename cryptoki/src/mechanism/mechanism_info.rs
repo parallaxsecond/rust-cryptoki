@@ -7,6 +7,7 @@ use cryptoki_sys::*;
 use std::fmt::{Debug, Formatter};
 
 bitflags! {
+    #[derive(Debug, Clone, Copy)]
     struct MechanismInfoFlags: CK_FLAGS {
         const HW = CKF_HW;
         const ENCRYPT = CKF_ENCRYPT;
@@ -305,12 +306,13 @@ mod test {
 
     #[test]
     fn debug_flags_all() {
-        let expected = "\
-HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
-VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
-EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_NAMEDCURVE | \
-EC_OID | EC_UNCOMPRESS | EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | \
-MULTI_MESSAGE | ENCAPSULATE | DECAPSULATE";
+        let expected = "MechanismInfoFlags(
+    HW | ENCRYPT | DECRYPT | DIGEST | SIGN | SIGN_RECOVER | VERIFY | \
+    VERIFY_RECOVER | GENERATE | GENERATE_KEY_PAIR | WRAP | UNWRAP | DERIVE | \
+    EXTENSION | EC_F_P | EC_F_2M | EC_ECPARAMETERS | EC_OID | EC_UNCOMPRESS | \
+    EC_COMPRESS | MESSAGE_ENCRYPT | MESSAGE_DECRYPT | MULTI_MESSAGE | ENCAPSULATE | \
+    DECAPSULATE,
+)";
         let all = MechanismInfoFlags::all();
         let observed = format!("{all:#?}");
         println!("{observed}");
@@ -327,7 +329,9 @@ MULTI_MESSAGE | ENCAPSULATE | DECAPSULATE";
         let expected = r#"MechanismInfo {
     min_key_size: 16,
     max_key_size: 4096,
-    flags: (empty),
+    flags: MechanismInfoFlags(
+        0x0,
+    ),
 }"#;
         let observed = format!("{info:#?}");
         assert_eq!(observed, expected);

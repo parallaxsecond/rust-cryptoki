@@ -1579,7 +1579,7 @@ fn get_session_info_test() -> TestResult {
     let session_info = session.get_session_info()?;
     assert!(session_info.read_write());
     assert_eq!(session_info.slot_id(), slot);
-    assert!(matches!(session_info.session_state(), SessionState::RwUser,));
+    assert!(matches!(session_info.session_state(), SessionState::RwUser));
     session.logout()?;
     session.login(UserType::So, Some(&AuthPin::new(SO_PIN.into())))?;
     let session_info = session.get_session_info()?;
