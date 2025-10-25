@@ -1020,7 +1020,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_HASH_SLH_DSA_SHA3_512 => Ok(MechanismType::HASH_SLH_DSA_SHA3_512),
             CKM_HASH_SLH_DSA_SHAKE128 => Ok(MechanismType::HASH_SLH_DSA_SHAKE128),
             other => {
-                error!("Mechanism type {} is not supported.", other);
+                error!("Mechanism type {other} is not supported.");
                 Err(Error::NotSupported)
             }
         }

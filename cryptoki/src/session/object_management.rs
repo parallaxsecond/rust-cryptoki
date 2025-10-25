@@ -197,8 +197,8 @@ impl Drop for ObjectHandleIterator<'_> {
         if let Some(f) = get_pkcs11_func!(self.session.client(), C_FindObjectsFinal) {
             // swallow the return value, as we can't do anything about it,
             // but log the error
-            if let Rv::Error(error) = Rv::from(unsafe { f(self.session.handle()) }) {
-                log::error!("C_FindObjectsFinal() failed with error: {:?}", error);
+            if let Rv::Error(err) = Rv::from(unsafe { f(self.session.handle()) }) {
+                log::error!("C_FindObjectsFinal() failed with error: {err:?}");
             }
         } else {
             // bark but pass if C_FindObjectsFinal() is not implemented
