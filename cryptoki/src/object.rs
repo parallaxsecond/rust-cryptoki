@@ -322,6 +322,86 @@ impl AttributeType {
             _ => format!("unknown ({val:08x})"),
         }
     }
+
+    /// Returns the fixed size of an attribute type if known.
+    ///
+    /// This method returns `Some(size)` for attributes with a known fixed size,
+    /// and `None` for variable-length attributes. This is useful for optimizing
+    /// attribute retrieval by pre-allocating buffers of the correct size.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(usize)` - The fixed size in bytes for attributes with known fixed size
+    /// * `None` - For variable-length attributes (e.g., Label, Modulus, Value, etc.)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cryptoki::object::AttributeType;
+    /// use std::mem::size_of;
+    /// use cryptoki_sys::CK_ULONG;
+    ///
+    /// // Fixed-size attributes
+    /// assert_eq!(AttributeType::Class.fixed_size(), Some(size_of::<CK_ULONG>()));
+    /// assert_eq!(AttributeType::Token.fixed_size(), Some(size_of::<CK_ULONG>()));
+    ///
+    /// // Variable-length attributes
+    /// assert_eq!(AttributeType::Label.fixed_size(), None);
+    /// assert_eq!(AttributeType::Modulus.fixed_size(), None);
+    /// ```
+    pub fn fixed_size(&self) -> Option<usize> {
+        match self {
+            // CK_BBOOL (CK_ULONG on most platforms)
+            AttributeType::Token
+            | AttributeType::Private
+            | AttributeType::Modifiable
+            | AttributeType::Copyable
+            | AttributeType::Destroyable
+            | AttributeType::Sensitive
+            | AttributeType::Encrypt
+            | AttributeType::Decrypt
+            | AttributeType::Wrap
+            | AttributeType::Unwrap
+            | AttributeType::Sign
+            | AttributeType::SignRecover
+            | AttributeType::Verify
+            | AttributeType::VerifyRecover
+            | AttributeType::Derive
+            | AttributeType::Extractable
+            | AttributeType::Local
+            | AttributeType::NeverExtractable
+            | AttributeType::AlwaysSensitive
+            | AttributeType::WrapWithTrusted
+            | AttributeType::Trusted
+            | AttributeType::AlwaysAuthenticate
+            | AttributeType::Encapsulate
+            | AttributeType::Decapsulate => Some(size_of::<CK_ULONG>()),
+
+            // CK_ULONG or aliases (CK_OBJECT_CLASS, CK_KEY_TYPE, CK_CERTIFICATE_TYPE, etc.)
+            AttributeType::Class
+            | AttributeType::KeyType
+            | AttributeType::CertificateType
+            | AttributeType::ModulusBits
+            | AttributeType::ValueLen
+            | AttributeType::ObjectValidationFlags
+            | AttributeType::ParameterSet
+            | AttributeType::ValidationFlag
+            | AttributeType::ValidationType
+            | AttributeType::ValidationLevel
+            | AttributeType::ValidationAuthorityType
+            | AttributeType::ProfileId
+            | AttributeType::KeyGenMechanism => Some(size_of::<CK_ULONG>()),
+
+            // CK_DATE (8 bytes: year[4] + month[2] + day[2])
+            AttributeType::StartDate | AttributeType::EndDate => Some(size_of::<CK_DATE>()),
+
+            // CK_VERSION (2 bytes: major + minor)
+            AttributeType::ValidationVersion => Some(size_of::<CK_VERSION>()),
+
+            // Variable-length attributes (all the others)
+            _ => None,
+        }
+    }
 }
 
 impl std::fmt::Display for AttributeType {

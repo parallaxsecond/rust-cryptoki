@@ -4617,3 +4617,137 @@ fn object_handle_new_from_raw() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+#[serial]
+fn get_attributes_test() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // get mechanism
+    let mechanism = Mechanism::RsaPkcsKeyPairGen;
+
+    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 2048;
+
+    // pub key template
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent.clone()),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
+    ];
+
+    // priv key template
+    let priv_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Sign(true),
+        Attribute::Private(true),
+    ];
+
+    // generate a key pair
+    let (public, private) =
+        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+
+    // Test get_attributes_fast with various attribute types
+    let attributes_to_check = vec![
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::Token,
+        AttributeType::Private,
+        AttributeType::Modulus,
+        AttributeType::PublicExponent,
+        AttributeType::Verify,
+        AttributeType::ModulusBits,
+    ];
+
+    // Test 1: Get multiple attributes from public key
+    let attrs = session.get_attributes(public, &attributes_to_check)?;
+
+    // Check that we got the expected attributes
+    assert!(!attrs.is_empty(), "No attributes returned");
+
+    // Verify specific attributes
+    let has_class = attrs.iter().any(|attr| matches!(attr, Attribute::Class(_)));
+    let has_key_type = attrs
+        .iter()
+        .any(|attr| matches!(attr, Attribute::KeyType(_)));
+    let has_modulus = attrs
+        .iter()
+        .any(|attr| matches!(attr, Attribute::Modulus(_)));
+    let has_public_exp = attrs
+        .iter()
+        .any(|attr| matches!(attr, Attribute::PublicExponent(_)));
+
+    assert!(has_class, "Class attribute not found");
+    assert!(has_key_type, "KeyType attribute not found");
+    assert!(has_modulus, "Modulus attribute not found");
+    assert!(has_public_exp, "PublicExponent attribute not found");
+
+    // Verify the public exponent value matches what we set
+    for attr in &attrs {
+        if let Attribute::PublicExponent(exp) = attr {
+            assert_eq!(exp, &public_exponent, "Public exponent mismatch");
+        }
+    }
+
+    // Test 2: Get multiple attributes from private key
+    let priv_attributes_to_check = vec![
+        AttributeType::Class,
+        AttributeType::KeyType,
+        AttributeType::Token,
+        AttributeType::Private,
+        AttributeType::Sign,
+    ];
+
+    let priv_attrs = session.get_attributes(private, &priv_attributes_to_check)?;
+
+    assert!(!priv_attrs.is_empty(), "No private key attributes returned");
+
+    // Test 3: Single attribute with known fixed length (CK_ULONG)
+    let single_fixed = vec![AttributeType::KeyType];
+    let attrs_single_fixed = session.get_attributes(public, &single_fixed)?;
+    assert_eq!(
+        attrs_single_fixed.len(),
+        1,
+        "Should return exactly 1 attribute"
+    );
+    assert!(
+        matches!(attrs_single_fixed[0], Attribute::KeyType(_)),
+        "Should be KeyType attribute"
+    );
+
+    // Test 4: Single attribute with variable length
+    let single_variable = vec![AttributeType::Modulus];
+    let attrs_single_variable = session.get_attributes(public, &single_variable)?;
+    assert_eq!(
+        attrs_single_variable.len(),
+        1,
+        "Should return exactly 1 attribute"
+    );
+    assert!(
+        matches!(attrs_single_variable[0], Attribute::Modulus(_)),
+        "Should be Modulus attribute"
+    );
+
+    // Test 5: Single attribute that doesn't exist for this object (EC point for RSA key)
+    let single_invalid = vec![AttributeType::EcPoint];
+    let attrs_single_invalid = session.get_attributes(public, &single_invalid)?;
+    assert_eq!(
+        attrs_single_invalid.len(),
+        0,
+        "Should return 0 attributes for invalid attribute type"
+    );
+
+    // delete keys
+    session.destroy_object(public)?;
+    session.destroy_object(private)?;
+
+    Ok(())
+}

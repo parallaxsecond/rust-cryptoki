@@ -17,14 +17,24 @@ fn get_pkcs11_path() -> String {
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
 }
 
+// Used to simulate different library behaviors.
+// for SoftHSM, just create the environment variable TEST_PRETEND_LIBRARY with "softhsm"
+// this is use
+#[allow(dead_code)]
+pub fn get_pretend_library() -> String {
+    env::var("TEST_PRETEND_LIBRARY")
+        .unwrap_or_else(|_| "".to_string())
+        .to_lowercase()
+}
+
 #[allow(dead_code)]
 pub fn is_softhsm() -> bool {
-    get_pkcs11_path().contains("softhsm")
+    get_pretend_library() == "softhsm" || get_pkcs11_path().contains("softhsm")
 }
 
 #[allow(dead_code)]
 pub fn is_kryoptic() -> bool {
-    get_pkcs11_path().contains("kryoptic")
+    get_pretend_library() == "kryoptic" || get_pkcs11_path().contains("kryoptic")
 }
 
 #[allow(dead_code)]

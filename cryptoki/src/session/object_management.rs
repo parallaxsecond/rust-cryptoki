@@ -9,6 +9,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::collections::HashMap;
 use std::convert::TryInto;
+use std::ffi::c_void;
 use std::num::NonZeroUsize;
 
 // Search 10 elements at a time
@@ -500,7 +501,7 @@ impl Session {
     /// Get the attributes values of an object.
     /// Ignore the unavailable one. One has to call the get_attribute_info method to check which
     /// ones are unavailable.
-    pub fn get_attributes(
+    pub fn get_attributes_old(
         &self,
         object: ObjectHandle,
         attributes: &[AttributeType],
@@ -525,7 +526,7 @@ impl Session {
             .map(|(attr_type, memory)| {
                 Ok(CK_ATTRIBUTE {
                     type_: (*attr_type).into(),
-                    pValue: memory.as_ptr() as *mut std::ffi::c_void,
+                    pValue: memory.as_ptr() as *mut c_void,
                     ulValueLen: memory.len().try_into()?,
                 })
             })
@@ -545,6 +546,193 @@ impl Session {
 
         // Convert from CK_ATTRIBUTE to Attribute
         template.into_iter().map(|attr| attr.try_into()).collect()
+    }
+
+    /// Get the attributes values of an object, filtering out unavailable ones.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object
+    /// * `attributes` - The list of attribute types to retrieve
+    ///
+    /// # Returns
+    ///
+    /// A vector of [Attribute] containing the values of the available attributes.
+    ///
+    /// # Note
+    ///
+    /// This method follows PKCS#11 spec: in the first call, it provides pre-allocated buffers
+    /// for attributes with a known fixed size, and NULL pointers for other attributes to query
+    /// their size.
+    ///
+    /// After the first call:
+    /// - Attributes that fit in pre-allocated buffers are ready (pValue != NULL, valid ulValueLen)
+    /// - Attributes with NULL pValue but valid ulValueLen need a second fetch
+    /// - Attributes with CK_UNAVAILABLE_INFORMATION are skipped
+    ///
+    /// In total, a maximum of 2 calls to C_GetAttributeValue are made.
+    ///
+    pub fn get_attributes(
+        &self,
+        object: ObjectHandle,
+        attributes: &[AttributeType],
+    ) -> Result<Vec<Attribute>> {
+        // Step 1: Build initial template
+        // - Pre-allocate buffers for attributes with known fixed size
+        // - Use NULL pointers for all other attributes to query their size
+        let mut buffers: Vec<Vec<u8>> = Vec::with_capacity(attributes.len());
+        let mut template: Vec<CK_ATTRIBUTE> = Vec::with_capacity(attributes.len());
+
+        for attr_type in attributes.iter() {
+            // do we know the fixed size of this attribute?
+            if let Some(size) = attr_type.fixed_size() {
+                let mut buffer = vec![0u8; size];
+                template.push(CK_ATTRIBUTE {
+                    type_: (*attr_type).into(),
+                    pValue: buffer.as_mut_ptr() as *mut c_void,
+                    ulValueLen: size as CK_ULONG,
+                });
+                buffers.push(buffer);
+            } else {
+                // unknown size - use NULL pointer to query size
+                template.push(CK_ATTRIBUTE {
+                    type_: (*attr_type).into(),
+                    pValue: std::ptr::null_mut(),
+                    ulValueLen: 0,
+                });
+                buffers.push(Vec::new()); // zero cost
+            }
+        }
+
+        // Step 2: Make first call to C_GetAttributeValue
+        let rv = unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+            ))
+        };
+
+        // Handle the result - propagate unexpected errors
+        match rv {
+            Rv::Ok
+            | Rv::Error(RvError::BufferTooSmall)
+            | Rv::Error(RvError::AttributeSensitive)
+            | Rv::Error(RvError::AttributeTypeInvalid) => {
+                // These are acceptable - we'll filter based on ulValueLen
+            }
+            _ => {
+                // Other errors are propagated up
+                rv.into_result(Function::GetAttributeValue)?;
+            }
+        }
+
+        // Step 3: Scan results and categorize attributes
+        let mut successful_indices: Vec<usize> = Vec::new();
+        let mut need_fetch_indices: Vec<usize> = Vec::new();
+
+        for (i, attr) in template.iter().enumerate() {
+            if attr.ulValueLen == CK_UNAVAILABLE_INFORMATION {
+                // Skip unavailable attributes
+                continue;
+            } else if attr.pValue.is_null() && attr.ulValueLen > 0 {
+                // NULL pointer but has a length - needs fetching
+                need_fetch_indices.push(i);
+            } else if !attr.pValue.is_null() {
+                // Has data already - successful
+                successful_indices.push(i);
+            }
+        }
+
+        // Step 4: Make second call if needed for attributes that need fetching
+        let second_template = if !need_fetch_indices.is_empty() {
+            // Allocate buffers and build second pass template in one loop
+            let mut second_template: Vec<CK_ATTRIBUTE> =
+                Vec::with_capacity(need_fetch_indices.len());
+
+            for &idx in need_fetch_indices.iter() {
+                let size = template[idx].ulValueLen as usize;
+                buffers[idx].resize(size, 0);
+
+                second_template.push(CK_ATTRIBUTE {
+                    type_: template[idx].type_,
+                    pValue: buffers[idx].as_mut_ptr() as *mut c_void,
+                    ulValueLen: buffers[idx].len() as CK_ULONG,
+                });
+            }
+
+            let rv_second = unsafe {
+                Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                    self.handle(),
+                    object.handle(),
+                    second_template.as_mut_ptr(),
+                    second_template.len().try_into()?,
+                ))
+            };
+
+            // Handle the result
+            match rv_second {
+                Rv::Ok
+                | Rv::Error(RvError::AttributeSensitive)
+                | Rv::Error(RvError::AttributeTypeInvalid) => {
+                    // These are acceptable
+                }
+                _ => {
+                    // Other errors are propagated up
+                    rv_second.into_result(Function::GetAttributeValue)?;
+                }
+            }
+
+            // Add successful indices from second call
+            for (i, &idx) in need_fetch_indices.iter().enumerate() {
+                if second_template[i].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                    successful_indices.push(idx);
+                }
+            }
+
+            Some((second_template, need_fetch_indices))
+        } else {
+            None
+        };
+
+        // Step 5: Build result Vec<Attribute> from both templates
+        // Sort indices to maintain the order of the requested attributes
+        successful_indices.sort_unstable();
+
+        let mut results = Vec::new();
+        for &idx in successful_indices.iter() {
+            // Check if this attribute came from the second call
+            let attr = if let Some((ref second_tmpl, ref second_indices)) = second_template {
+                // Find position in second_indices
+                if let Some(pos) = second_indices.iter().position(|&i| i == idx) {
+                    // This attribute came from the second call
+                    if second_tmpl[pos].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                        second_tmpl[pos].try_into()?
+                    } else {
+                        continue; // Skip unavailable
+                    }
+                } else {
+                    // This attribute came from the first call
+                    if template[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                        template[idx].try_into()?
+                    } else {
+                        continue; // Skip unavailable
+                    }
+                }
+            } else {
+                // No second call was made, use first template
+                if template[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                    template[idx].try_into()?
+                } else {
+                    continue; // Skip unavailable
+                }
+            };
+
+            results.push(attr);
+        }
+
+        Ok(results)
     }
 
     /// Sets the attributes of an object
