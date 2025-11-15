@@ -169,30 +169,30 @@ fn benchmark_attributes(
 
 fn print_summary_table(results: &[BenchmarkResult]) {
     println!("\n");
-    println!("╔═════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║                                BENCHMARK SUMMARY TABLE                                          ║");
-    println!("╠═══════════════════╦═════════════╦═════════════╦═════════════╦═════════════╦═════════════╦═══════╣");
+    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║                                  BENCHMARK SUMMARY TABLE                                          ║");
+    println!("╠═══════════════════╦═════════════╦═════════════╦═════════════╦═════════════╦═══════╦═══════════════╣");
     println!(
-        "║ {:^17} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:^5} ║",
-        "Test Case", "Orig Mean", "Orig p95", "Opt Mean", "Opt p95", "Speedup", "Unit"
+        "║ {:^17} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:^5} ║ {:^13} ║",
+        "Test Case", "Orig Mean", "Orig p95", "Opt Mean", "Opt p95", "Unit", "Speedup"
     );
-    println!("╠═══════════════════╬═════════════╬═════════════╬═════════════╬═════════════╬═════════════╬═══════╣");
+    println!("╠═══════════════════╬═════════════╬═════════════╬═════════════╬═════════════╬═══════╬═══════════════╣");
 
     // Each row is a test case
     for result in results {
         println!(
-            "║ {:17} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:>5} ║",
+            "║ {:17} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:>5} ║ {:>13} ║",
             result.label,
             result.stats_old.mean / 1000.0,
             result.stats_old.p95 / 1000.0,
             result.stats_optimized.mean / 1000.0,
             result.stats_optimized.p95 / 1000.0,
-            result.speedup_mean(),
-            "µs/x"
+            "µs",
+            format!("x {:.2}", result.speedup_mean())
         );
     }
 
-    println!("╚═══════════════════╩═════════════╩═════════════╩═════════════╩═════════════╩═════════════╩═══════╝");
+    println!("╚═══════════════════╩═════════════╩═════════════╩═════════════╩═════════════╩═══════╩═══════════════╝");
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -206,7 +206,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or_else(|_| "/usr/lib/softhsm/libsofthsm2.so".to_string()),
     )?;
 
+    let pin = env::var("TEST_PKCS11_PIN").unwrap_or_else(|_| "fedcba123456".to_string());
     pkcs11.initialize(CInitializeArgs::OsThreads)?;
+
+    let nogenerate = env::var("TEST_PKCS11_NO_KEYGEN").is_ok();
 
     let slot = pkcs11
         .get_slots_with_token()?
@@ -216,44 +219,64 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let session = pkcs11.open_rw_session(slot)?;
 
-    session.login(UserType::User, Some(&AuthPin::new("fedcba123456".into())))?;
+    session.login(UserType::User, Some(&AuthPin::new(pin.into())))?;
 
-    // Generate a test RSA key pair
-    let mechanism = Mechanism::RsaPkcsKeyPairGen;
-    let public_exponent: Vec<u8> = vec![0x01, 0x00, 0x01];
-    let modulus_bits = 2048;
+    let public;
+    let _private;
 
-    let pub_key_template = vec![
-        Attribute::Token(false), // Don't persist
-        Attribute::Private(false),
-        Attribute::PublicExponent(public_exponent),
-        Attribute::ModulusBits(modulus_bits.into()),
-        Attribute::Verify(true),
-        Attribute::Label("Benchmark Key".into()),
-        Attribute::Id(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-    ];
+    if nogenerate {
+        // search for an elliptic curve public key.
+        // if more than one, take the first that comes.
+        println!("Using existing EC public key for benchmarking...");
+        let template = vec![
+            Attribute::Class(cryptoki::object::ObjectClass::PUBLIC_KEY),
+            Attribute::KeyType(cryptoki::object::KeyType::EC),
+        ];
+        let objects = session.find_objects(&template)?;
+        if objects.is_empty() {
+            return Err(
+                "No EC public key found on the token. Cannot proceed with benchmarks.".into(),
+            );
+        }
+        public = objects[0];
+    } else {
+        // Generate a test EC key pair (P-256 curve)
+        let mechanism = Mechanism::EccKeyPairGen;
 
-    let priv_key_template = vec![Attribute::Token(false), Attribute::Sign(true)];
+        // ANSI X9.62 prime256v1 (P-256) curve OID: 1.2.840.10045.3.1.7
+        let ec_params = vec![0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07];
 
-    println!("Generating RSA key pair for benchmarking...");
-    let (public, _private) =
-        session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+        let pub_key_template = vec![
+            Attribute::Token(false), // Don't persist
+            Attribute::Private(false),
+            Attribute::EcParams(ec_params),
+            Attribute::Verify(true),
+            Attribute::Label("Benchmark EC Key".into()),
+            Attribute::Id(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        ];
+
+        let priv_key_template = vec![Attribute::Token(false), Attribute::Sign(true)];
+
+        println!("Generating EC key pair for benchmarking...");
+        (public, _private) =
+            session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
+    }
 
     let mut results = Vec::new();
 
     // Test 1: Multiple attributes (mix of fixed and variable length)
     let multiple_attributes = vec![
-        AttributeType::Class,          // CK_ULONG (fixed, 8 bytes)
-        AttributeType::Label,          // Variable length
-        AttributeType::Id,             // Variable length
-        AttributeType::KeyType,        // CK_ULONG (fixed, 8 bytes)
-        AttributeType::Token,          // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Private,        // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Modulus,        // Large variable (256 bytes for 2048-bit key)
-        AttributeType::PublicExponent, // Variable, typically 3 bytes
-        AttributeType::Verify,         // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Encrypt,        // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::ModulusBits,    // CK_ULONG (fixed, 8 bytes)
+        AttributeType::Class,    // CK_ULONG (fixed, 8 bytes)
+        AttributeType::Label,    // Variable length
+        AttributeType::Id,       // Variable length
+        AttributeType::KeyType,  // CK_ULONG (fixed, 8 bytes)
+        AttributeType::Token,    // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::Private,  // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::EcPoint,  // Variable length (~65 bytes for P-256 uncompressed)
+        AttributeType::EcParams, // Variable length (10 bytes for P-256 OID)
+        AttributeType::Verify,   // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::Encrypt,  // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::Local,    // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
     ];
 
     results.push(benchmark_attributes(
@@ -275,19 +298,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "Single-fixed",
     )?);
 
-    // Test 3: Single variable-length attribute (large)
-    let single_variable_large = vec![AttributeType::Modulus];
+    // Test 3: Single variable-length attribute (EC point, ~65 bytes for P-256)
+    let single_variable = vec![AttributeType::EcPoint];
 
     results.push(benchmark_attributes(
         &session,
         public,
-        &single_variable_large,
+        &single_variable,
         iterations,
         "Single-variable",
     )?);
 
-    // Test 4: Single attribute that doesn't exist (EC point for RSA key)
-    let single_nonexistent = vec![AttributeType::EcPoint];
+    // Test 4: Single attribute that doesn't exist (Modulus for EC key)
+    let single_nonexistent = vec![AttributeType::Modulus];
 
     results.push(benchmark_attributes(
         &session,
@@ -301,7 +324,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     print_summary_table(&results);
 
     // Clean up
-    session.destroy_object(public)?;
+    if !nogenerate {
+        session.destroy_object(public)?;
+    }
 
     Ok(())
 }

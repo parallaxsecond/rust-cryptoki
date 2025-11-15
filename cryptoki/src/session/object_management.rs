@@ -577,155 +577,145 @@ impl Session {
         object: ObjectHandle,
         attributes: &[AttributeType],
     ) -> Result<Vec<Attribute>> {
-        // Step 1: Build initial template
+        // Step 1: Build pass1 template
         // - Pre-allocate buffers for attributes with known fixed size
         // - Use NULL pointers for all other attributes to query their size
-        let mut buffers: Vec<Vec<u8>> = Vec::with_capacity(attributes.len());
-        let mut template: Vec<CK_ATTRIBUTE> = Vec::with_capacity(attributes.len());
+        let mut buffers1: Vec<Vec<u8>> = Vec::with_capacity(attributes.len());
+        let mut template1: Vec<CK_ATTRIBUTE> = Vec::with_capacity(attributes.len());
 
         for attr_type in attributes.iter() {
-            // do we know the fixed size of this attribute?
             if let Some(size) = attr_type.fixed_size() {
                 let mut buffer = vec![0u8; size];
-                template.push(CK_ATTRIBUTE {
+                template1.push(CK_ATTRIBUTE {
                     type_: (*attr_type).into(),
                     pValue: buffer.as_mut_ptr() as *mut c_void,
                     ulValueLen: size as CK_ULONG,
                 });
-                buffers.push(buffer);
+                buffers1.push(buffer);
             } else {
-                // unknown size - use NULL pointer to query size
-                template.push(CK_ATTRIBUTE {
+                template1.push(CK_ATTRIBUTE {
                     type_: (*attr_type).into(),
                     pValue: std::ptr::null_mut(),
                     ulValueLen: 0,
                 });
-                buffers.push(Vec::new()); // zero cost
+                buffers1.push(Vec::new());
             }
         }
 
-        // Step 2: Make first call to C_GetAttributeValue
-        let rv = unsafe {
+        // Step 2: Make pass1 call to C_GetAttributeValue
+        let rv1 = unsafe {
             Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
                 self.handle(),
                 object.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
+                template1.as_mut_ptr(),
+                template1.len().try_into()?,
             ))
         };
 
-        // Handle the result - propagate unexpected errors
-        match rv {
+        match rv1 {
             Rv::Ok
             | Rv::Error(RvError::BufferTooSmall)
             | Rv::Error(RvError::AttributeSensitive)
             | Rv::Error(RvError::AttributeTypeInvalid) => {
-                // These are acceptable - we'll filter based on ulValueLen
+                // acceptable - we'll inspect ulValueLen/pValue
             }
             _ => {
-                // Other errors are propagated up
-                rv.into_result(Function::GetAttributeValue)?;
+                rv1.into_result(Function::GetAttributeValue)?;
             }
         }
 
-        // Step 3: Scan results and categorize attributes
-        let mut successful_indices: Vec<usize> = Vec::new();
-        let mut need_fetch_indices: Vec<usize> = Vec::new();
+        // Step 3: Categorize pass1 results into pass1 (already satisfied) and pass2 (need fetch)
+        let mut pass1_indices: Vec<usize> = Vec::new();
+        let mut pass2_indices: Vec<usize> = Vec::new();
 
-        for (i, attr) in template.iter().enumerate() {
+        for (i, attr) in template1.iter().enumerate() {
             if attr.ulValueLen == CK_UNAVAILABLE_INFORMATION {
                 // Skip unavailable attributes
                 continue;
             } else if attr.pValue.is_null() && attr.ulValueLen > 0 {
-                // NULL pointer but has a length - needs fetching
-                need_fetch_indices.push(i);
+                // NULL pointer but has a length - needs fetching in pass2
+                pass2_indices.push(i);
             } else if !attr.pValue.is_null() {
-                // Has data already - successful
-                successful_indices.push(i);
+                // Has data already - satisfied in pass1
+                pass1_indices.push(i);
             }
         }
 
-        // Step 4: Make second call if needed for attributes that need fetching
-        let second_template = if !need_fetch_indices.is_empty() {
-            // Allocate buffers and build second pass template in one loop
-            let mut second_template: Vec<CK_ATTRIBUTE> =
-                Vec::with_capacity(need_fetch_indices.len());
+        // Step 4: Make pass2 call if needed for attributes that need fetching
+        let mut pass2_template_and_indices: Option<(Vec<CK_ATTRIBUTE>, Vec<usize>)> = None;
 
-            for &idx in need_fetch_indices.iter() {
-                let size = template[idx].ulValueLen as usize;
-                buffers[idx].resize(size, 0);
+        if !pass2_indices.is_empty() {
+            let mut template2: Vec<CK_ATTRIBUTE> = Vec::with_capacity(pass2_indices.len());
 
-                second_template.push(CK_ATTRIBUTE {
-                    type_: template[idx].type_,
-                    pValue: buffers[idx].as_mut_ptr() as *mut c_void,
-                    ulValueLen: buffers[idx].len() as CK_ULONG,
+            for &idx in pass2_indices.iter() {
+                let size = template1[idx].ulValueLen as usize;
+                buffers1[idx].resize(size, 0);
+
+                template2.push(CK_ATTRIBUTE {
+                    type_: template1[idx].type_,
+                    pValue: buffers1[idx].as_mut_ptr() as *mut c_void,
+                    ulValueLen: buffers1[idx].len() as CK_ULONG,
                 });
             }
 
-            let rv_second = unsafe {
+            let rv2 = unsafe {
                 Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
                     self.handle(),
                     object.handle(),
-                    second_template.as_mut_ptr(),
-                    second_template.len().try_into()?,
+                    template2.as_mut_ptr(),
+                    template2.len().try_into()?,
                 ))
             };
 
-            // Handle the result
-            match rv_second {
+            match rv2 {
                 Rv::Ok
                 | Rv::Error(RvError::AttributeSensitive)
                 | Rv::Error(RvError::AttributeTypeInvalid) => {
-                    // These are acceptable
+                    // acceptable
                 }
                 _ => {
-                    // Other errors are propagated up
-                    rv_second.into_result(Function::GetAttributeValue)?;
+                    rv2.into_result(Function::GetAttributeValue)?;
                 }
             }
 
-            // Add successful indices from second call
-            for (i, &idx) in need_fetch_indices.iter().enumerate() {
-                if second_template[i].ulValueLen != CK_UNAVAILABLE_INFORMATION {
-                    successful_indices.push(idx);
+            // Add indices satisfied by pass2 into pass1_indices
+            for (i, &idx) in pass2_indices.iter().enumerate() {
+                if template2[i].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                    pass1_indices.push(idx);
                 }
             }
 
-            Some((second_template, need_fetch_indices))
-        } else {
-            None
-        };
+            pass2_template_and_indices = Some((template2, pass2_indices.clone()));
+        }
 
-        // Step 5: Build result Vec<Attribute> from both templates
-        // Sort indices to maintain the order of the requested attributes
-        successful_indices.sort_unstable();
+        // Step 5: Build result Vec<Attribute> preserving request order
+        // Sort pass1_indices to preserve the original order from attributes[]
+        pass1_indices.sort_unstable();
 
         let mut results = Vec::new();
-        for &idx in successful_indices.iter() {
-            // Check if this attribute came from the second call
-            let attr = if let Some((ref second_tmpl, ref second_indices)) = second_template {
-                // Find position in second_indices
-                if let Some(pos) = second_indices.iter().position(|&i| i == idx) {
-                    // This attribute came from the second call
-                    if second_tmpl[pos].ulValueLen != CK_UNAVAILABLE_INFORMATION {
-                        second_tmpl[pos].try_into()?
+        for &idx in pass1_indices.iter() {
+            let attr = if let Some((ref template2, ref indices2)) = pass2_template_and_indices {
+                if let Some(pos) = indices2.iter().position(|&i| i == idx) {
+                    // attribute came from pass2
+                    if template2[pos].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                        template2[pos].try_into()?
                     } else {
-                        continue; // Skip unavailable
+                        continue;
                     }
                 } else {
-                    // This attribute came from the first call
-                    if template[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
-                        template[idx].try_into()?
+                    // attribute came from pass1
+                    if template1[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                        template1[idx].try_into()?
                     } else {
-                        continue; // Skip unavailable
+                        continue;
                     }
                 }
             } else {
-                // No second call was made, use first template
-                if template[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
-                    template[idx].try_into()?
+                // Only pass1 happened
+                if template1[idx].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                    template1[idx].try_into()?
                 } else {
-                    continue; // Skip unavailable
+                    continue;
                 }
             };
 
