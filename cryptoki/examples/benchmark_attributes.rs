@@ -270,13 +270,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         AttributeType::Label,    // Variable length
         AttributeType::Id,       // Variable length
         AttributeType::KeyType,  // CK_ULONG (fixed, 8 bytes)
-        AttributeType::Token,    // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Private,  // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::Token,    // CK_BBOOL (c_uchar, 1 byte)
+        AttributeType::Private,  // CK_BBOOL (c_uchar, 1 byte)
         AttributeType::EcPoint,  // Variable length (~65 bytes for P-256 uncompressed)
         AttributeType::EcParams, // Variable length (10 bytes for P-256 OID)
-        AttributeType::Verify,   // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Encrypt,  // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
-        AttributeType::Local,    // CK_BBOOL as CK_ULONG (fixed, 8 bytes)
+        AttributeType::Verify,   // CK_BBOOL (c_uchar, 1 byte)
+        AttributeType::Encrypt,  // CK_BBOOL (c_uchar, 1 byte)
+        AttributeType::Local,    // CK_BBOOL (c_uchar, 1 byte)
     ];
 
     results.push(benchmark_attributes(

@@ -339,11 +339,11 @@ impl AttributeType {
     /// ```
     /// use cryptoki::object::AttributeType;
     /// use std::mem::size_of;
-    /// use cryptoki_sys::CK_ULONG;
+    /// use cryptoki_sys::{CK_ULONG, CK_BBOOL};
     ///
     /// // Fixed-size attributes
     /// assert_eq!(AttributeType::Class.fixed_size(), Some(size_of::<CK_ULONG>()));
-    /// assert_eq!(AttributeType::Token.fixed_size(), Some(size_of::<CK_ULONG>()));
+    /// assert_eq!(AttributeType::Token.fixed_size(), Some(size_of::<CK_BBOOL>()));
     ///
     /// // Variable-length attributes
     /// assert_eq!(AttributeType::Label.fixed_size(), None);
@@ -351,7 +351,7 @@ impl AttributeType {
     /// ```
     pub fn fixed_size(&self) -> Option<usize> {
         match self {
-            // CK_BBOOL (CK_ULONG on most platforms)
+            // CK_BBOOL
             AttributeType::Token
             | AttributeType::Private
             | AttributeType::Modifiable
@@ -375,7 +375,7 @@ impl AttributeType {
             | AttributeType::Trusted
             | AttributeType::AlwaysAuthenticate
             | AttributeType::Encapsulate
-            | AttributeType::Decapsulate => Some(size_of::<CK_ULONG>()),
+            | AttributeType::Decapsulate => Some(size_of::<CK_BBOOL>()),
 
             // CK_ULONG or aliases (CK_OBJECT_CLASS, CK_KEY_TYPE, CK_CERTIFICATE_TYPE, etc.)
             AttributeType::Class

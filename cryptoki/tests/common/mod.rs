@@ -19,7 +19,7 @@ fn get_pkcs11_path() -> String {
 
 // Used to simulate different library behaviors.
 // for SoftHSM, just create the environment variable TEST_PRETEND_LIBRARY with "softhsm"
-// this is use
+// This is used to interface a shim library during testing, while appearing to be using the real library.
 #[allow(dead_code)]
 pub fn get_pretend_library() -> String {
     env::var("TEST_PRETEND_LIBRARY")
