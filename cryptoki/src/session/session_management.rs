@@ -3,14 +3,14 @@
 //! Session management functions
 
 use crate::context::Function;
-use crate::error::{Result, Rv};
+use crate::error::{Error, Result, Rv, RvError};
 use crate::session::{Session, SessionInfo, UserType};
 use crate::types::{AuthPin, RawAuthPin};
 
 #[cfg(doc)]
 use cryptoki_sys::CKF_PROTECTED_AUTHENTICATION_PATH;
 use cryptoki_sys::CK_SESSION_INFO;
-use log::error;
+use log::{error, warn};
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
@@ -27,7 +27,14 @@ impl Drop for Session {
         }
 
         if let Err(err) = close(self) {
-            error!("Failed to close session: {err}");
+            match err {
+                Error::Pkcs11(RvError::SessionHandleInvalid, _) =>
+
+
+
+                    warn!("Failed to close session: Session handle invalid - it may have already been closed."),
+                _ => error!("Failed to close session: {err}"),
+            }
         }
     }
 }
