@@ -29,7 +29,7 @@ impl Drop for Session {
         if let Err(err) = close(self) {
             match err {
                 Error::Pkcs11(RvError::SessionHandleInvalid, _) => {
-                    warn!("Failed to close session: Session handle invalid - it may have already been closed.");
+                    warn!("Failed to close session: The specified session handle is invalid, the session must be already closed.");
                 }
                 _ => error!("Failed to close session: {err}"),
             }
