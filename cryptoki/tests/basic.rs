@@ -80,6 +80,9 @@ fn sign_verify() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -122,6 +125,9 @@ fn sign_verify_eddsa() -> TestResult {
 
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -177,6 +183,9 @@ fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -224,6 +233,9 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
 
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -277,6 +289,9 @@ fn sign_verify_multipart() -> TestResult {
     // Delete keys
     session.destroy_object(pub_key)?;
     session.destroy_object(priv_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -333,6 +348,9 @@ fn sign_verify_multipart_not_initialized() -> TestResult {
         result.unwrap_err(),
         Error::Pkcs11(_, Function::VerifyFinal)
     ));
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -395,6 +413,9 @@ fn sign_verify_multipart_already_initialized() -> TestResult {
     session.destroy_object(pub_key)?;
     session.destroy_object(priv_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -408,6 +429,8 @@ fn encrypt_decrypt() -> TestResult {
 
     if is_fips(&session) {
         eprintln!("The RSA PKCS#1 encryption is not allowed in FIPS Mode");
+        session.close()?;
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -451,6 +474,9 @@ fn encrypt_decrypt() -> TestResult {
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -540,6 +566,9 @@ fn encrypt_decrypt_multipart() -> TestResult {
     // Delete key
     session.destroy_object(key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -598,6 +627,9 @@ fn encrypt_decrypt_multipart_not_initialized() -> TestResult {
         Error::Pkcs11(_, Function::DecryptFinal)
     ));
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -647,6 +679,9 @@ fn encrypt_decrypt_multipart_already_initialized() -> TestResult {
 
     // Delete key
     session.destroy_object(key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -732,6 +767,9 @@ fn derive_key() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -751,6 +789,7 @@ fn derive_key_sp800() -> TestResult {
         // Kryoptic added support for sha256_sp800 in version 1.3.
         if !(major > 1 || minor >= 3) {
             eprintln!("Skipping test: Kryoptic is too old (need 1.3, got {major}.{minor})");
+            pkcs11.finalize()?;
             return Ok(());
         }
     }
@@ -816,6 +855,9 @@ fn derive_key_sp800() -> TestResult {
 
     // delete keys
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -891,6 +933,9 @@ fn derive_key_concatenation_two_keys() -> TestResult {
     session.destroy_object(key1)?;
     session.destroy_object(key2)?;
     session.destroy_object(derived_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -972,6 +1017,9 @@ fn derive_key_concatenation_key_and_data() -> TestResult {
     session.destroy_object(derived_key1)?;
     session.destroy_object(derived_key2)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1030,6 +1078,9 @@ fn derive_key_xor_key_and_data() -> TestResult {
     // Delete keys
     session.destroy_object(key)?;
     session.destroy_object(derived_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -1098,6 +1149,9 @@ fn derive_key_extract_from_key() -> TestResult {
     // Delete keys
     session.destroy_object(key)?;
     session.destroy_object(derived_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -1170,6 +1224,9 @@ fn import_export() -> TestResult {
     // delete key
     session.destroy_object(is_it_the_public_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1179,6 +1236,8 @@ fn get_token_info() -> TestResult {
     let (pkcs11, slot) = init_pins();
     let info = pkcs11.get_token_info(slot)?;
     assert_ne!("", info.manufacturer_id());
+
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -1235,6 +1294,9 @@ fn session_find_objects() -> testresult::TestResult {
     session.destroy_object(found_keys.pop().unwrap())?;
     let found_keys = session.find_objects(&key_search_template)?;
     assert_eq!(found_keys.len(), 9);
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1319,14 +1381,19 @@ fn session_objecthandle_iterator() -> testresult::TestResult {
     assert_eq!(found_keys, 9);
 
     // test interleaved iterators - the second iterator should fail
-    let iter = session.iter_objects(&key_search_template);
-    let iter2 = session.iter_objects(&key_search_template);
+    {
+        let iter = session.iter_objects(&key_search_template);
+        let iter2 = session.iter_objects(&key_search_template);
 
-    assert!(iter.is_ok());
-    assert!(matches!(
-        iter2,
-        Err(Error::Pkcs11(RvError::OperationActive, _))
-    ));
+        assert!(iter.is_ok());
+        assert!(matches!(
+            iter2,
+            Err(Error::Pkcs11(RvError::OperationActive, _))
+        ));
+    }
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1339,6 +1406,8 @@ fn wrap_and_unwrap_key() {
 
     if is_fips(&session) {
         eprintln!("The RSA PKCS#1 encryption is not allowed in FIPS Mode");
+        session.close().unwrap();
+        pkcs11.finalize().unwrap();
         return;
     }
 
@@ -1418,6 +1487,9 @@ fn wrap_and_unwrap_key() {
         )
         .unwrap();
     assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
+
+    session.close().unwrap();
+    pkcs11.finalize().unwrap();
 }
 
 #[test]
@@ -1512,6 +1584,9 @@ fn wrap_and_unwrap_key_oaep() {
         )
         .unwrap();
     assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
+
+    session.close().unwrap();
+    pkcs11.finalize().unwrap();
 }
 
 #[test]
@@ -1557,6 +1632,8 @@ fn login_feast() {
     for thread in threads {
         thread.join().unwrap();
     }
+
+    Arc::into_inner(pkcs11).unwrap().finalize().unwrap();
 }
 
 #[test]
@@ -1577,6 +1654,8 @@ fn get_info_test() -> TestResult {
             "Only 3.0 and 3.2 versions are expected but got 3.{minor}"
         );
     }
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1589,6 +1668,8 @@ fn get_slot_info_test() -> TestResult {
     assert!(!slot_info.hardware_slot());
     assert!(!slot_info.removable_device());
     assert_ne!("", slot_info.manufacturer_id());
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1645,6 +1726,9 @@ fn get_session_info_test() -> TestResult {
         SessionState::RwSecurityOfficer
     ));
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1668,6 +1752,9 @@ fn generate_random_test() -> TestResult {
     assert_eq!(random_vec.len(), 32);
 
     assert!(!random_vec.iter().all(|&x| x == 0));
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1685,6 +1772,9 @@ fn set_pin_test() -> TestResult {
     session.set_pin(&user_pin, &new_user_pin)?;
     session.logout()?;
     session.login(UserType::User, Some(&new_user_pin))?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -1788,6 +1878,9 @@ fn get_attribute_info_test() -> TestResult {
         _ => panic!("Private Exponent of RSA private key should be sensitive"),
     }
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -1822,65 +1915,65 @@ fn is_fn_supported_test() {
             "C_MessageEncryptInit function reports as not supported"
         );
     }
+
+    pkcs11.finalize().unwrap();
 }
 
 #[test]
 #[serial]
-fn is_initialized_test() {
+fn is_initialized_test() -> TestResult {
     use cryptoki::context::CInitializeArgs;
 
     let pkcs11 = get_pkcs11();
 
-    assert!(
-        !pkcs11.is_initialized(),
-        "Context created with initialized flag on"
-    );
-
-    // initialize the library
+    // First initialization should work.
     pkcs11
         .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
         .unwrap();
 
-    assert!(
-        pkcs11.is_initialized(),
-        "Context was not marked as initialized"
-    );
-
     match pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK)) {
-        Err(Error::AlreadyInitialized) => (),
+        Err(Error::Pkcs11(RvError::CryptokiAlreadyInitialized, Function::Initialize)) => (), // expected
         Err(e) => panic!("Got unexpected error when initializing: {e}"),
         Ok(()) => panic!("Initializing twice should not have been allowed"),
     }
+
+    pkcs11.finalize()?;
+
+    Ok(())
 }
 
 #[test]
 #[serial]
 #[allow(clippy::redundant_clone)]
-fn test_clone_initialize() {
+fn test_clone_initialize() -> TestResult {
     use cryptoki::context::CInitializeArgs;
 
     let pkcs11 = Arc::new(get_pkcs11());
 
-    let clone = pkcs11.clone();
-    assert!(
-        !pkcs11.is_initialized(),
-        "Before initialize() it should not be initialized"
-    );
-    assert!(
-        !clone.is_initialized(),
-        "Before initialize() the clone should not be initialized"
-    );
-    pkcs11
-        .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
-        .unwrap();
-    assert!(
-        pkcs11.is_initialized(),
-        "After initialize() it should be initialized"
-    );
-    assert!(
-        clone.is_initialized(),
-        "After initialize() the clone should be initialized"
-    );
+    {
+        let clone = pkcs11.clone();
+
+        // First initialization should work.
+        pkcs11
+            .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
+            .unwrap();
+
+        match clone.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK)) {
+            Err(Error::Pkcs11(RvError::CryptokiAlreadyInitialized, Function::Initialize)) => (), // expected
+            Err(e) => panic!("Got unexpected error when initializing: {e}"),
+            Ok(()) => panic!("Initializing twice should not have been allowed"),
+        }
+
+        match pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK)) {
+            Err(Error::Pkcs11(RvError::CryptokiAlreadyInitialized, Function::Initialize)) => (), // expected
+            Err(e) => panic!("Got unexpected error when initializing: {e}"),
+            Ok(()) => panic!("Initializing twice should not have been allowed"),
+        }
+    }
+
+    Arc::into_inner(pkcs11).unwrap().finalize()?;
+
+    Ok(())
 }
 
 #[test]
@@ -1925,6 +2018,9 @@ fn aes_key_attributes_test() -> TestResult {
     } else {
         panic!("First attribute was not an end date");
     }
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -1984,6 +2080,8 @@ fn ro_rw_session_test() -> TestResult {
         rw_session.logout()?;
     }
 
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2034,6 +2132,9 @@ fn session_copy_object() -> TestResult {
     rw_session.destroy_object(object)?;
     rw_session.logout()?;
 
+    rw_session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2064,6 +2165,9 @@ fn aes_cbc_encrypt() -> TestResult {
     let mechanism = Mechanism::AesCbc(iv);
     let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher[..], cipher[..]);
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2095,6 +2199,9 @@ fn aes_cbc_pad_encrypt() -> TestResult {
     let mechanism = Mechanism::AesCbcPad(iv);
     let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher[..], cipher[..]);
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2138,6 +2245,9 @@ fn update_attributes_key() -> TestResult {
         panic!("Last attribute was not extractable");
     }
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2162,6 +2272,9 @@ fn sha256_digest() -> TestResult {
     ];
     let have = session.digest(&Mechanism::Sha256, &data)?;
     assert_eq!(want[..], have[..]);
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2194,6 +2307,9 @@ fn sha256_digest_multipart() -> TestResult {
     ];
 
     assert_eq!(have, want);
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2244,6 +2360,9 @@ fn sha256_digest_multipart_with_key() -> TestResult {
     // Delete key
     session.destroy_object(key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2279,6 +2398,9 @@ fn sha256_digest_multipart_not_initialized() -> TestResult {
         Error::Pkcs11(_, Function::DigestFinal)
     ));
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2300,6 +2422,9 @@ fn sha256_digest_multipart_already_initialized() -> TestResult {
         result.unwrap_err(),
         Error::Pkcs11(RvError::OperationActive, Function::DigestInit)
     ));
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2352,6 +2477,9 @@ fn aes_gcm_no_aad() -> TestResult {
     let mechanism = Mechanism::AesGcm(GcmParams::new(&mut iv, &aad, 96.into())?);
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2384,6 +2512,9 @@ fn aes_gcm_with_aad() -> TestResult {
     let mechanism = Mechanism::AesGcm(gcm_params);
     let cipher_and_tag = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher_and_tag[..], cipher_and_tag[..]);
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2395,6 +2526,7 @@ fn encrypt_decrypt_gcm_message_no_aad() -> TestResult {
     if !pkcs11.is_fn_supported(Function::MessageEncryptInit) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support message based encryption");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -2444,6 +2576,9 @@ fn encrypt_decrypt_gcm_message_no_aad() -> TestResult {
     let plain_decrypted = session.decrypt_message(&param2, &aad, &cipher)?;
     assert_eq!(plain_decrypted[..], plain[..]);
     session.message_decrypt_final()?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2455,6 +2590,7 @@ fn encrypt_decrypt_gcm_message_with_aad() -> TestResult {
     if !pkcs11.is_fn_supported(Function::MessageEncryptInit) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support message based encryption");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -2503,6 +2639,9 @@ fn encrypt_decrypt_gcm_message_with_aad() -> TestResult {
     let plain_decrypted = session.decrypt_message(&param2, &aad, &cipher)?;
     assert_eq!(plain_decrypted[..], plain[..]);
     session.message_decrypt_final()?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2535,6 +2674,9 @@ fn rsa_pkcs_oaep_empty() -> TestResult {
     let decrypted_data = session.decrypt(&encrypt_mechanism, privkey, &encrypted_data)?;
     let decrypted = String::from_utf8(decrypted_data)?;
     assert_eq!("Hello", decrypted);
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2574,6 +2716,9 @@ fn rsa_pkcs_oaep_with_data() -> TestResult {
     let decrypted = String::from_utf8(decrypted_data)?;
     assert_eq!("Hello", decrypted);
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2590,6 +2735,8 @@ fn get_slot_event() -> TestResult {
         // Not implemented in Kryoptic
         pkcs11.get_slot_event().unwrap_err();
     }
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2611,6 +2758,8 @@ fn wait_for_slot_event() {
         ),
         "res = {res:?}"
     );
+
+    pkcs11.finalize().unwrap();
 }
 
 #[test]
@@ -2634,6 +2783,9 @@ fn generate_generic_secret_key() -> TestResult {
     let key = session.generate_key(&Mechanism::GenericSecretKeyGen, &key_template)?;
     let attributes_result = session.find_objects(&[key_label])?.remove(0);
     assert_eq!(key, attributes_result);
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2690,6 +2842,9 @@ fn ekdf_aes_cbc_encrypt_data() -> TestResult {
         derived_key,
         session.find_objects(&[derived_key_label])?.remove(0)
     );
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2783,6 +2938,9 @@ fn kbkdf_counter_mode() -> TestResult {
     // Delete keys
     session.destroy_object(derived_key)?;
     session.destroy_object(base_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -2901,6 +3059,9 @@ fn kbkdf_feedback_mode() -> TestResult {
     }
     session.destroy_object(base_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -2985,6 +3146,9 @@ fn kbkdf_double_pipeline_mode() -> TestResult {
     // Delete keys
     session.destroy_object(derived_key)?;
     session.destroy_object(base_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -3141,6 +3305,9 @@ fn kbkdf_additional_keys_counter_mode() -> TestResult {
         session.destroy_object(key)?;
     }
     session.destroy_object(base_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -3332,6 +3499,9 @@ fn kbkdf_additional_keys_feedback_mode() -> TestResult {
     }
     session.destroy_object(base_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -3479,6 +3649,9 @@ fn kbkdf_additional_keys_double_pipeline_mode() -> TestResult {
         session.destroy_object(key)?;
     }
     session.destroy_object(base_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -3629,6 +3802,9 @@ fn kbkdf_invalid_data_params_counter_mode() -> TestResult {
     // Delete base key
     session.destroy_object(base_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -3751,6 +3927,9 @@ fn kbkdf_invalid_data_params_feedback_mode() -> TestResult {
 
     // Delete base key
     session.destroy_object(base_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -3875,6 +4054,9 @@ fn kbkdf_invalid_data_params_double_pipeline_mode() -> TestResult {
     // Delete base key
     session.destroy_object(base_key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -3911,6 +4093,9 @@ fn sign_verify_sha1_hmac() -> TestResult {
     session.verify(&Mechanism::Sha1Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -3947,6 +4132,9 @@ fn sign_verify_sha224_hmac() -> TestResult {
     session.verify(&Mechanism::Sha224Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -3983,6 +4171,9 @@ fn sign_verify_sha256_hmac() -> TestResult {
     session.verify(&Mechanism::Sha256Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4019,6 +4210,9 @@ fn sign_verify_sha384_hmac() -> TestResult {
     session.verify(&Mechanism::Sha384Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4055,6 +4249,9 @@ fn sign_verify_sha512_hmac() -> TestResult {
     session.verify(&Mechanism::Sha512Hmac, private, &data, &signature)?;
 
     session.destroy_object(private)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4128,6 +4325,9 @@ fn aes_cmac_sign_impl(key: [u8; 16], message: &[u8], expected_mac: [u8; 16]) -> 
     let signature = session.sign(&Mechanism::AesCMac, key, message)?;
 
     assert_eq!(expected_mac.as_slice(), signature.as_slice());
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4199,6 +4399,9 @@ fn aes_cmac_verify_impl(key: [u8; 16], message: &[u8], expected_mac: [u8; 16]) -
     ];
     let key = session.create_object(&key_template)?;
     session.verify(&Mechanism::AesCMac, key, message, &expected_mac)?;
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4273,6 +4476,9 @@ fn unique_id() -> TestResult {
     }
 
     session.destroy_object(key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
@@ -4353,6 +4559,9 @@ fn validation() -> TestResult {
 
     session.destroy_object(key)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -4404,6 +4613,9 @@ fn object_handle_new_from_raw() -> TestResult {
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
