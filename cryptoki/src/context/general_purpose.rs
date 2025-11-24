@@ -8,6 +8,7 @@ use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use paste::paste;
 use std::convert::TryFrom;
 use std::fmt::Display;
+use std::ptr;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
@@ -20,6 +21,14 @@ pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()>
             init_args_ptr as *mut CK_C_INITIALIZE_ARGS as *mut std::ffi::c_void,
         ))
         .into_result(Function::Initialize)
+    }
+}
+
+// See public docs on stub in parent mod.rs
+#[inline(always)]
+pub(super) fn finalize(ctx: Pkcs11) -> Result<()> {
+    unsafe {
+        Rv::from(get_pkcs11!(ctx, C_Finalize)(ptr::null_mut())).into_result(Function::Finalize)
     }
 }
 
