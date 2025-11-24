@@ -20,6 +20,7 @@ fn ml_kem() -> TestResult {
     if !pkcs11.is_fn_supported(Function::EncapsulateKey) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support encapsulation API");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -111,6 +112,9 @@ fn ml_kem() -> TestResult {
     session.destroy_object(private)?;
     session.destroy_object(secret)?;
     session.destroy_object(secret2)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }
