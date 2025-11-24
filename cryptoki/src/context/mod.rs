@@ -30,11 +30,9 @@ pub use locking::*;
 
 use crate::error::{Error, Result, Rv};
 
-use log::error;
 use std::fmt;
 use std::path::Path;
 use std::ptr;
-use std::sync::RwLock;
 
 /// Enum for various function lists
 /// Each following is super-set of the previous one with overlapping start so we store them
@@ -72,28 +70,6 @@ impl Pkcs11Impl {
             FunctionList::V2(l) => l,
             FunctionList::V3_0(l) => l,
             FunctionList::V3_2(l) => l,
-        }
-    }
-
-    // Private finalize call
-    #[inline(always)]
-    fn finalize(&self) -> Result<()> {
-        unsafe {
-            Rv::from(self
-                .get_function_list()
-                .C_Finalize
-                .ok_or(Error::NullFunctionPointer)?(
-                ptr::null_mut()
-            ))
-            .into_result(Function::Finalize)
-        }
-    }
-}
-
-impl Drop for Pkcs11Impl {
-    fn drop(&mut self) {
-        if let Err(err) = self.finalize() {
-            error!("Failed to finalize: {err}");
         }
     }
 }
@@ -202,8 +178,9 @@ impl Pkcs11 {
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
-    /// The library is also automatically finalized on drop.
-    pub fn finalize(self) {}
+    pub fn finalize(self) -> Result<()> {
+        finalize(self)
+    }
 
     /// Returns the information about the library
     pub fn get_library_info(&self) -> Result<Info> {
