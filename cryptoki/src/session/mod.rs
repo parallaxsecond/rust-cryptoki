@@ -4,6 +4,7 @@
 
 use crate::context::Pkcs11;
 
+use crate::error::Result;
 use cryptoki_sys::*;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
@@ -72,7 +73,9 @@ impl<'a> Session<'a> {
 impl<'a> Session<'a> {
     /// Close a session
     /// This will be called on drop as well.
-    pub fn close(self) {}
+    pub fn close(self) -> Result<()> {
+        self.close_inner()
+    }
 
     /// Get the raw handle of the session.
     pub fn handle(&self) -> CK_SESSION_HANDLE {
@@ -80,7 +83,7 @@ impl<'a> Session<'a> {
     }
 
     pub(crate) fn client(&self) -> &Pkcs11 {
-        &self.client
+        self.client
     }
 }
 
