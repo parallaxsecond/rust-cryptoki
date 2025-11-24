@@ -3,7 +3,7 @@
 //! Session management functions
 
 use crate::context::Function;
-use crate::error::{Result, Rv};
+use crate::error::{Error, Result, Rv, RvError};
 use crate::session::{Session, SessionInfo, UserType};
 use crate::types::{AuthPin, RawAuthPin};
 
@@ -16,18 +16,12 @@ use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session<'_> {
     fn drop(&mut self) {
-        #[inline(always)]
-        fn close(session: &Session) -> Result<()> {
-            unsafe {
-                Rv::from(get_pkcs11!(session.client(), C_CloseSession)(
-                    session.handle(),
-                ))
-                .into_result(Function::CloseSession)
+        match self.close_inner() {
+            Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
+            Ok(()) => (),
+            Err(err) => {
+                error!("Failed to close session: {err}");
             }
-        }
-
-        if let Err(err) = close(self) {
-            error!("Failed to close session: {err}");
         }
     }
 }
@@ -103,6 +97,15 @@ impl Session<'_> {
             ))
             .into_result(Function::GetSessionInfo)?;
             SessionInfo::try_from(session_info)
+        }
+    }
+
+    // Helper function to be able to close a session only taking a reference.
+    // This is used in the Drop trait function which only takes a reference as input.
+    pub(super) fn close_inner(&self) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_CloseSession)(self.handle()))
+                .into_result(Function::CloseSession)
         }
     }
 }
