@@ -78,7 +78,6 @@ impl Pkcs11Impl {
 #[derive(Debug)]
 pub struct Pkcs11 {
     pub(crate) impl_: Pkcs11Impl,
-    initialized: RwLock<bool>,
 }
 
 impl Pkcs11 {
@@ -133,7 +132,6 @@ impl Pkcs11 {
                                 _pkcs11_lib: pkcs11_lib,
                                 function_list: FunctionList::V3_2(*list32_ptr),
                             },
-                            initialized: RwLock::new(false),
                         });
                     }
                     let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
@@ -143,7 +141,6 @@ impl Pkcs11 {
                             _pkcs11_lib: pkcs11_lib,
                             function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
                         },
-                        initialized: RwLock::new(false),
                     });
                 }
                 /* fall back to the 2.* API */
@@ -159,22 +156,12 @@ impl Pkcs11 {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: FunctionList::V2(v2tov3(*list_ptr)),
             },
-            initialized: RwLock::new(false),
         })
     }
 
     /// Initialize the PKCS11 library
     pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
-        let mut init_lock = self.initialized.write().expect("lock not to be poisoned");
-        if *init_lock {
-            Err(Error::AlreadyInitialized)?
-        }
-        initialize(self, init_args).map(|_| *init_lock = true)
-    }
-
-    /// Check whether the PKCS11 library has been initialized
-    pub fn is_initialized(&self) -> bool {
-        *self.initialized.read().expect("lock not to be poisoned")
+        initialize(self, init_args)
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
