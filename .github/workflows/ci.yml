@@ -135,7 +135,8 @@ jobs:
           TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
           SOFTHSM2_CONF: /tmp/softhsm2.conf
           RUSTFLAGS: "-D warnings"
-        run: RUST_BACKTRACE=1 cargo test --target ${{ matrix.target }}
+          RUST_BACKTRACE: 1
+        run: cargo test --target ${{ matrix.target }}
 
   build-windows:
     name: Build on Windows
@@ -156,10 +157,11 @@ jobs:
         env:
           KRYOPTIC_CONF: /tmp/kryoptic.sql
           TEST_PKCS11_MODULE: /usr/lib64/pkcs11/libkryoptic_pkcs11.so
+          RUST_BACKTRACE: 1
         run: |
-          RUST_BACKTRACE=1 cargo build &&
-          RUST_BACKTRACE=1 cargo build --all-features &&
-          RUST_BACKTRACE=1 cargo test
+          cargo build &&
+          cargo build --all-features &&
+          cargo test
 
   links:
     name: Check links
