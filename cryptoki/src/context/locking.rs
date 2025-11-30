@@ -99,7 +99,7 @@ impl From<UnlockError> for CK_RV {
 }
 
 /// Trait to manage lifecycle of mutex objects
-pub trait MutexLifeCycle {
+pub trait MutexLifeCycle: Send + Sync {
     /// Creates a mutex
     fn create() -> Result<Box<Self>, CreateError>;
 
