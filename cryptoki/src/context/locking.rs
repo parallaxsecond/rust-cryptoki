@@ -2,92 +2,195 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Locking related type
 
-use cryptoki_sys::{CKF_LIBRARY_CANT_CREATE_OS_THREADS, CKF_OS_LOCKING_OK, CK_FLAGS, CK_RV};
+use bitflags::bitflags;
+use cryptoki_sys::{
+    CKF_LIBRARY_CANT_CREATE_OS_THREADS, CKF_OS_LOCKING_OK, CKR_GENERAL_ERROR, CKR_HOST_MEMORY,
+    CKR_MUTEX_BAD, CKR_MUTEX_NOT_LOCKED, CKR_OK, CK_FLAGS, CK_RV,
+};
 
 use std::{
     os::raw::c_void,
     ptr::{self, NonNull},
 };
 
-/// Function pointer that creates a mutex
-pub type CreateMutexFn = unsafe extern "C" fn(*mut *mut ::std::os::raw::c_void) -> CK_RV;
-
-/// Function pointer that destroys a mutex
-pub type DestroyMutexFn = unsafe extern "C" fn(*mut ::std::os::raw::c_void) -> CK_RV;
-
-/// Function pointer that locks a mutex
-pub type LockMutexFn = unsafe extern "C" fn(*mut ::std::os::raw::c_void) -> CK_RV;
-
-/// Function pointer that unlocks a mutex
-pub type UnlockMutexFn = unsafe extern "C" fn(*mut ::std::os::raw::c_void) -> CK_RV;
-
-/// Provides function pointers for mutex-handling to ensure safe multi-threaded access.
+/// Error that occurs during mutex creation
 #[derive(Copy, Clone, Debug)]
-pub struct CustomMutexHandling {
-    create_mutex: CreateMutexFn,
-    destroy_mutex: DestroyMutexFn,
-    lock_mutex: LockMutexFn,
-    unlock_mutex: UnlockMutexFn,
+pub enum CreateError {
+    /// CKR_GENERAL_ERROR
+    GeneralError,
+    ///CKR_HOST_MEMORY
+    HostMemory,
 }
 
-impl CustomMutexHandling {
-    /// Create a new `CustomMutexHandling` with the given function pointers
-    /// to handle library's thread safety.
-    ///
-    /// # Safety
-    /// Considered unsafe due to user's ability to pass any function pointer.
-    pub const unsafe fn new(
-        create_mutex: CreateMutexFn,
-        destroy_mutex: DestroyMutexFn,
-        lock_mutex: LockMutexFn,
-        unlock_mutex: UnlockMutexFn,
-    ) -> Self {
-        Self {
-            create_mutex: create_mutex,
-            destroy_mutex: destroy_mutex,
-            lock_mutex: lock_mutex,
-            unlock_mutex: unlock_mutex,
+impl From<CreateError> for CK_RV {
+    fn from(value: CreateError) -> Self {
+        match value {
+            CreateError::GeneralError => CKR_GENERAL_ERROR,
+            CreateError::HostMemory => CKR_HOST_MEMORY,
         }
     }
 }
 
-/// Flags to set for the initialize function
+/// Error that occurs during mutex destruction
 #[derive(Copy, Clone, Debug)]
-pub enum CInitializeFlags {
-    /// The library won’t be accessed from multiple threads simultaneously
-    None,
-    /// The library may not create its own threads
-    NoOsThreads,
-    /// The library can use the native OS library for locking or the custom
-    OsThreads,
-    /// The library needs to use the supplied function pointers
-    /// for mutex-handling to ensure safe multi-threaded access.
-    CustomMutexHandling(CustomMutexHandling),
-    /// The library needs to use either the native operating system primitives
-    /// or the supplied function pointers for mutex-handling to ensure safe
-    /// multi-threaded access
-    OsThreadsOrCustomMutexHandling(CustomMutexHandling),
+pub enum DestroyError {
+    /// CKR_GENERAL_ERROR
+    GeneralError,
+    /// CKR_HOST_MEMORY
+    HostMemory,
+    /// CKR_MUTEX_BAD
+    MutexBad,
 }
 
+impl From<DestroyError> for CK_RV {
+    fn from(value: DestroyError) -> Self {
+        match value {
+            DestroyError::GeneralError => CKR_GENERAL_ERROR,
+            DestroyError::HostMemory => CKR_HOST_MEMORY,
+            DestroyError::MutexBad => CKR_MUTEX_BAD,
+        }
+    }
+}
+
+/// Error that occurs during mutex lock
 #[derive(Copy, Clone, Debug)]
+pub enum LockError {
+    /// CKR_GENERAL_ERROR
+    GeneralError,
+    /// CKR_HOST_MEMORY
+    HostMemory,
+    /// CKR_MUTEX_BAD
+    MutexBad,
+}
+
+impl From<LockError> for CK_RV {
+    fn from(value: LockError) -> Self {
+        match value {
+            LockError::GeneralError => CKR_GENERAL_ERROR,
+            LockError::HostMemory => CKR_HOST_MEMORY,
+            LockError::MutexBad => CKR_MUTEX_BAD,
+        }
+    }
+}
+
+/// Error that occurs during mutex unlock
+#[derive(Copy, Clone, Debug)]
+pub enum UnlockError {
+    /// CKR_GENERAL_ERROR
+    GeneralError,
+    /// CKR_HOST_MEMORY
+    HostMemory,
+    /// CKR_MUTEX_BAD
+    MutexBad,
+    /// CKR_MUTEX_NOT_LOCKED
+    MutexNotLocked,
+}
+
+impl From<UnlockError> for CK_RV {
+    fn from(value: UnlockError) -> Self {
+        match value {
+            UnlockError::GeneralError => CKR_GENERAL_ERROR,
+            UnlockError::HostMemory => CKR_HOST_MEMORY,
+            UnlockError::MutexBad => CKR_MUTEX_BAD,
+            UnlockError::MutexNotLocked => CKR_MUTEX_NOT_LOCKED,
+        }
+    }
+}
+
+/// Trait to manage lifecycle of mutex objects
+pub trait MutexLifeCycle {
+    /// Creates a mutex
+    fn create() -> Result<Box<Self>, CreateError>;
+
+    /// Destroys a mutex
+    fn destroy(&mut self) -> Result<(), DestroyError>;
+
+    /// Locks a mutex
+    fn lock(&self) -> Result<(), DestroyError>;
+
+    /// Unlocks a mutex
+    fn unlock(&self) -> Result<(), UnlockError>;
+}
+
+unsafe extern "C" fn create_mutex<M: MutexLifeCycle>(
+    ptr_ptr: *mut *mut ::std::os::raw::c_void,
+) -> CK_RV {
+    match M::create() {
+        Ok(mutex) => {
+            *ptr_ptr = Box::into_raw(mutex) as *mut c_void;
+            CKR_OK
+        }
+        Err(err) => err.into(),
+    }
+}
+
+unsafe extern "C" fn destroy_mutex<M: MutexLifeCycle>(
+    mutex_ptr: *mut ::std::os::raw::c_void,
+) -> CK_RV {
+    // SAFETY: This is invoked after create_mutex
+    let mut mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+
+    match mutex.destroy() {
+        Ok(_) => CKR_OK,
+        Err(err) => err.into(),
+    }
+}
+
+unsafe extern "C" fn lock_mutex<M: MutexLifeCycle>(
+    mutex_ptr: *mut ::std::os::raw::c_void,
+) -> CK_RV {
+    // SAFETY: This is invoked after create_mutex
+    let mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+
+    match mutex.lock() {
+        Ok(_) => CKR_OK,
+        Err(err) => err.into(),
+    }
+}
+
+unsafe extern "C" fn unlock_mutex<M: MutexLifeCycle>(
+    mutex_ptr: *mut ::std::os::raw::c_void,
+) -> CK_RV {
+    // SAFETY: This is invoked after create_mutex
+    let mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+    match mutex.unlock() {
+        Ok(_) => CKR_OK,
+        Err(err) => err.into(),
+    }
+}
+
+bitflags! {
+    /// Flags to set for the initialize function
+    #[derive(Debug, Clone, Copy)]
+    pub struct CInitializeFlags: CK_FLAGS {
+        /// The library can use the native OS library for locking or the custom
+        const OS_LOCKING_OK = CKF_OS_LOCKING_OK;
+        /// The library may not create its own threads
+        const LIBRARY_CANT_CREATE_OS_THREADS = CKF_LIBRARY_CANT_CREATE_OS_THREADS;
+    }
+}
+
 /// Argument for the initialize function
-pub struct CInitializeArgs {
+#[derive(Debug, Clone, Copy)]
+pub struct CInitializeArgs<M> {
     flags: CInitializeFlags,
+    mutex_lifecycle: Option<M>,
     p_reserved: Option<NonNull<c_void>>,
 }
 
-impl CInitializeArgs {
+impl CInitializeArgs<()> {
     /// Create a new `CInitializeArgs` with the given flags
     ///
     /// # Examples
     /// ```
     /// use cryptoki::context::{CInitializeArgs, CInitializeFlags};
     ///
-    /// let args = CInitializeArgs::new(CInitializeFlags::OsThreads);
+    /// let args = CInitializeArgs::<()>::new(CInitializeFlags::OS_LOCKING_OK | CInitializeFlags::LIBRARY_CANT_CREATE_OS_THREADS);
     /// ```
-    pub const fn new(flags: CInitializeFlags) -> Self {
+    pub fn new(flags: CInitializeFlags) -> Self {
         Self {
             flags,
+            mutex_lifecycle: None,
             p_reserved: None,
         }
     }
@@ -104,69 +207,75 @@ impl CInitializeArgs {
     ) -> Self {
         Self {
             flags,
+            mutex_lifecycle: None,
             p_reserved: Some(p_reserved),
         }
     }
 }
 
-impl From<CInitializeArgs> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
-    fn from(c_initialize_args: CInitializeArgs) -> Self {
-        let mut flags = CK_FLAGS::default();
+impl<M: MutexLifeCycle> CInitializeArgs<M> {
+    /// Create a new `CInitializeArgs` with the given flags
+    pub const fn new(flags: CInitializeFlags) -> Self {
+        Self {
+            flags,
+            mutex_lifecycle: None,
+            p_reserved: None,
+        }
+    }
+
+    /// Create a new `CInitializeArgs` with the given flags and reserved pointer.
+    ///
+    /// # Safety
+    /// Considered unsafe due to the user's ability to pass any pointer.
+    ///
+    /// The user is responsible for managing the memory behind the pointer.
+    pub const unsafe fn new_with_reserved(
+        flags: CInitializeFlags,
+        p_reserved: NonNull<c_void>,
+    ) -> Self {
+        Self {
+            flags,
+            mutex_lifecycle: None,
+            p_reserved: Some(p_reserved),
+        }
+    }
+}
+
+impl From<CInitializeArgs<()>> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
+    fn from(c_initialize_args: CInitializeArgs<()>) -> Self {
+        let flags = c_initialize_args.flags.bits();
         let p_reserved = c_initialize_args
             .p_reserved
             .map(|non_null| non_null.as_ptr())
             .unwrap_or_else(ptr::null_mut);
 
-        match c_initialize_args.flags {
-            CInitializeFlags::None => Self {
-                CreateMutex: None,
-                DestroyMutex: None,
-                LockMutex: None,
-                UnlockMutex: None,
-                flags,
-                pReserved: p_reserved,
-            },
-            CInitializeFlags::NoOsThreads => {
-                flags |= CKF_LIBRARY_CANT_CREATE_OS_THREADS;
-                Self {
-                    flags,
-                    CreateMutex: None,
-                    DestroyMutex: None,
-                    LockMutex: None,
-                    UnlockMutex: None,
-                    pReserved: p_reserved,
-                }
-            }
-            CInitializeFlags::OsThreads => {
-                flags |= CKF_OS_LOCKING_OK;
-                Self {
-                    flags,
-                    CreateMutex: None,
-                    DestroyMutex: None,
-                    LockMutex: None,
-                    UnlockMutex: None,
-                    pReserved: p_reserved,
-                }
-            }
-            CInitializeFlags::CustomMutexHandling(custom_mutex_handling) => Self {
-                flags,
-                CreateMutex: Some(custom_mutex_handling.create_mutex),
-                DestroyMutex: Some(custom_mutex_handling.destroy_mutex),
-                LockMutex: Some(custom_mutex_handling.lock_mutex),
-                UnlockMutex: Some(custom_mutex_handling.unlock_mutex),
-                pReserved: p_reserved,
-            },
-            CInitializeFlags::OsThreadsOrCustomMutexHandling(custom_mutex_handling) => {
-                flags |= CKF_OS_LOCKING_OK;
-                Self {
-                    flags,
-                    CreateMutex: Some(custom_mutex_handling.create_mutex),
-                    DestroyMutex: Some(custom_mutex_handling.destroy_mutex),
-                    LockMutex: Some(custom_mutex_handling.lock_mutex),
-                    UnlockMutex: Some(custom_mutex_handling.unlock_mutex),
-                    pReserved: p_reserved,
-                }
-            }
+        Self {
+            CreateMutex: None,
+            DestroyMutex: None,
+            LockMutex: None,
+            UnlockMutex: None,
+            flags,
+            pReserved: p_reserved,
+        }
+    }
+}
+
+impl<M: MutexLifeCycle> From<CInitializeArgs<M>> for cryptoki_sys::CK_C_INITIALIZE_ARGS {
+    fn from(c_initialize_args: CInitializeArgs<M>) -> Self {
+        let flags = c_initialize_args.flags.bits();
+        let p_reserved = c_initialize_args
+            .p_reserved
+            .map(|non_null| non_null.as_ptr())
+            .unwrap_or_else(ptr::null_mut);
+        let mutex_lifecycle = c_initialize_args.mutex_lifecycle;
+
+        Self {
+            CreateMutex: mutex_lifecycle.as_ref().map(|_| create_mutex::<M> as _),
+            DestroyMutex: mutex_lifecycle.as_ref().map(|_| destroy_mutex::<M> as _),
+            LockMutex: mutex_lifecycle.as_ref().map(|_| lock_mutex::<M> as _),
+            UnlockMutex: mutex_lifecycle.as_ref().map(|_| unlock_mutex::<M> as _),
+            flags,
+            pReserved: p_reserved,
         }
     }
 }

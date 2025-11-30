@@ -24,6 +24,7 @@ mod locking;
 mod session_management;
 mod slot_token_management;
 
+use cryptoki_sys::CK_C_INITIALIZE_ARGS;
 pub use general_purpose::*;
 pub use info::*;
 pub use locking::*;
@@ -189,7 +190,10 @@ impl Pkcs11 {
     }
 
     /// Initialize the PKCS11 library
-    pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
+    pub fn initialize<T>(&self, init_args: T) -> Result<()>
+    where
+        CK_C_INITIALIZE_ARGS: From<T>,
+    {
         let mut init_lock = self
             .initialized
             .as_ref()
