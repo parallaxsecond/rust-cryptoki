@@ -9,6 +9,7 @@ use cryptoki_sys::{
 };
 
 use std::{
+    mem::ManuallyDrop,
     os::raw::c_void,
     ptr::{self, NonNull},
 };
@@ -117,7 +118,12 @@ unsafe extern "C" fn create_mutex<M: MutexLifeCycle>(
 ) -> CK_RV {
     match M::create() {
         Ok(mutex) => {
-            *ptr_ptr = Box::into_raw(mutex) as *mut c_void;
+            // SAFETY: This is called by the PKCS#11 library when it needs to
+            // create a mutex so ptr_ptr contains the address of a valid pointer
+            unsafe {
+                *ptr_ptr = Box::into_raw(mutex) as *mut c_void;
+            }
+
             CKR_OK
         }
         Err(err) => err.into(),
@@ -128,6 +134,7 @@ unsafe extern "C" fn destroy_mutex<M: MutexLifeCycle>(
     mutex_ptr: *mut ::std::os::raw::c_void,
 ) -> CK_RV {
     // SAFETY: This is invoked after create_mutex
+    // Here we want to drop so ManuallyDrop is not necessary
     let mut mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
 
     match mutex.destroy() {
@@ -140,7 +147,9 @@ unsafe extern "C" fn lock_mutex<M: MutexLifeCycle>(
     mutex_ptr: *mut ::std::os::raw::c_void,
 ) -> CK_RV {
     // SAFETY: This is invoked after create_mutex
-    let mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+    let boxed_mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+    // Avoid the call of Box::drop at the end of the function
+    let mutex = ManuallyDrop::new(boxed_mutex);
 
     match mutex.lock() {
         Ok(_) => CKR_OK,
@@ -152,7 +161,10 @@ unsafe extern "C" fn unlock_mutex<M: MutexLifeCycle>(
     mutex_ptr: *mut ::std::os::raw::c_void,
 ) -> CK_RV {
     // SAFETY: This is invoked after create_mutex
-    let mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+    let boxed_mutex = unsafe { Box::<M>::from_raw(mutex_ptr as *mut M) };
+    // Avoid the call of Box::drop at the end of the function
+    let mutex = ManuallyDrop::new(boxed_mutex);
+
     match mutex.unlock() {
         Ok(_) => CKR_OK,
         Err(err) => err.into(),
