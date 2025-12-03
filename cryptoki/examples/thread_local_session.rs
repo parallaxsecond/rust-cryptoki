@@ -54,7 +54,7 @@ static PKCS11_CTX: Mutex<Option<Pkcs11>> = Mutex::new(None);
 // Session is Send but NOT Sync: it can be moved between threads
 // but cannot be shared. Each thread must have its own Session instance.
 thread_local! {
-    static PKCS11_SESSION: RefCell<Option<Session>> = RefCell::new(None);
+    static PKCS11_SESSION: RefCell<Option<Session>> = const { RefCell::new(None) };
 }
 
 /// Initialize the global PKCS11 context once.
