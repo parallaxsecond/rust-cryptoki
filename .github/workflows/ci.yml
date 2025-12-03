@@ -135,7 +135,8 @@ jobs:
           TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
           SOFTHSM2_CONF: /tmp/softhsm2.conf
           RUSTFLAGS: "-D warnings"
-        run: RUST_BACKTRACE=1 cargo test --target ${{ matrix.target }}
+          RUST_BACKTRACE: 1
+        run: cargo test --target ${{ matrix.target }}
 
   build-windows:
     name: Build on Windows
@@ -143,23 +144,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: cargo check --all-features --workspace --all-targets
-
-  tests-kryoptic:
-    name: Run tests against Kryoptic
-    runs-on: ubuntu-latest
-    container: fedora:rawhide
-    steps:
-      - name: Install dependencies
-        run: dnf -y install git cargo clang-devel kryoptic
-      - uses: actions/checkout@v4
-      - name: Test script
-        env:
-          KRYOPTIC_CONF: /tmp/kryoptic.sql
-          TEST_PKCS11_MODULE: /usr/lib64/pkcs11/libkryoptic_pkcs11.so
-        run: |
-          RUST_BACKTRACE=1 cargo build &&
-          RUST_BACKTRACE=1 cargo build --all-features &&
-          RUST_BACKTRACE=1 cargo test
 
   links:
     name: Check links

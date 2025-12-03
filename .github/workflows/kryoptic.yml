@@ -1,11 +1,14 @@
 ---
-name: Test kryoptic FIPS module
+name: Test kryoptic
 
 on: [push, pull_request, workflow_dispatch]
 
+env:
+  KRYOPTIC_REVISION: main
+
 jobs:
-  build:
-    name: Test kryoptic FIPS module
+  tests-kryoptic:
+    name: Run tests against Kryoptic
     runs-on: ubuntu-22.04
     container: quay.io/fedora/fedora:latest
     steps:
@@ -27,13 +30,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          dnf -y install git cargo clang-devel openssl-devel sqlite-devel \
-            'perl(FindBin)' 'perl(lib)' 'perl(File::Compare)' \
-            'perl(File::Copy)' 'perl(bigint)' 'perl(Time::HiRes)' \
-            'perl(IPC::Cmd)' 'perl(Pod::Html)' 'perl(Digest::SHA)' \
-            'perl(Module::Load::Conditional)' 'perl(File::Temp)' \
-            'perl(Test::Harness)' 'perl(Test::More)' 'perl(Math::BigInt)' \
-            'perl(Time::Piece)' zlib-devel sed sqlite-devel
+          dnf -y install git cargo clang-devel openssl-devel sqlite-devel
 
       - name: DNF cache
         if: ${{ steps.cache-dnf.outputs.cache-hit != 'true' }}
@@ -41,6 +38,89 @@ jobs:
         with:
           path: "/var/cache/libdnf5"
           key: fedora-dnf-${{ steps.get-date.outputs.date }}
+
+      ######################
+      ### kryoptic build ###
+      ######################
+      - name: Setup kryoptic
+        run: |
+          cd ..
+          git clone https://github.com/latchset/kryoptic.git \
+              --depth 1 --single-branch --revision "$KRYOPTIC_REVISION" kryoptic
+
+      - name: Generate lock file
+        run: |
+          cd ../kryoptic &&
+          cargo generate-lockfile
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            ../kryoptic/target/
+          key: fedora-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build kryoptic
+        run: |
+          FEATURES="standard,pqc,nssdb"
+
+          cd ../kryoptic &&
+          cargo build -vv --features "$FEATURES"
+
+      - name: Checkout rust-cryptoki
+        uses: actions/checkout@v4
+
+      #################
+      ### the tests ###
+      #################
+      - name: Run test script
+        env:
+          KRYOPTIC_CONF: /tmp/kryoptic.sql
+          TEST_PKCS11_MODULE: /__w/rust-cryptoki/kryoptic/target/debug/libkryoptic_pkcs11.so
+          RUST_BACKTRACE: 1
+        run: cargo build --all-features && cargo test
+
+  tests-kryoptic-fips:
+    name: Run tests against Kryoptic FIPS module
+    runs-on: ubuntu-22.04
+    container: quay.io/fedora/fedora:latest
+    steps:
+      #################
+      ### DNF cache ###
+      #################
+      - name: Get Date for DNF cache entry
+        id: get-date
+        run: |
+          echo "date=$(/bin/date -u "+%Y%V")" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Restore DNF cache
+        uses: actions/cache/restore@v4
+        id: cache-dnf
+        with:
+          path: "/var/cache/libdnf5"
+          key: fedora-dnf-fips-${{ steps.get-date.outputs.date }}
+
+      - name: Install Dependencies
+        run: |
+          dnf -y install git cargo clang-devel openssl-devel sqlite-devel \
+            'perl(FindBin)' 'perl(lib)' 'perl(File::Compare)' \
+            'perl(File::Copy)' 'perl(bigint)' 'perl(Time::HiRes)' \
+            'perl(IPC::Cmd)' 'perl(Pod::Html)' 'perl(Digest::SHA)' \
+            'perl(Module::Load::Conditional)' 'perl(File::Temp)' \
+            'perl(Test::Harness)' 'perl(Test::More)' 'perl(Math::BigInt)' \
+            'perl(Time::Piece)' zlib-devel sed
+
+      - name: DNF cache
+        if: ${{ steps.cache-dnf.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: "/var/cache/libdnf5"
+          key: fedora-dnf-fips-${{ steps.get-date.outputs.date }}
 
       #####################
       ### OpenSSL build ###
@@ -82,8 +162,6 @@ jobs:
       ### kryoptic build ###
       ######################
       - name: Setup kryoptic
-        env:
-          KRYOPTIC_REVISION: b38f56bf5dc281fa750146d0378fc62b7c23f95f
         run: |
           cd ..
           git clone https://github.com/latchset/kryoptic.git \
@@ -132,5 +210,5 @@ jobs:
           TEST_PKCS11_MODULE: /__w/rust-cryptoki/kryoptic/target/debug/libkryoptic_pkcs11.so
           OUT_DIR: /__w/rust-cryptoki/kryoptic/target/debug/deps/
           RUST_BACKTRACE: 1
-        run: cargo test
+        run: cargo build --all-features && cargo test
 
