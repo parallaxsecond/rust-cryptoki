@@ -154,12 +154,16 @@ fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
 
     let data = [0xFF, 0x55, 0xDD];
 
-    let schemes = [
+    let mut schemes = vec![
         EddsaSignatureScheme::Ed25519,
-        EddsaSignatureScheme::Ed25519ctx(b"context"),
         EddsaSignatureScheme::Ed25519ph(&[]),
         EddsaSignatureScheme::Ed25519ph(b"context"),
     ];
+    if !is_fips(&session) {
+        // The Ed25519Ctx variant is not FIPS approved
+        // https://github.com/openssl/openssl/issues/27502
+        schemes.push(EddsaSignatureScheme::Ed25519ctx(b"context"))
+    }
 
     for scheme in schemes {
         let params = EddsaParams::new(scheme);
