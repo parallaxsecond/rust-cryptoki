@@ -117,8 +117,11 @@ jobs:
       - name: Install SoftHSM
         run: |
           if [ "${{ matrix.target }}" = "i686-unknown-linux-gnu" ]; then
+            # the default image is bloated so remove set of needless packages that we would have to update
+            sudo apt-get purge -yqq libmono* moby* mono* php* libgdiplus libpcre2-posix3 libzip4 firefox snapd mysql*
             sudo dpkg --add-architecture i386
             sudo apt-get update -y -qq
+            sudo apt-get upgrade -y -qq
             sudo apt-get install -y -qq gcc-multilib:i386 libsofthsm2:i386 gcc:i386
           else
             sudo apt-get update -y -qq
