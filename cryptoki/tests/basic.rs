@@ -1117,6 +1117,20 @@ fn import_export() -> TestResult {
         panic!("Expected the Modulus attribute.");
     }
 
+    let mut attrs =
+        session.get_attributes(is_it_the_public_key, &[AttributeType::AllowedMechanisms])?;
+
+    if is_softhsm() {
+        let attr = attrs.remove(0);
+        if let Attribute::AllowedMechanisms(v) = attr {
+            assert_eq!(v, Vec::<MechanismType>::new());
+        } else {
+            panic!("Expected the AllowedMechanisms attribute.");
+        }
+    } else {
+        assert_eq!(attrs, Vec::<Attribute>::new());
+    }
+
     // delete key
     session.destroy_object(is_it_the_public_key)?;
 
