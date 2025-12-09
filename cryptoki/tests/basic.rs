@@ -481,7 +481,7 @@ fn encrypt_decrypt_multipart() -> TestResult {
         0x33, 0x99, 0x77,
     ];
 
-    // Encrypt data in parts
+    // Encrypt data in parts, using AES-ECB
     session.encrypt_init(&Mechanism::AesEcb, key)?;
 
     let mut encrypted_data = vec![];
@@ -498,6 +498,41 @@ fn encrypt_decrypt_multipart() -> TestResult {
         decrypted_data.extend(session.decrypt_update(part)?);
     }
     decrypted_data.extend(session.decrypt_final()?);
+
+    assert_eq!(data, decrypted_data);
+
+    // Encrypt data in parts, using AES-GCM
+    let mut iv = [0u8, 12];
+    session.generate_random_slice(&mut iv)?;
+    session.encrypt_init(
+        &Mechanism::AesGcm(GcmParams::new(&mut iv, &[], 128.into())?),
+        key,
+    )?;
+
+    let mut encrypted_data = vec![];
+    for part in data.chunks(AES128_BLOCK_SIZE.into()) {
+        encrypted_data.extend(session.encrypt_update(part)?);
+    }
+    encrypted_data.extend(session.encrypt_final()?);
+
+    // Decrypt data in parts
+    session.decrypt_init(
+        &Mechanism::AesGcm(GcmParams::new(&mut iv, &[], 128.into())?),
+        key,
+    )?;
+
+    let mut decrypted_data = vec![];
+    for part in encrypted_data.chunks(AES128_BLOCK_SIZE.into()) {
+        decrypted_data.extend(session.decrypt_update(part)?);
+    }
+
+    // Skip the final call when testing against Kryoptic as multi-part GCM is
+    // broken: https://github.com/latchset/kryoptic/issues/381. We can still
+    // assert that the output is correct as Kryoptic has returned it by this
+    // point, but skip authentication.
+    if !is_kryoptic() {
+        decrypted_data.extend(session.decrypt_final()?);
+    }
 
     assert_eq!(data, decrypted_data);
 
