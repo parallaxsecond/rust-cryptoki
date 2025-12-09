@@ -28,7 +28,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 /// # Example
 ///
 /// ```no_run
-/// use cryptoki::context::CInitializeArgs;
+/// use cryptoki::context::{CInitializeArgs, CInitializeFlags};
 /// use cryptoki::context::Pkcs11;
 /// use cryptoki::error::Error;
 /// use cryptoki::object::Attribute;
@@ -43,7 +43,7 @@ const MAX_OBJECT_COUNT: NonZeroUsize = unsafe { NonZeroUsize::new_unchecked(10) 
 /// #        .unwrap_or_else(|_| "/usr/local/lib/libsofthsm2.so".to_string()),
 /// # )?;
 /// #
-/// # pkcs11.initialize(CInitializeArgs::OsThreads)?;
+/// # pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
 /// # let slot = pkcs11.get_slots_with_token()?.remove(0);
 /// #
 /// # let session = pkcs11.open_ro_session(slot).unwrap();
@@ -278,14 +278,14 @@ impl Session {
     /// ```rust
     /// # fn main() -> testresult::TestResult {
     /// # use cryptoki::session::Session;
-    /// # use cryptoki::context::Pkcs11;
+    /// # use cryptoki::context::{Pkcs11, CInitializeArgs, CInitializeFlags};
     /// # use cryptoki::object::{Attribute, AttributeType, CertificateType, ObjectClass, ObjectHandle};
     /// #
     /// # let mut client = Pkcs11::new(
     /// #    std::env::var("TEST_PKCS11_MODULE")
     /// #       .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     /// # )?;
-    /// # client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
+    /// # client.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
     /// #
     /// # // Use the first slot
     /// # let slot = client.get_all_slots()?[0];
@@ -393,7 +393,7 @@ impl Session {
     ///
     /// ```no_run
     /// use cryptoki::context::Pkcs11;
-    /// use cryptoki::context::CInitializeArgs;
+    /// use cryptoki::context::{CInitializeArgs, CInitializeFlags};
     /// use cryptoki::object::AttributeType;
     /// use cryptoki::session::UserType;
     /// use cryptoki::types::AuthPin;
@@ -406,7 +406,7 @@ impl Session {
     ///     )
     ///     .unwrap();
     ///
-    /// pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+    /// pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK)).unwrap();
     /// let slot = pkcs11.get_slots_with_token().unwrap().remove(0);
     ///
     /// let session = pkcs11.open_ro_session(slot).unwrap();
