@@ -107,6 +107,8 @@ impl Session {
             .into_result(Function::DecryptUpdate)?;
         }
 
+        data.truncate(data_len.try_into()?);
+
         Ok(data)
     }
 
