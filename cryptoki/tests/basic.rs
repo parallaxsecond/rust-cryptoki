@@ -6,7 +6,7 @@ use crate::common::{
     get_firmware_version, get_pkcs11, is_fips, is_kryoptic, is_softhsm, SO_PIN, USER_PIN,
 };
 use common::init_pins;
-use cryptoki::context::Function;
+use cryptoki::context::{CInitializeFlags, Function};
 use cryptoki::error::{Error, RvError};
 use cryptoki::mechanism::aead::{GcmMessageParams, GcmParams, GeneratorFunction};
 use cryptoki::mechanism::eddsa::{EddsaParams, EddsaSignatureScheme};
@@ -1800,14 +1800,16 @@ fn is_initialized_test() {
     );
 
     // initialize the library
-    pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+    pkcs11
+        .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
+        .unwrap();
 
     assert!(
         pkcs11.is_initialized(),
         "Context was not marked as initialized"
     );
 
-    match pkcs11.initialize(CInitializeArgs::OsThreads) {
+    match pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK)) {
         Err(Error::AlreadyInitialized) => (),
         Err(e) => panic!("Got unexpected error when initializing: {e}"),
         Ok(()) => panic!("Initializing twice should not have been allowed"),
@@ -1831,7 +1833,9 @@ fn test_clone_initialize() {
         !clone.is_initialized(),
         "Before initialize() the clone should not be initialized"
     );
-    pkcs11.initialize(CInitializeArgs::OsThreads).unwrap();
+    pkcs11
+        .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
+        .unwrap();
     assert!(
         pkcs11.is_initialized(),
         "After initialize() it should be initialized"
