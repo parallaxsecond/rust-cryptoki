@@ -8,6 +8,7 @@ use crate::error::Result;
 use cryptoki_sys::*;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
+use std::sync::Arc;
 
 mod decryption;
 mod digesting;
@@ -28,6 +29,60 @@ pub use object_management::ObjectHandleIterator;
 pub use session_info::{SessionInfo, SessionState};
 pub use validation::ValidationFlagsType;
 
+/// A wrapper type that contains a reference or an owned value.
+///
+/// This wrapper type implements clone by wrapping the owned value in
+/// an `Arc`.
+#[derive(Clone)]
+pub enum MaybeOwned<'a, T>
+where
+    T: ?Sized,
+{
+    /// A reference to the thing.
+    Ref(&'a T),
+    /// An owned value.
+    Arc(Arc<T>),
+}
+
+impl<'a, T> AsRef<T> for MaybeOwned<'a, T>
+where
+    T: ?Sized,
+{
+    fn as_ref(&self) -> &T {
+        match self {
+            MaybeOwned::Ref(thing) => thing,
+            MaybeOwned::Arc(ref thing) => thing,
+        }
+    }
+}
+
+impl<'a, T> std::fmt::Debug for MaybeOwned<'a, T>
+where
+    T: std::fmt::Debug,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.as_ref().fmt(f)
+    }
+}
+
+impl<T> From<T> for MaybeOwned<'static, T> {
+    fn from(thing: T) -> MaybeOwned<'static, T> {
+        MaybeOwned::Arc(Arc::new(thing))
+    }
+}
+
+impl<T> From<Arc<T>> for MaybeOwned<'static, T> {
+    fn from(thing: Arc<T>) -> MaybeOwned<'static, T> {
+        MaybeOwned::Arc(thing)
+    }
+}
+
+impl<'a, T> From<&'a T> for MaybeOwned<'a, T> {
+    fn from(thing: &'a T) -> MaybeOwned<'a, T> {
+        MaybeOwned::Ref(thing)
+    }
+}
+
 /// Type that identifies a session
 ///
 /// It will automatically get closed (and logout) on drop.
@@ -37,7 +92,7 @@ pub use validation::ValidationFlagsType;
 #[derive(Debug)]
 pub struct Session<'a> {
     handle: CK_SESSION_HANDLE,
-    client: &'a Pkcs11,
+    client: MaybeOwned<'a, Pkcs11>,
     // This is not used but to prevent Session to automatically implement Send and Sync
     _guard: PhantomData<*mut u32>,
 }
@@ -61,10 +116,13 @@ impl<'a> std::fmt::UpperHex for Session<'a> {
 }
 
 impl<'a> Session<'a> {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: &'a Pkcs11) -> Self {
+    pub(crate) fn new(
+        handle: CK_SESSION_HANDLE,
+        client: impl Into<MaybeOwned<'a, Pkcs11>>,
+    ) -> Self {
         Session {
             handle,
-            client,
+            client: client.into(),
             _guard: PhantomData,
         }
     }
@@ -83,7 +141,10 @@ impl<'a> Session<'a> {
     }
 
     pub(crate) fn client(&self) -> &Pkcs11 {
-        self.client
+        match self.client {
+            MaybeOwned::Ref(pkcs11) => pkcs11,
+            MaybeOwned::Arc(ref pkcs11) => pkcs11,
+        }
     }
 }
 

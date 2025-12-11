@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Session management functions
 
-use cryptoki_sys::{CKF_RW_SESSION, CKF_SERIAL_SESSION};
+use cryptoki_sys::{CKF_RW_SESSION, CKF_SERIAL_SESSION, CK_SESSION_HANDLE};
+use std::sync::Arc;
 
 use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
@@ -13,7 +14,7 @@ use super::Function;
 
 impl Pkcs11 {
     #[inline(always)]
-    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session<'_>> {
+    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<CK_SESSION_HANDLE> {
         let mut session_handle = 0;
 
         let flags = if read_write {
@@ -33,7 +34,7 @@ impl Pkcs11 {
             .into_result(Function::OpenSession)?;
         }
 
-        Ok(Session::new(session_handle, self))
+        Ok(session_handle)
     }
 
     /// Open a new Read-Only session
@@ -63,13 +64,33 @@ impl Pkcs11 {
     /// # let _ = session; Ok(()) }
     /// ```
     pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session<'_>> {
-        self.open_session(slot_id, false)
+        let session_handle = self.open_session(slot_id, false)?;
+        Ok(Session::new(session_handle, self))
+    }
+
+    /// Open a new Read-Only session
+    ///
+    /// This is like [`Pkcs11::open_ro_session`], but the session holds
+    /// an `Arc<Pkcs11>` instead of a `&Pkcs11`.
+    pub fn open_owned_ro_session(self: Arc<Self>, slot_id: Slot) -> Result<Session<'static>> {
+        let session_handle = self.open_session(slot_id, false)?;
+        Ok(Session::new(session_handle, self))
     }
 
     /// Open a new Read/Write session
     ///
     /// Note: No callback is set when opening the session.
     pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session<'_>> {
-        self.open_session(slot_id, true)
+        let session_handle = self.open_session(slot_id, true)?;
+        Ok(Session::new(session_handle, self))
+    }
+
+    /// Open a new Read/Write session
+    ///
+    /// This is like [`Pkcs11::open_rw_session`], but the session
+    /// holds an `Arc<Pkcs11>` instead of a `&Pkcs11`.
+    pub fn open_owned_rw_session(self: Arc<Self>, slot_id: Slot) -> Result<Session<'static>> {
+        let session_handle = self.open_session(slot_id, true)?;
+        Ok(Session::new(session_handle, self))
     }
 }
