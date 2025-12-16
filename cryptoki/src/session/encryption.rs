@@ -10,7 +10,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
-impl Session<'_> {
+impl Session {
     /// Single-part encryption operation
     pub fn encrypt(
         &self,

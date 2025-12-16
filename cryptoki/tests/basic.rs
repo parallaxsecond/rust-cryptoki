@@ -25,7 +25,6 @@ use cryptoki::types::{AuthPin, Ulong};
 use serial_test::serial;
 use std::collections::HashMap;
 use std::num::NonZeroUsize;
-use std::sync::Arc;
 use std::thread;
 
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
@@ -1595,7 +1594,6 @@ fn login_feast() {
     const SESSIONS: usize = 100;
 
     let (pkcs11, slot) = init_pins();
-    let pkcs11 = Arc::new(pkcs11);
     let mut threads = Vec::new();
 
     for _ in 0..SESSIONS {
@@ -1633,7 +1631,7 @@ fn login_feast() {
         thread.join().unwrap();
     }
 
-    Arc::into_inner(pkcs11).unwrap().finalize().unwrap();
+    pkcs11.finalize().unwrap();
 }
 
 #[test]
@@ -1948,7 +1946,7 @@ fn is_initialized_test() -> TestResult {
 fn test_clone_initialize() -> TestResult {
     use cryptoki::context::CInitializeArgs;
 
-    let pkcs11 = Arc::new(get_pkcs11());
+    let pkcs11 = get_pkcs11();
 
     {
         let clone = pkcs11.clone();
@@ -1971,7 +1969,7 @@ fn test_clone_initialize() -> TestResult {
         }
     }
 
-    Arc::into_inner(pkcs11).unwrap().finalize()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }

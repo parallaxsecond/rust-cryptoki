@@ -14,7 +14,7 @@ use log::error;
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
-impl Drop for Session<'_> {
+impl Drop for Session {
     fn drop(&mut self) {
         match self.close_inner() {
             Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
@@ -26,7 +26,7 @@ impl Drop for Session<'_> {
     }
 }
 
-impl Session<'_> {
+impl Session {
     /// Log a session in.
     ///
     /// # Arguments

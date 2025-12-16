@@ -13,7 +13,7 @@ use super::Function;
 
 impl Pkcs11 {
     #[inline(always)]
-    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session<'_>> {
+    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
         let mut session_handle = 0;
 
         let flags = if read_write {
@@ -33,7 +33,7 @@ impl Pkcs11 {
             .into_result(Function::OpenSession)?;
         }
 
-        Ok(Session::new(session_handle, self))
+        Ok(Session::new(session_handle, self.clone()))
     }
 
     /// Open a new Read-Only session
@@ -62,14 +62,14 @@ impl Pkcs11 {
     /// let session = client.open_ro_session(slot)?;
     /// # let _ = session; Ok(()) }
     /// ```
-    pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session<'_>> {
+    pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
         self.open_session(slot_id, false)
     }
 
     /// Open a new Read/Write session
     ///
     /// Note: No callback is set when opening the session.
-    pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session<'_>> {
+    pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session> {
         self.open_session(slot_id, true)
     }
 }

@@ -33,6 +33,7 @@ use crate::error::{Error, Result, Rv};
 use std::fmt;
 use std::path::Path;
 use std::ptr;
+use std::sync::Arc;
 
 /// Enum for various function lists
 /// Each following is super-set of the previous one with overlapping start so we store them
@@ -75,9 +76,9 @@ impl Pkcs11Impl {
 }
 
 /// Main PKCS11 context. Should usually be unique per application.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Pkcs11 {
-    pub(crate) impl_: Pkcs11Impl,
+    pub(crate) impl_: Arc<Pkcs11Impl>,
 }
 
 impl Pkcs11 {
@@ -128,19 +129,19 @@ impl Pkcs11 {
                         let list32_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_2 =
                             ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_2;
                         return Ok(Pkcs11 {
-                            impl_: Pkcs11Impl {
+                            impl_: Arc::new(Pkcs11Impl {
                                 _pkcs11_lib: pkcs11_lib,
                                 function_list: FunctionList::V3_2(*list32_ptr),
-                            },
+                            }),
                         });
                     }
                     let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
                         ifce.pFunctionList as *mut cryptoki_sys::CK_FUNCTION_LIST_3_0;
                     return Ok(Pkcs11 {
-                        impl_: Pkcs11Impl {
+                        impl_: Arc::new(Pkcs11Impl {
                             _pkcs11_lib: pkcs11_lib,
                             function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
-                        },
+                        }),
                     });
                 }
                 /* fall back to the 2.* API */
@@ -152,10 +153,10 @@ impl Pkcs11 {
             .into_result(Function::GetFunctionList)?;
 
         Ok(Pkcs11 {
-            impl_: Pkcs11Impl {
+            impl_: Arc::new(Pkcs11Impl {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: FunctionList::V2(v2tov3(*list_ptr)),
-            },
+            }),
         })
     }
 
