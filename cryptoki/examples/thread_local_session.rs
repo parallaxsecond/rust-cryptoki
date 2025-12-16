@@ -3,12 +3,12 @@
 //! This example demonstrates how to safely use cryptoki in a multi-threaded
 //! application by combining:
 //!
-//! 1. **Shared Pkcs11 context** - One context for all threads (via Mutex)
+//! 1. **Shared Pkcs11 context** - One context for all threads (via Arc)
 //! 2. **Thread-local Sessions** - Each thread has its own Session (via thread_local!)
 //!
 //! ## Why This Pattern?
 //!
-//! - **Pkcs11 context**: Is Send + Sync (uses Arc internally), can be shared
+//! - **Pkcs11 context**: Is Send + Sync, can be shared via Arc (cheap clone)
 //! - **Session**: Is Send but NOT Sync (can transfer ownership, cannot share)
 //!
 //! The Session type deliberately prevents sharing across threads by not
@@ -18,13 +18,13 @@
 //! ## Architecture
 //!
 //! ```text
-//! +-------------------------------------+
-//! | static PKCS11_CTX: Mutex<Pkcs11>    | <- Shared across threads
-//! +-------------------------------------+
+//! +---------------------------------------+
+//! | static PKCS11_CTX: Arc<Pkcs11>        | <- Shared across threads
+//! +---------------------------------------+
 //!          |
-//!          +---> Thread 1: thread_local! { Session }
-//!          +---> Thread 2: thread_local! { Session }
-//!          +---> Thread 3: thread_local! { Session }
+//!          +---> Thread 1: thread_local! { Session<'_> }
+//!          +---> Thread 2: thread_local! { Session<'_> }
+//!          +---> Thread 3: thread_local! { Session<'_> }
 //! ```
 //!
 //! ## Running This Example
@@ -36,10 +36,10 @@
 
 use std::cell::RefCell;
 use std::env;
-use std::sync::Mutex;
+use std::sync::{Arc, OnceLock};
 use std::thread;
 
-use cryptoki::context::{CInitializeArgs, Pkcs11};
+use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::Attribute;
 use cryptoki::session::{Session, UserType};
@@ -48,8 +48,8 @@ use cryptoki::types::AuthPin;
 const USER_PIN: &str = "fedcba";
 const SO_PIN: &str = "abcdef";
 
-// Global PKCS11 context shared across all threads (Send + Sync via Arc inside Pkcs11)
-static PKCS11_CTX: Mutex<Option<Pkcs11>> = Mutex::new(None);
+// Global PKCS11 context shared across all threads using Arc for cheap cloning
+static PKCS11_CTX: OnceLock<Arc<Pkcs11>> = OnceLock::new();
 
 // Session is Send but NOT Sync: it can be moved between threads
 // but cannot be shared. Each thread must have its own Session instance.
@@ -67,7 +67,7 @@ fn init_pkcs11_context() -> testresult::TestResult {
 
     // CRITICAL: Use OsThreads for multi-threaded applications.
     // This tells the PKCS#11 library to use OS-level locking.
-    pkcs11.initialize(CInitializeArgs::OsThreads)?;
+    pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
 
     // Get first slot with token
     let slot = pkcs11.get_slots_with_token()?[0];
@@ -84,8 +84,8 @@ fn init_pkcs11_context() -> testresult::TestResult {
         session.init_pin(&user_pin)?;
     } // Session auto-closes here via Drop
 
-    // Store context in global Mutex
-    *PKCS11_CTX.lock().unwrap() = Some(pkcs11);
+    // Store context in global OnceLock wrapped in Arc
+    PKCS11_CTX.set(Arc::new(pkcs11)).expect("PKCS11 context already initialized");
 
     println!("PKCS11 context initialized successfully");
     Ok(())
@@ -127,10 +127,9 @@ where
             // This ensures C_CloseSession is called before opening a new session.
             *session_opt = None;
 
-            // Lock global context
-            let ctx_lock = PKCS11_CTX.lock().unwrap();
-            let ctx = ctx_lock
-                .as_ref()
+            // Get global context (cheap Arc clone)
+            let ctx = PKCS11_CTX
+                .get()
                 .expect("PKCS11 context should be initialized");
 
             // Get slot with token
@@ -261,7 +260,7 @@ fn main() -> testresult::TestResult {
     println!("Thread-Local Session Pattern Example");
     println!("====================================\n");
     println!("This example demonstrates:");
-    println!("- Sharing Pkcs11 context across threads (via Mutex)");
+    println!("- Sharing Pkcs11 context across threads (via Arc)");
     println!("- Per-thread Sessions (via thread_local!)");
     println!("- Automatic session lifecycle management");
     println!("- Session reuse within the same thread\n");
