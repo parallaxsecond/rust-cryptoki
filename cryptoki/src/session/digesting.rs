@@ -10,7 +10,7 @@ use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
-impl Session<'_> {
+impl Session {
     /// Single-part digesting operation
     pub fn digest(&self, m: &Mechanism, data: &[u8]) -> Result<Vec<u8>> {
         let mut mechanism: CK_MECHANISM = m.into();
