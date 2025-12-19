@@ -240,17 +240,17 @@ fn aes_gcm_wycheproof() -> TestResult {
 fn aes_gcm_message_wycheproof() -> TestResult {
     // Get PKCS#11 context - may already be initialized from previous test
     let pkcs11 = get_pkcs11();
-    
+
     // Try to initialize, but ignore if already initialized
     let _ = pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK));
-    
+
     // Find slot
     let slot = pkcs11.get_slots_with_token()?.remove(0);
-    
+
     // Initialize token and set PINs (may already be done)
     let so_pin = AuthPin::new(SO_PIN.into());
     let _ = pkcs11.init_token(slot, &so_pin, "Test Token");
-    
+
     {
         // Set user PIN
         let session = pkcs11.open_rw_session(slot)?;
