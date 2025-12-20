@@ -1,4 +1,4 @@
-// Copyright 2024 Contributors to the Parsec project.
+// Copyright 2025 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
 //! Wycheproof-based cryptographic tests
 //!
@@ -268,15 +268,6 @@ fn aes_gcm_message_wycheproof() -> TestResult {
     let session = pkcs11.open_rw_session(slot)?;
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
 
-    // Determine PKCS#11 version to apply appropriate limits
-    let info = pkcs11.get_library_info()?;
-    let cryptoki_version = info.cryptoki_version();
-    let max_nonce_bytes = if cryptoki_version.major() >= 3 {
-        u32::MAX as usize
-    } else {
-        256
-    };
-
     // Load Wycheproof AES-GCM test vectors
     let test_set = wycheproof::aead::TestSet::load(wycheproof::aead::TestName::AesGcm)?;
 
@@ -294,12 +285,6 @@ fn aes_gcm_message_wycheproof() -> TestResult {
         }
 
         for test in &test_group.tests {
-            // Skip tests with nonce sizes that exceed PKCS#11 version-specific limits
-            if test.nonce.len() > max_nonce_bytes {
-                skipped += 1;
-                continue;
-            }
-
             // Skip tests with tag sizes that exceed PKCS#11 limits (max 128 bits)
             if test.tag.len() * 8 > 128 {
                 skipped += 1;
