@@ -22,6 +22,7 @@ fn ml_dsa() -> TestResult {
     if !pkcs11.is_fn_supported(Function::VerifySignature) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support VerifySignature API");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -115,6 +116,9 @@ fn ml_dsa() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -126,6 +130,7 @@ fn ml_dsa_multipart() -> TestResult {
     if !pkcs11.is_fn_supported(Function::VerifySignature) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support VerifySignature API");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -185,6 +190,9 @@ fn ml_dsa_multipart() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -196,6 +204,7 @@ fn ml_dsa_hash() -> TestResult {
     if !pkcs11.is_fn_supported(Function::VerifySignature) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support VerifySignature API");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -280,6 +289,9 @@ fn ml_dsa_hash() -> TestResult {
     session.destroy_object(public)?;
     session.destroy_object(private)?;
 
+    session.close()?;
+    pkcs11.finalize()?;
+
     Ok(())
 }
 
@@ -291,6 +303,7 @@ fn ml_dsa_hashes() -> TestResult {
     if !pkcs11.is_fn_supported(Function::VerifySignature) {
         /* return Ignore(); */
         print!("SKIP: The PKCS#11 module does not support VerifySignature API");
+        pkcs11.finalize()?;
         return Ok(());
     }
 
@@ -359,6 +372,9 @@ fn ml_dsa_hashes() -> TestResult {
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
 
     Ok(())
 }

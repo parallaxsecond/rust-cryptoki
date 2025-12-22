@@ -48,9 +48,6 @@ pub enum Error {
 
     /// The PIN was not set before logging in.
     PinNotSet,
-
-    /// The PKCS11 library has already been initialized
-    AlreadyInitialized,
 }
 
 impl fmt::Display for Error {
@@ -67,7 +64,6 @@ impl fmt::Display for Error {
             Error::NullFunctionPointer => write!(f, "Calling a NULL function pointer"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
             Error::PinNotSet => write!(f, "Pin has not been set before trying to log in"),
-            Error::AlreadyInitialized => write!(f, "PKCS11 library has already been initialized"),
         }
     }
 }
@@ -85,8 +81,7 @@ impl std::error::Error for Error {
             | Error::NotSupported
             | Error::NullFunctionPointer
             | Error::PinNotSet
-            | Error::InvalidValue
-            | Error::AlreadyInitialized => None,
+            | Error::InvalidValue => None,
         }
     }
 }

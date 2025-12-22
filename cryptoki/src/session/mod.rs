@@ -4,6 +4,7 @@
 
 use crate::context::Pkcs11;
 
+use crate::error::Result;
 use cryptoki_sys::*;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
@@ -59,10 +60,6 @@ impl std::fmt::UpperHex for Session {
     }
 }
 
-// Session does not implement Sync to prevent the same Session instance to be used from multiple
-// threads.
-unsafe impl Send for Session {}
-
 impl Session {
     pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
         Session {
@@ -76,7 +73,9 @@ impl Session {
 impl Session {
     /// Close a session
     /// This will be called on drop as well.
-    pub fn close(self) {}
+    pub fn close(self) -> Result<()> {
+        self.close_inner()
+    }
 
     /// Get the raw handle of the session.
     pub fn handle(&self) -> CK_SESSION_HANDLE {

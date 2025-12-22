@@ -1,6 +1,6 @@
 // Copyright 2024 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
-use cryptoki::context::{CInitializeArgs, Pkcs11};
+use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::Attribute;
 use cryptoki::session::UserType;
@@ -19,7 +19,7 @@ fn main() -> testresult::TestResult {
             .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     )?;
 
-    pkcs11.initialize(CInitializeArgs::OsThreads)?;
+    pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
 
     let slot = pkcs11.get_slots_with_token()?[0];
 

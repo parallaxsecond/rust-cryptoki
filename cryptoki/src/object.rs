@@ -1114,18 +1114,25 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                 Ok(Attribute::ValidationVersion(Version::new(val[0], val[1])))
             }
             AttributeType::AllowedMechanisms => {
-                let val = unsafe {
-                    std::slice::from_raw_parts(
-                        attribute.pValue as *const CK_MECHANISM_TYPE,
-                        attribute.ulValueLen.try_into()?,
-                    )
-                };
-                let types: Vec<MechanismType> = val
-                    .iter()
-                    .copied()
-                    .map(|t| t.try_into())
-                    .collect::<Result<Vec<MechanismType>>>()?;
-                Ok(Attribute::AllowedMechanisms(types))
+                if attribute.ulValueLen == 0 {
+                    /* For zero-length attributes we are getting pointer to static
+                     * buffer of length zero, which can not be used to create slices.
+                     * Short-circuit here to avoid crash (#324) */
+                    Ok(Attribute::AllowedMechanisms(Vec::new()))
+                } else {
+                    let val = unsafe {
+                        std::slice::from_raw_parts(
+                            attribute.pValue as *const CK_MECHANISM_TYPE,
+                            attribute.ulValueLen.try_into()?,
+                        )
+                    };
+                    let types = val
+                        .iter()
+                        .copied()
+                        .map(|t| t.try_into())
+                        .collect::<Result<Vec<_>>>()?;
+                    Ok(Attribute::AllowedMechanisms(types))
+                }
             }
             AttributeType::EndDate => {
                 if val.is_empty() {

@@ -35,7 +35,7 @@ You can find it in the `examples` folder and run it with `cargo run --example ge
 ```rust
 # fn main() -> testresult::TestResult {
 use cryptoki::object::Attribute;
-use cryptoki::context::{CInitializeArgs, Pkcs11};
+use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::session::UserType;
 use cryptoki::types::AuthPin;
 use cryptoki::mechanism::Mechanism;
@@ -47,7 +47,7 @@ let pkcs11 = Pkcs11::new(
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
 )?;
 
-pkcs11.initialize(CInitializeArgs::OsThreads)?;
+pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
 
 let slot = pkcs11.get_slots_with_token()?[0];
 

@@ -16,22 +16,14 @@ use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session {
     fn drop(&mut self) {
-        #[inline(always)]
-        fn close(session: &Session) -> Result<()> {
-            unsafe {
-                Rv::from(get_pkcs11!(session.client(), C_CloseSession)(
-                    session.handle(),
-                ))
-                .into_result(Function::CloseSession)
+        match self.close_inner() {
+            Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
+            Err(Error::Pkcs11(RvError::SessionHandleInvalid, _)) => {
+                warn!("Failed to close session: The specified session handle is invalid, the session must be already closed.");
             }
-        }
-
-        if let Err(err) = close(self) {
-            match err {
-                Error::Pkcs11(RvError::SessionHandleInvalid, _) => {
-                    warn!("Failed to close session: The specified session handle is invalid, the session must be already closed.");
-                }
-                _ => error!("Failed to close session: {err}"),
+            Ok(()) => (),
+            Err(err) => {
+                error!("Failed to close session: {err}");
             }
         }
     }
@@ -108,6 +100,15 @@ impl Session {
             ))
             .into_result(Function::GetSessionInfo)?;
             SessionInfo::try_from(session_info)
+        }
+    }
+
+    // Helper function to be able to close a session only taking a reference.
+    // This is used in the Drop trait function which only takes a reference as input.
+    pub(super) fn close_inner(&self) -> Result<()> {
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_CloseSession)(self.handle()))
+                .into_result(Function::CloseSession)
         }
     }
 }

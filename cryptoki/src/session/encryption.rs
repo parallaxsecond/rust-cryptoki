@@ -106,6 +106,8 @@ impl Session {
             .into_result(Function::EncryptUpdate)?;
         }
 
+        encrypted_data.truncate(encrypted_data_len.try_into()?);
+
         Ok(encrypted_data)
     }
 

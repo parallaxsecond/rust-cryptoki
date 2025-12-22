@@ -48,12 +48,14 @@ impl Pkcs11 {
     /// # fn main() -> testresult::TestResult {
     /// use cryptoki::session::Session;
     /// use cryptoki::context::Pkcs11;
+    /// use cryptoki::context::{CInitializeArgs, CInitializeFlags};
+    ///
     ///
     /// let mut client = Pkcs11::new(
     ///     std::env::var("TEST_PKCS11_MODULE")
     ///        .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string()),
     /// )?;
-    /// client.initialize(cryptoki::context::CInitializeArgs::OsThreads)?;
+    /// client.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
     ///
     /// // Use the first slot
     /// let slot = client.get_all_slots()?[0];

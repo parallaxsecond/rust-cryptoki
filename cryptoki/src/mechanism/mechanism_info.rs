@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Mechanism info and associated flags
 
+#[cfg(doc)]
+use crate::session::Session;
+
 use bitflags::bitflags;
 use cryptoki_sys::*;
 use std::fmt::{Debug, Formatter};
@@ -91,7 +94,8 @@ impl MechanismInfo {
     }
 
     /// True if the mechanism can be used to digest a message
-    // TODO See [`Session::digest`](crate::session::Session::digest)
+    ///
+    /// See [`Session::digest`]
     pub fn digest(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::DIGEST)
     }
@@ -103,10 +107,10 @@ impl MechanismInfo {
         self.flags.contains(MechanismInfoFlags::SIGN)
     }
 
-    /// True if the mechanism can be used to digitally data which can be
+    /// True if the mechanism can be used to digitally sign data which can be
     /// recovered from the signature
     ///
-    // TODO See [`Session::sign_recover`](crate::session::Session::sign_recover)
+    /// Note: `sign_recover` is not yet implemented in the Session API
     pub fn sign_recover(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::SIGN_RECOVER)
     }
@@ -121,42 +125,42 @@ impl MechanismInfo {
     /// True if the mechanism can be used to verify a digital signature and
     /// recover the signed data
     ///
-    // TODO See [`Session::verify_recover`](crate::session::Session::verify_recover)
+    /// Note: `verify_recover` is not yet implemented in the Session API
     pub fn verify_recover(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::VERIFY_RECOVER)
     }
 
     /// True if the mechanism can be used to generate a secret key
     ///
-    // TODO See [`Session::generate`](crate::session::Session::generate)
+    /// See [`Session::generate_key`]
     pub fn generate(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::GENERATE)
     }
 
     /// True if the mechanism can be used to generate a public/private key pair
     ///
-    /// See [`Session::generate_key_pair`](crate::session::Session::generate_key_pair))
+    /// See [`Session::generate_key_pair`]
     pub fn generate_key_pair(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::GENERATE_KEY_PAIR)
     }
 
     /// True if the mechanism can be used to wrap (encrypt) a key
     ///
-    // TODO See [`Session::wrap`](crate::session::Session::wrap))
+    /// See [`Session::wrap_key`]
     pub fn wrap(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::WRAP)
     }
 
     /// True if the mechanism can be used to unwrap (decrypt) a key
     ///
-    // TODO See [`Session::unwrap`](crate::session::Session::unwrap))
+    /// See [`Session::unwrap_key`]
     pub fn unwrap(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::UNWRAP)
     }
 
     /// True if the mechanism can be used to derive a key from a base key
     ///
-    // TODO See [`Session::derive`](crate::session::Session::derive))
+    /// See [`Session::derive_key`]
     pub fn derive(&self) -> bool {
         self.flags.contains(MechanismInfoFlags::DERIVE)
     }

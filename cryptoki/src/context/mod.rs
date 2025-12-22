@@ -30,12 +30,10 @@ pub use locking::*;
 
 use crate::error::{Error, Result, Rv};
 
-use log::error;
 use std::fmt;
 use std::path::Path;
 use std::ptr;
 use std::sync::Arc;
-use std::sync::RwLock;
 
 /// Enum for various function lists
 /// Each following is super-set of the previous one with overlapping start so we store them
@@ -75,35 +73,12 @@ impl Pkcs11Impl {
             FunctionList::V3_2(l) => l,
         }
     }
-
-    // Private finalize call
-    #[inline(always)]
-    fn finalize(&self) -> Result<()> {
-        unsafe {
-            Rv::from(self
-                .get_function_list()
-                .C_Finalize
-                .ok_or(Error::NullFunctionPointer)?(
-                ptr::null_mut()
-            ))
-            .into_result(Function::Finalize)
-        }
-    }
-}
-
-impl Drop for Pkcs11Impl {
-    fn drop(&mut self) {
-        if let Err(err) = self.finalize() {
-            error!("Failed to finalize: {err}");
-        }
-    }
 }
 
 /// Main PKCS11 context. Should usually be unique per application.
 #[derive(Clone, Debug)]
 pub struct Pkcs11 {
     pub(crate) impl_: Arc<Pkcs11Impl>,
-    initialized: Arc<RwLock<bool>>,
 }
 
 impl Pkcs11 {
@@ -158,7 +133,6 @@ impl Pkcs11 {
                                 _pkcs11_lib: pkcs11_lib,
                                 function_list: FunctionList::V3_2(*list32_ptr),
                             }),
-                            initialized: Arc::new(RwLock::new(false)),
                         });
                     }
                     let list30_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST_3_0 =
@@ -168,7 +142,6 @@ impl Pkcs11 {
                             _pkcs11_lib: pkcs11_lib,
                             function_list: FunctionList::V3_0(v30tov32(*list30_ptr)),
                         }),
-                        initialized: Arc::new(RwLock::new(false)),
                     });
                 }
                 /* fall back to the 2.* API */
@@ -184,35 +157,18 @@ impl Pkcs11 {
                 _pkcs11_lib: pkcs11_lib,
                 function_list: FunctionList::V2(v2tov3(*list_ptr)),
             }),
-            initialized: Arc::new(RwLock::new(false)),
         })
     }
 
     /// Initialize the PKCS11 library
     pub fn initialize(&self, init_args: CInitializeArgs) -> Result<()> {
-        let mut init_lock = self
-            .initialized
-            .as_ref()
-            .write()
-            .expect("lock not to be poisoned");
-        if *init_lock {
-            Err(Error::AlreadyInitialized)?
-        }
-        initialize(self, init_args).map(|_| *init_lock = true)
-    }
-
-    /// Check whether the PKCS11 library has been initialized
-    pub fn is_initialized(&self) -> bool {
-        *self
-            .initialized
-            .as_ref()
-            .read()
-            .expect("lock not to be poisoned")
+        initialize(self, init_args)
     }
 
     /// Finalize the PKCS11 library. Indicates that the application no longer needs to use PKCS11.
-    /// The library is also automatically finalized on drop.
-    pub fn finalize(self) {}
+    pub fn finalize(self) -> Result<()> {
+        finalize(self)
+    }
 
     /// Returns the information about the library
     pub fn get_library_info(&self) -> Result<Info> {
