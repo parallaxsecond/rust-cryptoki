@@ -6,13 +6,22 @@
 //! allowing us to verify that Drop implementations handle errors gracefully
 //! without logging warnings when close() was called explicitly.
 
+use cryptoki::context::Pkcs11;
 use libloading::Library;
 use log::{Level, LevelFilter, Metadata, Record};
 use serial_test::serial;
 use std::env;
 use std::sync::Mutex;
 
-mod common;
+/// Returns the mock PKCS#11 library, or None if not configured.
+/// These tests require the mock library to simulate token removal.
+fn get_mock_library() -> Option<Pkcs11> {
+    let path = env::var("TEST_PKCS11_MODULE").ok()?;
+    if !path.contains("mockpkcs11") {
+        return None;
+    }
+    Some(Pkcs11::new(path).unwrap())
+}
 
 // ============================================================================
 // Bindings for the mock library test API
@@ -148,7 +157,7 @@ fn session_close_after_token_removal_no_warning() {
     mock.reset();
 
     // Load the mock library via cryptoki
-    let pkcs11 = common::get_pkcs11();
+    let pkcs11 = get_mock_library().unwrap();
 
     // 1. Open a valid session
     let slot = pkcs11.get_slots_with_token().unwrap()[0];
@@ -208,7 +217,7 @@ fn session_drop_without_close_after_token_removal_logs_warning() {
     };
     mock.reset();
 
-    let pkcs11 = common::get_pkcs11();
+    let pkcs11 = get_mock_library().unwrap();
 
     // Open a valid session
     let slot = pkcs11.get_slots_with_token().unwrap()[0];
