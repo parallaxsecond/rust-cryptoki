@@ -38,7 +38,7 @@ pub use validation::ValidationFlagsType;
 pub struct Session {
     handle: CK_SESSION_HANDLE,
     client: Pkcs11,
-    // This is not used but to prevent Session to automatically implement Send and Sync
+    // This is not used but to prevent Session to automatically implement Sync
     _guard: PhantomData<*mut u32>,
 }
 
@@ -59,6 +59,10 @@ impl std::fmt::UpperHex for Session {
         write!(f, "{:08X}", self.handle)
     }
 }
+
+// Session does not implement Sync to prevent the same Session instance to be used from multiple
+// threads. Send is allowed to let users pass a Session by ownership to threads.
+unsafe impl Send for Session {}
 
 impl Session {
     pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
