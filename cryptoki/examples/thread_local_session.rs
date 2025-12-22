@@ -144,7 +144,7 @@ where
 
             // Login as normal user
             let user_pin = AuthPin::new(USER_PIN.into());
-           new_session.login(UserType::User, Some(&user_pin))?;
+            new_session.login(UserType::User, Some(&user_pin))?;
 
             println!("Thread {:?}: Opened new RW session", thread::current().id());
 
