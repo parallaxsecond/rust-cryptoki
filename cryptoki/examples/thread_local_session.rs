@@ -36,8 +36,10 @@
 
 use std::cell::RefCell;
 use std::env;
-use std::sync::{Arc, OnceLock};
+use std::sync::OnceLock;
 use std::thread;
+
+use testresult::TestResult;
 
 use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::mechanism::Mechanism;
@@ -49,7 +51,7 @@ const USER_PIN: &str = "fedcba";
 const SO_PIN: &str = "abcdef";
 
 // Global PKCS11 context shared across all threads using Arc for cheap cloning
-static PKCS11_CTX: OnceLock<Arc<Pkcs11>> = OnceLock::new();
+static PKCS11_CTX: OnceLock<Pkcs11> = OnceLock::new();
 
 // Session is Send but NOT Sync: it can be moved between threads
 // but cannot be shared. Each thread must have its own Session instance.
@@ -59,7 +61,7 @@ thread_local! {
 
 /// Initialize the global PKCS11 context once.
 /// This sets up the token and user PIN for all threads to use.
-fn init_pkcs11_context() -> testresult::TestResult {
+fn init_pkcs11_context() -> TestResult {
     // Load library from env or default path
     let lib_path = env::var("TEST_PKCS11_MODULE")
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string());
@@ -85,7 +87,9 @@ fn init_pkcs11_context() -> testresult::TestResult {
     } // Session auto-closes here via Drop
 
     // Store context in global OnceLock wrapped in Arc
-    PKCS11_CTX.set(Arc::new(pkcs11)).expect("PKCS11 context already initialized");
+    PKCS11_CTX
+        .set(pkcs11)
+        .expect("PKCS11 context already initialized");
 
     println!("PKCS11 context initialized successfully");
     Ok(())
@@ -100,9 +104,9 @@ fn init_pkcs11_context() -> testresult::TestResult {
 ///
 /// The session persists for the lifetime of the thread and auto-closes
 /// when the thread exits via Drop.
-fn with_session<F, R>(f: F) -> testresult::TestResult<R>
+fn with_session<F, R>(f: F) -> TestResult<R>
 where
-    F: FnOnce(&Session) -> testresult::TestResult<R>,
+    F: FnOnce(&Session) -> TestResult<R>,
 {
     PKCS11_SESSION.with(|session_cell| {
         let mut session_opt = session_cell.borrow_mut();
@@ -174,7 +178,7 @@ where
 ///
 /// This function makes multiple calls to with_session() to demonstrate
 /// session reuse within the same thread.
-fn generate_and_sign(thread_id: usize) -> testresult::TestResult<()> {
+fn generate_and_sign(thread_id: usize) -> TestResult {
     println!(
         "Thread {:?} (worker {}): Starting operations",
         thread::current().id(),
@@ -256,7 +260,7 @@ fn generate_and_sign(thread_id: usize) -> testresult::TestResult<()> {
     Ok(())
 }
 
-fn main() -> testresult::TestResult {
+fn main() -> TestResult {
     println!("Thread-Local Session Pattern Example");
     println!("====================================\n");
     println!("This example demonstrates:");
