@@ -144,16 +144,7 @@ where
 
             // Login as normal user
             let user_pin = AuthPin::new(USER_PIN.into());
-            match new_session.login(UserType::User, Some(&user_pin)) {
-                Ok(_) => {}
-                Err(cryptoki::error::Error::Pkcs11(
-                    cryptoki::error::RvError::UserAlreadyLoggedIn,
-                    _,
-                )) => {
-                    // User already logged in, this is okay
-                }
-                Err(err) => return Err(err.into()),
-            }
+           new_session.login(UserType::User, Some(&user_pin))?;
 
             println!("Thread {:?}: Opened new RW session", thread::current().id());
 
