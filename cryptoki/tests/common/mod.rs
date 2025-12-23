@@ -1,5 +1,10 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
+#![allow(dead_code)]
+
+pub mod mock_pkcs11;
+pub mod test_logger;
+
 use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::object::{Attribute, ObjectClass};
 use cryptoki::session::{Session, UserType};
@@ -17,17 +22,14 @@ fn get_pkcs11_path() -> String {
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
 }
 
-#[allow(dead_code)]
 pub fn is_softhsm() -> bool {
     get_pkcs11_path().contains("softhsm")
 }
 
-#[allow(dead_code)]
 pub fn is_kryoptic() -> bool {
     get_pkcs11_path().contains("kryoptic")
 }
 
-#[allow(dead_code)]
 pub fn is_fips(session: &Session) -> bool {
     let template = vec![Attribute::Class(ObjectClass::VALIDATION)];
 
@@ -66,7 +68,6 @@ pub fn init_pins() -> (Pkcs11, Slot) {
     (pkcs11, slot)
 }
 
-#[allow(dead_code)]
 pub fn get_firmware_version(pkcs11: &Pkcs11, slot: Slot) -> (u8, u8) {
     let info = pkcs11.get_slot_info(slot).unwrap();
 
