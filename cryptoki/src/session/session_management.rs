@@ -10,7 +10,7 @@ use crate::types::{AuthPin, RawAuthPin};
 #[cfg(doc)]
 use cryptoki_sys::CKF_PROTECTED_AUTHENTICATION_PATH;
 use cryptoki_sys::CK_SESSION_INFO;
-use log::error;
+use log::{error, warn};
 use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
@@ -18,6 +18,9 @@ impl Drop for Session {
     fn drop(&mut self) {
         match self.close_inner() {
             Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
+            Err(Error::Pkcs11(RvError::SessionHandleInvalid, _)) => {
+                warn!("Failed to close session: The specified session handle is invalid, the session must be already closed.");
+            }
             Ok(()) => (),
             Err(err) => {
                 error!("Failed to close session: {err}");

@@ -141,6 +141,19 @@ jobs:
           RUST_BACKTRACE: 1
         run: cargo test --target ${{ matrix.target }}
 
+  tests-mock-pkcs11:
+    name: Test with Mock PKCS#11
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build mock PKCS#11 library
+        run: make -C cryptoki/tests/mock_pkcs11
+      - name: Run mock tests
+        env:
+          TEST_PKCS11_MODULE: ${{ github.workspace }}/cryptoki/tests/mock_pkcs11/libmockpkcs11.so
+          RUST_LOG: warn
+        run: cargo test mock
+
   build-windows:
     name: Build on Windows
     runs-on: windows-latest
