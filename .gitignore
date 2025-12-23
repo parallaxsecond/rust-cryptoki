@@ -11,3 +11,8 @@
 
 #build artifacts
 cryptoki-sys/pkcs11-precompile.h
+
+#Mock library build artifacts
+cryptoki/tests/mock_pkcs11/*.dylib
+cryptoki/tests/mock_pkcs11/*.so
+cryptoki/tests/mock_pkcs11/*.dll
