@@ -141,7 +141,7 @@ jobs:
           RUST_BACKTRACE: 1
         run: cargo test --target ${{ matrix.target }}
 
-  tests-mock-drop-errors:
+  tests-mock-pkcs11:
     name: Test Drop Error Handling with Mock PKCS#11
     runs-on: ubuntu-latest
     steps:
@@ -152,7 +152,7 @@ jobs:
         env:
           TEST_PKCS11_MODULE: ${{ github.workspace }}/cryptoki/tests/mock_pkcs11/libmockpkcs11.so
           RUST_LOG: warn
-        run: cargo test --package cryptoki --test drop_error_handling -- --nocapture
+        run: cargo test mock
 
   build-windows:
     name: Build on Windows

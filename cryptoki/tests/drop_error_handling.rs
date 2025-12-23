@@ -143,7 +143,7 @@ fn print_logs() {
 /// 5. Drop runs but should NOT log a warning because close() was called
 #[test]
 #[serial]
-fn session_close_after_token_removal_no_warning() {
+fn mock_session_close_after_token_removal_no_warning() {
     init_logger();
     clear_logs();
 
@@ -204,7 +204,7 @@ fn session_close_after_token_removal_no_warning() {
 /// a warning IS logged (this is expected behavior for unexpected errors).
 #[test]
 #[serial]
-fn session_drop_without_close_after_token_removal_logs_warning() {
+fn mock_session_drop_without_close_after_token_removal_logs_warning() {
     init_logger();
     clear_logs();
 
