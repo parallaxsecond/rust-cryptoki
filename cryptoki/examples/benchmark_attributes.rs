@@ -5,7 +5,7 @@
 //! This example demonstrates the performance difference between the original
 //! and optimized implementations for retrieving object attributes.
 
-use cryptoki::context::{CInitializeArgs, Pkcs11};
+use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
 use cryptoki::mechanism::Mechanism;
 use cryptoki::object::{Attribute, AttributeType, ObjectHandle};
 use cryptoki::session::{Session, UserType};
@@ -207,7 +207,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     let pin = env::var("TEST_PKCS11_PIN").unwrap_or_else(|_| "fedcba123456".to_string());
-    pkcs11.initialize(CInitializeArgs::OsThreads)?;
+    pkcs11.initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))?;
 
     let nogenerate = env::var("TEST_PKCS11_NO_KEYGEN").is_ok();
 
