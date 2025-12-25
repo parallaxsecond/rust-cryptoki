@@ -4642,6 +4642,7 @@ fn get_attributes_test() -> TestResult {
         Attribute::PublicExponent(public_exponent.clone()),
         Attribute::ModulusBits(modulus_bits.into()),
         Attribute::Verify(true),
+        Attribute::Id(vec![]),
     ];
 
     // priv key template
@@ -4649,6 +4650,7 @@ fn get_attributes_test() -> TestResult {
         Attribute::Token(true),
         Attribute::Sign(true),
         Attribute::Private(true),
+        Attribute::Id(vec![]),
     ];
 
     // generate a key pair
@@ -4665,6 +4667,7 @@ fn get_attributes_test() -> TestResult {
         AttributeType::PublicExponent,
         AttributeType::Verify,
         AttributeType::ModulusBits,
+        AttributeType::Id,
     ];
 
     // Test 1: Get multiple attributes from public key

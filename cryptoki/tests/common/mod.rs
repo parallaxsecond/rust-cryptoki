@@ -1,6 +1,8 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
+use cryptoki::context::Function;
 use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
+use cryptoki::error::{Error, RvError};
 use cryptoki::object::{Attribute, ObjectClass};
 use cryptoki::session::{Session, UserType};
 use cryptoki::slot::Slot;
@@ -54,9 +56,13 @@ pub fn get_pkcs11() -> Pkcs11 {
 pub fn init_pins() -> (Pkcs11, Slot) {
     let pkcs11 = get_pkcs11();
 
-    // initialize the library
+    // initialize the library (ignore error if already initialized)
     pkcs11
         .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
+        .or_else(|err| match err {
+            Error::Pkcs11(RvError::CryptokiAlreadyInitialized, Function::Initialize) => Ok(()),
+            _ => Err(err),
+        })
         .unwrap();
 
     // find a slot, get the first one

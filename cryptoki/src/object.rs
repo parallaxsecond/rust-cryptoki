@@ -14,6 +14,24 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
+/// Helper macro to convert a Vec to a pointer, returning NULL if the Vec is empty.
+///
+/// This is useful for CK_ATTRIBUTE pValue fields, to avoid dangling pointers present
+/// in empty vectors to be converted as e.g. 0x01 for the C layer, which may lead to issues,
+/// as 0x01 is arguably no longer NULL and could be dereferenced.
+///
+/// See Vec::as_ptr() documentation for more details on the issue.
+#[macro_export]
+macro_rules! as_cptr {
+    ($vec:expr) => {
+        if $vec.is_empty() {
+            std::ptr::null_mut()
+        } else {
+            $vec.as_ptr() as *mut std::ffi::c_void
+        }
+    };
+}
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
@@ -397,6 +415,9 @@ impl AttributeType {
 
             // CK_VERSION (2 bytes: major + minor)
             AttributeType::ValidationVersion => Some(size_of::<CK_VERSION>()),
+
+            // CK_VALIDATION_COUNTRY (2 CK_UTF8CHAR, typically 2 bytes for ISO country code)
+            AttributeType::ValidationCountry => Some(size_of::<[CK_UTF8CHAR; 2]>()),
 
             // Variable-length attributes (all the others)
             _ => None,
@@ -1005,7 +1026,7 @@ impl Attribute {
             | Attribute::ValidationVendorUri(bytes)
             | Attribute::ValidationProfile(bytes)
             | Attribute::VendorDefined((_, bytes))
-            | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
+            | Attribute::Id(bytes) => as_cptr!(bytes),
             // Unique types
             Attribute::ParameterSet(val) => val as *const _ as *mut c_void,
             Attribute::ProfileId(val) => val as *const _ as *mut c_void,
@@ -1023,7 +1044,7 @@ impl Attribute {
             Attribute::ValidationAuthorityType(authority_type) => {
                 authority_type as *const _ as *mut c_void
             }
-            Attribute::AllowedMechanisms(mechanisms) => mechanisms.as_ptr() as *mut c_void,
+            Attribute::AllowedMechanisms(mechanisms) => as_cptr!(mechanisms),
             Attribute::EndDate(date) | Attribute::StartDate(date) => {
                 date as *const _ as *mut c_void
             }
@@ -1063,12 +1084,17 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
 
     fn try_from(attribute: CK_ATTRIBUTE) -> Result<Self> {
         let attr_type = AttributeType::try_from(attribute.type_)?;
-        // Cast from c_void to u8
-        let val = unsafe {
-            std::slice::from_raw_parts(
-                attribute.pValue as *const u8,
-                attribute.ulValueLen.try_into()?,
-            )
+        let val = if attribute.pValue.is_null() {
+            // if pValue is null, return an empty slice - attribute has no value
+            &[]
+        } else {
+            // Cast from c_void to u8
+            unsafe {
+                std::slice::from_raw_parts(
+                    attribute.pValue as *const u8,
+                    attribute.ulValueLen.try_into()?,
+                )
+            }
         };
         match attr_type {
             // CK_BBOOL
@@ -2060,6 +2086,8 @@ pub enum AttributeInfo {
     Sensitive,
     /// The attribute is available to get from the object and has the specified size in bytes.
     Available(usize),
+    /// The attribute exists but has no value
+    NoValue,
     /// The attribute is not available.
     Unavailable,
 }
