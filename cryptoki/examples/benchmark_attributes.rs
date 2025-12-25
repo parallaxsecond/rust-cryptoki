@@ -169,19 +169,19 @@ fn benchmark_attributes(
 
 fn print_summary_table(results: &[BenchmarkResult]) {
     println!("\n");
-    println!("╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗");
-    println!("║                                  BENCHMARK SUMMARY TABLE                                          ║");
-    println!("╠═══════════════════╦═════════════╦═════════════╦═════════════╦═════════════╦═══════╦═══════════════╣");
+    println!("╔════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+    println!("║                                   BENCHMARK SUMMARY TABLE                                          ║");
+    println!("╠════════════════════╦═════════════╦═════════════╦═════════════╦═════════════╦═══════╦═══════════════╣");
     println!(
-        "║ {:^17} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:^5} ║ {:^13} ║",
+        "║ {:^18} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:>11} ║ {:^5} ║ {:^13} ║",
         "Test Case", "Orig Mean", "Orig p95", "Opt Mean", "Opt p95", "Unit", "Speedup"
     );
-    println!("╠═══════════════════╬═════════════╬═════════════╬═════════════╬═════════════╬═══════╬═══════════════╣");
+    println!("╠════════════════════╬═════════════╬═════════════╬═════════════╬═════════════╬═══════╬═══════════════╣");
 
     // Each row is a test case
     for result in results {
         println!(
-            "║ {:17} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:>5} ║ {:>13} ║",
+            "║ {:18} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:11.2} ║ {:>5} ║ {:>13} ║",
             result.label,
             result.stats_old.mean / 1000.0,
             result.stats_old.p95 / 1000.0,
@@ -192,7 +192,7 @@ fn print_summary_table(results: &[BenchmarkResult]) {
         );
     }
 
-    println!("╚═══════════════════╩═════════════╩═════════════╩═════════════╩═════════════╩═══════╩═══════════════╝");
+    println!("╚════════════════════╩═════════════╩═════════════╩═════════════╩═════════════╩═══════╩═══════════════╝");
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -252,7 +252,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Attribute::EcParams(ec_params),
             Attribute::Verify(true),
             Attribute::Label("Benchmark EC Key".into()),
-            Attribute::Id(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+            Attribute::Id(vec![]),
         ];
 
         let priv_key_template = vec![Attribute::Token(false), Attribute::Sign(true)];
@@ -318,6 +318,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &single_nonexistent,
         iterations,
         "Single-nonexist",
+    )?);
+
+    // Test 5: Single attribute with zero-length value (Id attribute if not set)
+    let single_zero_length = vec![AttributeType::Id];
+
+    results.push(benchmark_attributes(
+        &session,
+        public,
+        &single_zero_length,
+        iterations,
+        "Single-zero-length",
     )?);
 
     // Print summary table
