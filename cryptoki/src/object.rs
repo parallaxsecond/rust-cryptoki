@@ -27,7 +27,7 @@ macro_rules! as_cptr {
         if $vec.is_empty() {
             std::ptr::null_mut()
         } else {
-            $vec.as_ptr() as *mut std::ffi::c_void
+            $vec.as_ptr() as *mut ::std::ffi::c_void
         }
     };
 }
