@@ -419,8 +419,44 @@ impl AttributeType {
             // CK_VALIDATION_COUNTRY (2 CK_UTF8CHAR, typically 2 bytes for ISO country code)
             AttributeType::ValidationCountry => Some(size_of::<[CK_UTF8CHAR; 2]>()),
 
-            // Variable-length attributes (all the others)
-            _ => None,
+            // Variable-length attributes
+            AttributeType::AcIssuer
+            | AttributeType::AllowedMechanisms
+            | AttributeType::Application
+            | AttributeType::AttrTypes
+            | AttributeType::Base
+            | AttributeType::CheckValue
+            | AttributeType::Coefficient
+            | AttributeType::EcParams
+            | AttributeType::EcPoint
+            | AttributeType::Exponent1
+            | AttributeType::Exponent2
+            | AttributeType::HashOfIssuerPublicKey
+            | AttributeType::HashOfSubjectPublicKey
+            | AttributeType::Id
+            | AttributeType::Issuer
+            | AttributeType::Label
+            | AttributeType::Modulus
+            | AttributeType::ObjectId
+            | AttributeType::Owner
+            | AttributeType::Prime
+            | AttributeType::Prime1
+            | AttributeType::Prime2
+            | AttributeType::PrivateExponent
+            | AttributeType::PublicExponent
+            | AttributeType::PublicKeyInfo
+            | AttributeType::Seed
+            | AttributeType::SerialNumber
+            | AttributeType::Subject
+            | AttributeType::UniqueId
+            | AttributeType::Url
+            | AttributeType::ValidationModuleId
+            | AttributeType::ValidationCertificateIdentifier
+            | AttributeType::ValidationCertificateUri
+            | AttributeType::ValidationVendorUri
+            | AttributeType::ValidationProfile
+            | AttributeType::Value
+            | AttributeType::VendorDefined(_) => None,
         }
     }
 }
