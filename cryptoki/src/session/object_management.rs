@@ -498,56 +498,6 @@ impl Session {
             .collect::<HashMap<_, _>>())
     }
 
-    /// Get the attributes values of an object.
-    /// Ignore the unavailable one. One has to call the get_attribute_info method to check which
-    /// ones are unavailable.
-    pub fn get_attributes_old(
-        &self,
-        object: ObjectHandle,
-        attributes: &[AttributeType],
-    ) -> Result<Vec<Attribute>> {
-        let attrs_info = self.get_attribute_info(object, attributes)?;
-
-        // Allocating a chunk of memory where to put the attributes value.
-        let attrs_memory: Vec<(AttributeType, Vec<u8>)> = attrs_info
-            .iter()
-            .zip(attributes.iter())
-            .filter_map(|(attr_info, attr_type)| {
-                if let AttributeInfo::Available(size) = attr_info {
-                    Some((*attr_type, vec![0; *size]))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        let mut template: Vec<CK_ATTRIBUTE> = attrs_memory
-            .iter()
-            .map(|(attr_type, memory)| {
-                Ok(CK_ATTRIBUTE {
-                    type_: (*attr_type).into(),
-                    pValue: memory.as_ptr() as *mut std::ffi::c_void,
-                    ulValueLen: memory.len().try_into()?,
-                })
-            })
-            .collect::<Result<Vec<CK_ATTRIBUTE>>>()?;
-
-        // This should only return OK as all attributes asked should be
-        // available. Concurrency problem?
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
-                self.handle(),
-                object.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
-            ))
-            .into_result(Function::GetAttributeValue)?;
-        }
-
-        // Convert from CK_ATTRIBUTE to Attribute
-        template.into_iter().map(|attr| attr.try_into()).collect()
-    }
-
     /// Get the attributes values of an object, filtering out unavailable ones.
     ///
     /// # Arguments
