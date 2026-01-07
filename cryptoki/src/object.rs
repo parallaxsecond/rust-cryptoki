@@ -14,6 +14,24 @@ use std::fmt::Formatter;
 use std::mem::size_of;
 use std::ops::Deref;
 
+/// Helper macro to convert a Vec to a pointer, returning NULL if the Vec is empty.
+///
+/// This is useful for CK_ATTRIBUTE pValue fields, to avoid dangling pointers present
+/// in empty vectors to be converted as e.g. 0x01 for the C layer, which may lead to issues,
+/// as 0x01 is arguably no longer NULL and could be dereferenced.
+///
+/// See Vec::as_ptr() documentation for more details on the issue.
+#[macro_export]
+macro_rules! as_cptr {
+    ($vec:expr) => {
+        if $vec.is_empty() {
+            std::ptr::null_mut()
+        } else {
+            $vec.as_ptr() as *mut ::std::ffi::c_void
+        }
+    };
+}
+
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[non_exhaustive]
 /// Type of an attribute
@@ -320,6 +338,125 @@ impl AttributeType {
                 format!("{}_{}", stringify!(CKA_VENDOR_DEFINED), val)
             }
             _ => format!("unknown ({val:08x})"),
+        }
+    }
+
+    /// Returns the fixed size of an attribute type if known.
+    ///
+    /// This method returns `Some(size)` for attributes with a known fixed size,
+    /// and `None` for variable-length attributes. This is useful for optimizing
+    /// attribute retrieval by pre-allocating buffers of the correct size.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(usize)` - The fixed size in bytes for attributes with known fixed size
+    /// * `None` - For variable-length attributes (e.g., Label, Modulus, Value, etc.)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use cryptoki::object::AttributeType;
+    /// use std::mem::size_of;
+    /// use cryptoki_sys::{CK_ULONG, CK_BBOOL};
+    ///
+    /// // Fixed-size attributes
+    /// assert_eq!(AttributeType::Class.fixed_size(), Some(size_of::<CK_ULONG>()));
+    /// assert_eq!(AttributeType::Token.fixed_size(), Some(size_of::<CK_BBOOL>()));
+    ///
+    /// // Variable-length attributes
+    /// assert_eq!(AttributeType::Label.fixed_size(), None);
+    /// assert_eq!(AttributeType::Modulus.fixed_size(), None);
+    /// ```
+    pub fn fixed_size(&self) -> Option<usize> {
+        match self {
+            // CK_BBOOL
+            AttributeType::Token
+            | AttributeType::Private
+            | AttributeType::Modifiable
+            | AttributeType::Copyable
+            | AttributeType::Destroyable
+            | AttributeType::Sensitive
+            | AttributeType::Encrypt
+            | AttributeType::Decrypt
+            | AttributeType::Wrap
+            | AttributeType::Unwrap
+            | AttributeType::Sign
+            | AttributeType::SignRecover
+            | AttributeType::Verify
+            | AttributeType::VerifyRecover
+            | AttributeType::Derive
+            | AttributeType::Extractable
+            | AttributeType::Local
+            | AttributeType::NeverExtractable
+            | AttributeType::AlwaysSensitive
+            | AttributeType::WrapWithTrusted
+            | AttributeType::Trusted
+            | AttributeType::AlwaysAuthenticate
+            | AttributeType::Encapsulate
+            | AttributeType::Decapsulate => Some(size_of::<CK_BBOOL>()),
+
+            // CK_ULONG or aliases (CK_OBJECT_CLASS, CK_KEY_TYPE, CK_CERTIFICATE_TYPE, etc.)
+            AttributeType::Class
+            | AttributeType::KeyType
+            | AttributeType::CertificateType
+            | AttributeType::ModulusBits
+            | AttributeType::ValueLen
+            | AttributeType::ObjectValidationFlags
+            | AttributeType::ParameterSet
+            | AttributeType::ValidationFlag
+            | AttributeType::ValidationType
+            | AttributeType::ValidationLevel
+            | AttributeType::ValidationAuthorityType
+            | AttributeType::ProfileId
+            | AttributeType::KeyGenMechanism => Some(size_of::<CK_ULONG>()),
+
+            // CK_DATE (8 bytes: year[4] + month[2] + day[2])
+            AttributeType::StartDate | AttributeType::EndDate => Some(size_of::<CK_DATE>()),
+
+            // CK_VERSION (2 bytes: major + minor)
+            AttributeType::ValidationVersion => Some(size_of::<CK_VERSION>()),
+
+            // CK_VALIDATION_COUNTRY (2 CK_UTF8CHAR, typically 2 bytes for ISO country code)
+            AttributeType::ValidationCountry => Some(size_of::<[CK_UTF8CHAR; 2]>()),
+
+            // Variable-length attributes
+            AttributeType::AcIssuer
+            | AttributeType::AllowedMechanisms
+            | AttributeType::Application
+            | AttributeType::AttrTypes
+            | AttributeType::Base
+            | AttributeType::CheckValue
+            | AttributeType::Coefficient
+            | AttributeType::EcParams
+            | AttributeType::EcPoint
+            | AttributeType::Exponent1
+            | AttributeType::Exponent2
+            | AttributeType::HashOfIssuerPublicKey
+            | AttributeType::HashOfSubjectPublicKey
+            | AttributeType::Id
+            | AttributeType::Issuer
+            | AttributeType::Label
+            | AttributeType::Modulus
+            | AttributeType::ObjectId
+            | AttributeType::Owner
+            | AttributeType::Prime
+            | AttributeType::Prime1
+            | AttributeType::Prime2
+            | AttributeType::PrivateExponent
+            | AttributeType::PublicExponent
+            | AttributeType::PublicKeyInfo
+            | AttributeType::Seed
+            | AttributeType::SerialNumber
+            | AttributeType::Subject
+            | AttributeType::UniqueId
+            | AttributeType::Url
+            | AttributeType::ValidationModuleId
+            | AttributeType::ValidationCertificateIdentifier
+            | AttributeType::ValidationCertificateUri
+            | AttributeType::ValidationVendorUri
+            | AttributeType::ValidationProfile
+            | AttributeType::Value
+            | AttributeType::VendorDefined(_) => None,
         }
     }
 }
@@ -925,7 +1062,7 @@ impl Attribute {
             | Attribute::ValidationVendorUri(bytes)
             | Attribute::ValidationProfile(bytes)
             | Attribute::VendorDefined((_, bytes))
-            | Attribute::Id(bytes) => bytes.as_ptr() as *mut c_void,
+            | Attribute::Id(bytes) => as_cptr!(bytes),
             // Unique types
             Attribute::ParameterSet(val) => val as *const _ as *mut c_void,
             Attribute::ProfileId(val) => val as *const _ as *mut c_void,
@@ -943,7 +1080,7 @@ impl Attribute {
             Attribute::ValidationAuthorityType(authority_type) => {
                 authority_type as *const _ as *mut c_void
             }
-            Attribute::AllowedMechanisms(mechanisms) => mechanisms.as_ptr() as *mut c_void,
+            Attribute::AllowedMechanisms(mechanisms) => as_cptr!(mechanisms),
             Attribute::EndDate(date) | Attribute::StartDate(date) => {
                 date as *const _ as *mut c_void
             }
@@ -983,12 +1120,17 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
 
     fn try_from(attribute: CK_ATTRIBUTE) -> Result<Self> {
         let attr_type = AttributeType::try_from(attribute.type_)?;
-        // Cast from c_void to u8
-        let val = unsafe {
-            std::slice::from_raw_parts(
-                attribute.pValue as *const u8,
-                attribute.ulValueLen.try_into()?,
-            )
+        let val = if attribute.pValue.is_null() {
+            // if pValue is null, return an empty slice - attribute has no value
+            &[]
+        } else {
+            // Cast from c_void to u8
+            unsafe {
+                std::slice::from_raw_parts(
+                    attribute.pValue as *const u8,
+                    attribute.ulValueLen.try_into()?,
+                )
+            }
         };
         match attr_type {
             // CK_BBOOL

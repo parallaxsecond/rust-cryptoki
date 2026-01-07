@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Object management functions
 
+use crate::as_cptr;
 use crate::context::Function;
 use crate::error::{Error, Result, Rv, RvError};
 use crate::object::{Attribute, AttributeInfo, AttributeType, ObjectHandle};
@@ -497,54 +498,178 @@ impl Session {
             .collect::<HashMap<_, _>>())
     }
 
-    /// Get the attributes values of an object.
-    /// Ignore the unavailable one. One has to call the get_attribute_info method to check which
-    /// ones are unavailable.
+    /// Get the attributes values of an object, filtering out unavailable ones.
+    ///
+    /// # Arguments
+    ///
+    /// * `object` - The [ObjectHandle] used to reference the object
+    /// * `attributes` - The list of attribute types to retrieve
+    ///
+    /// # Returns
+    ///
+    /// A vector of [Attribute] containing the values of the available attributes.
+    ///
+    /// # Note
+    ///
+    /// This method follows PKCS#11 spec: in the first call, it provides pre-allocated buffers
+    /// for attributes with a known fixed size, and NULL pointers for other attributes to query
+    /// their size.
+    ///
+    /// After the first call:
+    /// - Attributes that fit in pre-allocated buffers are ready (pValue != NULL, valid ulValueLen)
+    /// - Attributes with NULL pValue but valid ulValueLen need a second fetch
+    /// - Attributes with CK_UNAVAILABLE_INFORMATION are skipped
+    ///
+    /// In total, a maximum of 2 calls to C_GetAttributeValue are made.
+    ///
     pub fn get_attributes(
         &self,
         object: ObjectHandle,
         attributes: &[AttributeType],
     ) -> Result<Vec<Attribute>> {
-        let attrs_info = self.get_attribute_info(object, attributes)?;
+        // Step 1: Build pass1 template
+        // - Pre-allocate buffers for attributes with known fixed size
+        // - Use NULL pointers for all other attributes to query their size
+        let mut buffers: Vec<Vec<u8>> = Vec::with_capacity(attributes.len());
+        let mut template1: Vec<CK_ATTRIBUTE> = Vec::with_capacity(attributes.len());
 
-        // Allocating a chunk of memory where to put the attributes value.
-        let attrs_memory: Vec<(AttributeType, Vec<u8>)> = attrs_info
-            .iter()
-            .zip(attributes.iter())
-            .filter_map(|(attr_info, attr_type)| {
-                if let AttributeInfo::Available(size) = attr_info {
-                    Some((*attr_type, vec![0; *size]))
-                } else {
-                    None
-                }
-            })
-            .collect();
-
-        let mut template: Vec<CK_ATTRIBUTE> = attrs_memory
-            .iter()
-            .map(|(attr_type, memory)| {
-                Ok(CK_ATTRIBUTE {
+        for attr_type in attributes.iter() {
+            if let Some(size) = attr_type.fixed_size() {
+                // We know the needed size, we allocate
+                let buffer = vec![0u8; size];
+                template1.push(CK_ATTRIBUTE {
                     type_: (*attr_type).into(),
-                    pValue: memory.as_ptr() as *mut std::ffi::c_void,
-                    ulValueLen: memory.len().try_into()?,
-                })
-            })
-            .collect::<Result<Vec<CK_ATTRIBUTE>>>()?;
+                    pValue: as_cptr!(buffer),
+                    ulValueLen: size as CK_ULONG,
+                });
+                buffers.push(buffer);
+            } else {
+                // This is a variable size, we set length to 0 and set the buffer ptr to NULL
+                template1.push(CK_ATTRIBUTE {
+                    type_: (*attr_type).into(),
+                    pValue: std::ptr::null_mut(),
+                    ulValueLen: 0,
+                });
+                buffers.push(Vec::new());
+            }
+        }
 
-        // This should only return OK as all attributes asked should be
-        // available. Concurrency problem?
-        unsafe {
+        // Step 2: Make pass1 call to C_GetAttributeValue
+        let rv = unsafe {
             Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
                 self.handle(),
                 object.handle(),
-                template.as_mut_ptr(),
-                template.len().try_into()?,
+                template1.as_mut_ptr(),
+                template1.len().try_into()?,
             ))
-            .into_result(Function::GetAttributeValue)?;
+        };
+
+        match rv {
+            Rv::Ok
+            | Rv::Error(RvError::BufferTooSmall)
+            | Rv::Error(RvError::AttributeSensitive)
+            | Rv::Error(RvError::AttributeTypeInvalid) => {
+                // acceptable - we'll inspect ulValueLen/pValue
+            }
+            _ => {
+                rv.into_result(Function::GetAttributeValue)?;
+            }
         }
 
-        // Convert from CK_ATTRIBUTE to Attribute
-        template.into_iter().map(|attr| attr.try_into()).collect()
+        // Step 3: Categorize pass1 results into pass1 (already satisfied) and pass2 (need fetch)
+        let mut pass1_indices: Vec<usize> = Vec::new();
+        let mut pass2_indices: Vec<usize> = Vec::new();
+
+        for (i, attr) in template1.iter().enumerate() {
+            if attr.ulValueLen == CK_UNAVAILABLE_INFORMATION {
+                // Skip unavailable attributes
+                continue;
+            } else if attr.pValue.is_null() {
+                // NULL pointer - needs fetching in pass2
+                // Note: even if ulValueLen is 0, we still need to fetch as 0 length attributes are legit
+                pass2_indices.push(i);
+            } else {
+                // If buffer was pre-allocated but too small, need to fetch in pass2
+                if attr.ulValueLen > buffers[i].len() as CK_ULONG {
+                    pass2_indices.push(i);
+                } else {
+                    // Has data already - satisfied in pass1
+                    pass1_indices.push(i);
+                }
+            }
+        }
+
+        // Step 4: Make pass2 call if needed for attributes that need fetching
+        let pass2_template_and_indices: Option<(Vec<CK_ATTRIBUTE>, Vec<usize>)> =
+            if pass2_indices.is_empty() {
+                None
+            } else {
+                let mut template2: Vec<CK_ATTRIBUTE> = Vec::with_capacity(pass2_indices.len());
+
+                for &idx in pass2_indices.iter() {
+                    let size = template1[idx].ulValueLen as usize;
+                    buffers[idx].resize(size, 0);
+
+                    template2.push(CK_ATTRIBUTE {
+                        type_: template1[idx].type_,
+                        pValue: as_cptr!(buffers[idx]),
+                        ulValueLen: buffers[idx].len() as CK_ULONG,
+                    });
+                }
+
+                let rv = unsafe {
+                    Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                        self.handle(),
+                        object.handle(),
+                        template2.as_mut_ptr(),
+                        template2.len().try_into()?,
+                    ))
+                };
+
+                match rv {
+                    Rv::Ok
+                    | Rv::Error(RvError::AttributeSensitive)
+                    | Rv::Error(RvError::AttributeTypeInvalid) => {
+                        // acceptable
+                    }
+                    _ => {
+                        rv.into_result(Function::GetAttributeValue)?;
+                    }
+                }
+
+                // Add indices satisfied by pass2 into pass1_indices
+                for (i, &idx) in pass2_indices.iter().enumerate() {
+                    if template2[i].ulValueLen != CK_UNAVAILABLE_INFORMATION {
+                        pass1_indices.push(idx);
+                    }
+                }
+
+                Some((template2, pass2_indices))
+            };
+
+        // Step 5: Build result Vec<Attribute> preserving request order
+        // Sort pass1_indices to preserve the original order from attributes[]
+        pass1_indices.sort_unstable();
+
+        let mut results = Vec::new();
+        for &idx in pass1_indices.iter() {
+            let attr = if let Some((ref template2, ref indices2)) = pass2_template_and_indices {
+                if let Some(pos) = indices2.iter().position(|&i| i == idx) {
+                    // attribute came from pass2
+                    template2[pos].try_into()?
+                } else {
+                    // attribute came from pass1
+                    template1[idx].try_into()?
+                }
+            } else {
+                // Only pass1 happened
+                template1[idx].try_into()?
+            };
+
+            results.push(attr);
+        }
+
+        Ok(results)
     }
 
     /// Sets the attributes of an object

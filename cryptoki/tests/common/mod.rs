@@ -1,6 +1,8 @@
 // Copyright 2021 Contributors to the Parsec project.
 // SPDX-License-Identifier: Apache-2.0
+use cryptoki::context::Function;
 use cryptoki::context::{CInitializeArgs, CInitializeFlags, Pkcs11};
+use cryptoki::error::{Error, RvError};
 use cryptoki::object::{Attribute, ObjectClass};
 use cryptoki::session::{Session, UserType};
 use cryptoki::slot::Slot;
@@ -17,14 +19,24 @@ fn get_pkcs11_path() -> String {
         .unwrap_or_else(|_| "/usr/local/lib/softhsm/libsofthsm2.so".to_string())
 }
 
+// Used to simulate different library behaviors.
+// For SoftHSM, just create the environment variable TEST_PRETEND_LIBRARY with "softhsm"
+// This is used to interface a shim library during testing, while appearing to be using the real library.
+#[allow(dead_code)]
+pub fn get_pretend_library() -> String {
+    env::var("TEST_PRETEND_LIBRARY")
+        .unwrap_or_else(|_| "".to_string())
+        .to_lowercase()
+}
+
 #[allow(dead_code)]
 pub fn is_softhsm() -> bool {
-    get_pkcs11_path().contains("softhsm")
+    get_pretend_library() == "softhsm" || get_pkcs11_path().contains("softhsm")
 }
 
 #[allow(dead_code)]
 pub fn is_kryoptic() -> bool {
-    get_pkcs11_path().contains("kryoptic")
+    get_pretend_library() == "kryoptic" || get_pkcs11_path().contains("kryoptic")
 }
 
 #[allow(dead_code)]
@@ -44,9 +56,13 @@ pub fn get_pkcs11() -> Pkcs11 {
 pub fn init_pins() -> (Pkcs11, Slot) {
     let pkcs11 = get_pkcs11();
 
-    // initialize the library
+    // initialize the library (ignore error if already initialized)
     pkcs11
         .initialize(CInitializeArgs::new(CInitializeFlags::OS_LOCKING_OK))
+        .or_else(|err| match err {
+            Error::Pkcs11(RvError::CryptokiAlreadyInitialized, Function::Initialize) => Ok(()),
+            _ => Err(err),
+        })
         .unwrap();
 
     // find a slot, get the first one
