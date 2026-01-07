@@ -454,11 +454,13 @@ impl Session {
                     template.len().try_into()?,
                 ))
             } {
-                Rv::Ok => match template[0].ulValueLen {
-                    CK_UNAVAILABLE_INFORMATION => results.push(AttributeInfo::Unavailable),
-                    0 => results.push(AttributeInfo::NoValue),
-                    len => results.push(AttributeInfo::Available(len.try_into()?)),
-                },
+                Rv::Ok => {
+                    if template[0].ulValueLen == CK_UNAVAILABLE_INFORMATION {
+                        results.push(AttributeInfo::Unavailable)
+                    } else {
+                        results.push(AttributeInfo::Available(template[0].ulValueLen.try_into()?))
+                    }
+                }
                 Rv::Error(RvError::AttributeSensitive) => results.push(AttributeInfo::Sensitive),
                 Rv::Error(RvError::AttributeTypeInvalid) => {
                     results.push(AttributeInfo::TypeInvalid)
@@ -511,13 +513,10 @@ impl Session {
             .iter()
             .zip(attributes.iter())
             .filter_map(|(attr_info, attr_type)| {
-                match attr_info {
-                    // Regular case, we allocate a buffer of the right size
-                    AttributeInfo::Available(size) => Some((*attr_type, vec![0; *size])),
-                    // No value case, we allocate an empty buffer
-                    AttributeInfo::NoValue => Some((*attr_type, vec![])),
-                    // all other cases are skipped
-                    _ => None,
+                if let AttributeInfo::Available(size) = attr_info {
+                    Some((*attr_type, vec![0; *size]))
+                } else {
+                    None
                 }
             })
             .collect();
@@ -527,7 +526,7 @@ impl Session {
             .map(|(attr_type, memory)| {
                 Ok(CK_ATTRIBUTE {
                     type_: (*attr_type).into(),
-                    pValue: as_cptr!(memory),
+                    pValue: memory.as_ptr() as *mut std::ffi::c_void,
                     ulValueLen: memory.len().try_into()?,
                 })
             })
@@ -535,16 +534,14 @@ impl Session {
 
         // This should only return OK as all attributes asked should be
         // available. Concurrency problem?
-        if !template.is_empty() {
-            unsafe {
-                Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
-                    self.handle(),
-                    object.handle(),
-                    template.as_mut_ptr(),
-                    template.len().try_into()?,
-                ))
-                .into_result(Function::GetAttributeValue)?;
-            }
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_GetAttributeValue)(
+                self.handle(),
+                object.handle(),
+                template.as_mut_ptr(),
+                template.len().try_into()?,
+            ))
+            .into_result(Function::GetAttributeValue)?;
         }
 
         // Convert from CK_ATTRIBUTE to Attribute

@@ -2086,8 +2086,6 @@ pub enum AttributeInfo {
     Sensitive,
     /// The attribute is available to get from the object and has the specified size in bytes.
     Available(usize),
-    /// The attribute exists but has no value
-    NoValue,
     /// The attribute is not available.
     Unavailable,
 }
