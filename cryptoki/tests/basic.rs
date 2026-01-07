@@ -4657,7 +4657,7 @@ fn get_attributes_test() -> TestResult {
     let (public, private) =
         session.generate_key_pair(&mechanism, &pub_key_template, &priv_key_template)?;
 
-    // Test get_attributes_fast with various attribute types
+    // Test get_attributes with various attribute types
     let attributes_to_check = vec![
         AttributeType::Class,
         AttributeType::KeyType,

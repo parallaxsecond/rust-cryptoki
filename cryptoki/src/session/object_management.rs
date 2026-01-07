@@ -588,7 +588,7 @@ impl Session {
                 // NULL pointer - needs fetching in pass2
                 // Note: even if ulValueLen is 0, we still need to fetch as 0 length attributes are legit
                 pass2_indices.push(i);
-            } else if !attr.pValue.is_null() {
+            } else {
                 // If buffer was pre-allocated but too small, need to fetch in pass2
                 if attr.ulValueLen > buffers[i].len() as CK_ULONG {
                     pass2_indices.push(i);
