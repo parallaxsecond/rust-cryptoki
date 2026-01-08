@@ -1,5 +1,69 @@
 # Changelog
 
+## [cryptoki-0.11.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.11.0) (2025-12-19)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.5.0...cryptoki-0.11.0)
+
+## [cryptoki-sys-0.5.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-sys-0.5.0) (2025-12-19)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.10.0...cryptoki-sys-0.5.0)
+
+**Implemented enhancements:**
+
+- Add a way to pass a pointer for the "reserved" argument in CInitializeArgs\(\) [\#321](https://github.com/parallaxsecond/rust-cryptoki/issues/321)
+- Support vendor defined error codes [\#299](https://github.com/parallaxsecond/rust-cryptoki/issues/299)
+
+**Closed issues:**
+
+- Undefined behavior in CK\_ATTRIBUTE::try\_from or Session::get\_attributes [\#323](https://github.com/parallaxsecond/rust-cryptoki/issues/323)
+- Consider opening visibility on ObjectHandle and SessionHandle [\#316](https://github.com/parallaxsecond/rust-cryptoki/issues/316)
+- Compatibility with Luna HSM's `libCryptoki2_64.so`? [\#315](https://github.com/parallaxsecond/rust-cryptoki/issues/315)
+- Run tests against kryoptic main [\#311](https://github.com/parallaxsecond/rust-cryptoki/issues/311)
+- Consider wrapping C\_Decapsulate [\#309](https://github.com/parallaxsecond/rust-cryptoki/issues/309)
+- Considering adding support for CKM\_CONCATENATE\_DATA\_AND\_BASE [\#308](https://github.com/parallaxsecond/rust-cryptoki/issues/308)
+- Run CI on more different architectures in some more systematic manner [\#285](https://github.com/parallaxsecond/rust-cryptoki/issues/285)
+- Upgrade Secrecy Crate [\#284](https://github.com/parallaxsecond/rust-cryptoki/issues/284)
+- Building on ix86 fails [\#282](https://github.com/parallaxsecond/rust-cryptoki/issues/282)
+- EcKdf documentation unclear [\#281](https://github.com/parallaxsecond/rust-cryptoki/issues/281)
+- Add a new constructor that does not call C\_Finalize when dropped [\#208](https://github.com/parallaxsecond/rust-cryptoki/issues/208)
+- finalize\(\) without drop\(\)? [\#150](https://github.com/parallaxsecond/rust-cryptoki/issues/150)
+
+**Merged pull requests:**
+
+- Don't tie Session's lifetime to the Pkcs11 object. [\#337](https://github.com/parallaxsecond/rust-cryptoki/pull/337) ([nwalfield](https://github.com/nwalfield))
+- Fix \#256: docs: Fix documentation references in MechanismInfo [\#334](https://github.com/parallaxsecond/rust-cryptoki/pull/334) ([testingapisname](https://github.com/testingapisname))
+- Truncate intermediate outputs of multi-part cipher operations [\#332](https://github.com/parallaxsecond/rust-cryptoki/pull/332) ([satoqz](https://github.com/satoqz))
+- Fix CI pipelines [\#331](https://github.com/parallaxsecond/rust-cryptoki/pull/331) ([Jakuje](https://github.com/Jakuje))
+- Add initialize flags and pReserved to CInitializeArgs [\#330](https://github.com/parallaxsecond/rust-cryptoki/pull/330) ([placintaalexandru](https://github.com/placintaalexandru))
+- Run tests against kryoptic main [\#328](https://github.com/parallaxsecond/rust-cryptoki/pull/328) ([Jakuje](https://github.com/Jakuje))
+- Refactor initialing/finalizing Pkcs11 and Session structures [\#326](https://github.com/parallaxsecond/rust-cryptoki/pull/326) ([hug-dev](https://github.com/hug-dev))
+- Fix handling empty AllowedMechanisms attribute [\#324](https://github.com/parallaxsecond/rust-cryptoki/pull/324) ([Jakuje](https://github.com/Jakuje))
+- Miscellaneous updates [\#320](https://github.com/parallaxsecond/rust-cryptoki/pull/320) ([hug-dev](https://github.com/hug-dev))
+- Run tests against fips kryoptic current main [\#318](https://github.com/parallaxsecond/rust-cryptoki/pull/318) ([Jakuje](https://github.com/Jakuje))
+- Add pub unsafe accessors for object/session handles and ObjectHandle new [\#317](https://github.com/parallaxsecond/rust-cryptoki/pull/317) ([jhshannon17](https://github.com/jhshannon17))
+- Adjust tests for new kryoptic 1.3.1 [\#313](https://github.com/parallaxsecond/rust-cryptoki/pull/313) ([Jakuje](https://github.com/Jakuje))
+- Fix WrapKeyAuthenticated parameter type from pkcs11 header [\#312](https://github.com/parallaxsecond/rust-cryptoki/pull/312) ([Jakuje](https://github.com/Jakuje))
+- Feat: Add mechanisms for simple key derivations [\#310](https://github.com/parallaxsecond/rust-cryptoki/pull/310) ([jacobprudhomme](https://github.com/jacobprudhomme))
+- Add SLH-DSA mechanism [\#307](https://github.com/parallaxsecond/rust-cryptoki/pull/307) ([Jakuje](https://github.com/Jakuje))
+- Add support for PKCS\#11 3.2 validation objects [\#306](https://github.com/parallaxsecond/rust-cryptoki/pull/306) ([Jakuje](https://github.com/Jakuje))
+- misc: Add simple containerfile to regenerate bindings [\#305](https://github.com/parallaxsecond/rust-cryptoki/pull/305) ([Jakuje](https://github.com/Jakuje))
+- Add support for Pkcs\#11 Profile objects [\#304](https://github.com/parallaxsecond/rust-cryptoki/pull/304) ([Jakuje](https://github.com/Jakuje))
+- Fixup PKCS\#11 headers definition \(`C_UnwrapKey`\) [\#303](https://github.com/parallaxsecond/rust-cryptoki/pull/303) ([Jakuje](https://github.com/Jakuje))
+- Expose vendor defined error code [\#300](https://github.com/parallaxsecond/rust-cryptoki/pull/300) ([thgoebel](https://github.com/thgoebel))
+- Remove ci.sh script to run all from workflow [\#298](https://github.com/parallaxsecond/rust-cryptoki/pull/298) ([hug-dev](https://github.com/hug-dev))
+- Run tests on arm64 architecture [\#297](https://github.com/parallaxsecond/rust-cryptoki/pull/297) ([Jakuje](https://github.com/Jakuje))
+- chore: fix clippy in tests [\#296](https://github.com/parallaxsecond/rust-cryptoki/pull/296) ([hug-dev](https://github.com/hug-dev))
+- context: Avoid clippy errors [\#295](https://github.com/parallaxsecond/rust-cryptoki/pull/295) ([Jakuje](https://github.com/Jakuje))
+- Set installed toolchain as default and bump MSRV to 1.77 [\#294](https://github.com/parallaxsecond/rust-cryptoki/pull/294) ([wiktor-k](https://github.com/wiktor-k))
+- Fix Windows build compatibility [\#293](https://github.com/parallaxsecond/rust-cryptoki/pull/293) ([mematthias](https://github.com/mematthias))
+- Add more setters for EcKdf. [\#292](https://github.com/parallaxsecond/rust-cryptoki/pull/292) ([nwalfield](https://github.com/nwalfield))
+- Fix Pkcs11::new bug preventing PKCS\#11 library loading [\#291](https://github.com/parallaxsecond/rust-cryptoki/pull/291) ([mematthias](https://github.com/mematthias))
+- Fix typos in doc texts [\#288](https://github.com/parallaxsecond/rust-cryptoki/pull/288) ([Jakuje](https://github.com/Jakuje))
+- Bumped secrecy crate from 0.8.0 to 0.10.3 [\#287](https://github.com/parallaxsecond/rust-cryptoki/pull/287) ([ptdecker](https://github.com/ptdecker))
+- Build and test in a matrix [\#286](https://github.com/parallaxsecond/rust-cryptoki/pull/286) ([wiktor-k](https://github.com/wiktor-k))
+- ci: Run tests also on i686 [\#283](https://github.com/parallaxsecond/rust-cryptoki/pull/283) ([Jakuje](https://github.com/Jakuje))
+- Add PKCS\#11 3.2 bindings + plug them into the cryptoki [\#264](https://github.com/parallaxsecond/rust-cryptoki/pull/264) ([Jakuje](https://github.com/Jakuje))
+
 ## [cryptoki-0.10.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.10.0) (2025-06-03)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.4.0...cryptoki-0.10.0)
