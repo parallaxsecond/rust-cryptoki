@@ -9,6 +9,7 @@ use cryptoki_sys::{
 };
 
 use std::{
+    marker::PhantomData,
     mem::ManuallyDrop,
     os::raw::c_void,
     ptr::{self, NonNull},
@@ -262,6 +263,56 @@ impl From<CInitializeArgs> for CK_C_INITIALIZE_ARGS {
             DestroyMutex: None,
             LockMutex: None,
             UnlockMutex: None,
+            flags,
+            pReserved: p_reserved,
+        }
+    }
+}
+
+/// Argument for the initialize function
+#[derive(Debug, Clone, Copy)]
+pub struct CInitializeArgsWithMutex<M> {
+    flags: CInitializeFlags,
+    p_reserved: Option<NonNull<c_void>>,
+    _phantom: PhantomData<M>,
+}
+
+impl<M> CInitializeArgsWithMutex<M> {
+    /// Create a new `CInitializeArgsWithMutex` with the given mutex manager and flags
+    pub fn new(flags: CInitializeFlags) -> Self {
+        Self {
+            flags,
+            p_reserved: None,
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Create a new `CInitializeArgsWithMutex` with the given mutex manager, flags and reserved pointer.
+    pub const unsafe fn new_with_reserved(
+        flags: CInitializeFlags,
+        p_reserved: NonNull<c_void>,
+    ) -> Self {
+        Self {
+            flags,
+            p_reserved: Some(p_reserved),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<M: MutexLifeCycle> From<CInitializeArgsWithMutex<M>> for CK_C_INITIALIZE_ARGS {
+    fn from(c_initialize_args: CInitializeArgsWithMutex<M>) -> Self {
+        let flags = c_initialize_args.flags.bits();
+        let p_reserved = c_initialize_args
+            .p_reserved
+            .map(|non_null| non_null.as_ptr())
+            .unwrap_or_else(ptr::null_mut);
+
+        Self {
+            CreateMutex: Some(create_mutex::<M> as _),
+            DestroyMutex: Some(destroy_mutex::<M> as _),
+            LockMutex: Some(lock_mutex::<M> as _),
+            UnlockMutex: Some(unlock_mutex::<M> as _),
             flags,
             pReserved: p_reserved,
         }
