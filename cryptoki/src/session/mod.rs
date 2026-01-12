@@ -6,6 +6,7 @@ use crate::context::Pkcs11;
 
 use crate::error::Result;
 use cryptoki_sys::*;
+use std::cell::Cell;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
@@ -41,6 +42,7 @@ pub struct Session {
     // This is not used but to prevent Session to automatically implement Sync
     _guard: PhantomData<*mut u32>,
     close_on_drop: bool,
+    closed: Cell<bool>,
 }
 
 impl std::fmt::Display for Session {
@@ -72,6 +74,7 @@ impl Session {
             client,
             _guard: PhantomData,
             close_on_drop,
+            closed: Cell::new(false),
         }
     }
 }
