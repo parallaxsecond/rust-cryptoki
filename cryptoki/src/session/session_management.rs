@@ -16,6 +16,10 @@ use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session {
     fn drop(&mut self) {
+        if !self.close_on_drop {
+            return;
+        }
+
         match self.close_inner() {
             Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
             Ok(()) => (),

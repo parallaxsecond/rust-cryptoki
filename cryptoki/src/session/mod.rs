@@ -40,6 +40,7 @@ pub struct Session {
     client: Pkcs11,
     // This is not used but to prevent Session to automatically implement Sync
     _guard: PhantomData<*mut u32>,
+    close_on_drop: bool,
 }
 
 impl std::fmt::Display for Session {
@@ -65,11 +66,12 @@ impl std::fmt::UpperHex for Session {
 unsafe impl Send for Session {}
 
 impl Session {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11) -> Self {
+    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11, close_on_drop: bool) -> Self {
         Session {
             handle,
             client,
             _guard: PhantomData,
+            close_on_drop,
         }
     }
 }
