@@ -4,7 +4,7 @@
 
 use crate::context::Function;
 use crate::error::{Error, Result, Rv, RvError};
-use crate::session::{Session, SessionInfo, UserType};
+use crate::session::{CloseOnDrop, Session, SessionInfo, UserType};
 use crate::types::{AuthPin, RawAuthPin};
 
 #[cfg(doc)]
@@ -16,7 +16,7 @@ use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session {
     fn drop(&mut self) {
-        if !self.close_on_drop || self.closed.get() {
+        if self.close_on_drop == CloseOnDrop::DoNotClose || self.closed.get() {
             return;
         }
 

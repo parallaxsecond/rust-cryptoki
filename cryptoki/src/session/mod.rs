@@ -29,6 +29,12 @@ pub use object_management::ObjectHandleIterator;
 pub use session_info::{SessionInfo, SessionState};
 pub use validation::ValidationFlagsType;
 
+#[derive(Debug, PartialEq)]
+pub(crate) enum CloseOnDrop {
+    AutomaticallyCloseSession,
+    DoNotClose,
+}
+
 /// Type that identifies a session
 ///
 /// It will automatically get closed (and logout) on drop.
@@ -41,7 +47,7 @@ pub struct Session {
     client: Pkcs11,
     // This is not used but to prevent Session to automatically implement Sync
     _guard: PhantomData<*mut u32>,
-    close_on_drop: bool,
+    close_on_drop: CloseOnDrop,
     closed: Cell<bool>,
 }
 
@@ -68,7 +74,11 @@ impl std::fmt::UpperHex for Session {
 unsafe impl Send for Session {}
 
 impl Session {
-    pub(crate) fn new(handle: CK_SESSION_HANDLE, client: Pkcs11, close_on_drop: bool) -> Self {
+    pub(crate) fn new(
+        handle: CK_SESSION_HANDLE,
+        client: Pkcs11,
+        close_on_drop: CloseOnDrop,
+    ) -> Self {
         Session {
             handle,
             client,
