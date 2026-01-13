@@ -265,11 +265,13 @@ fn main() -> TestResult {
     init_pkcs11_context()?;
     println!();
 
+    let max_threads = 3;
+
     // Spawn multiple threads
-    println!("Spawning 3 worker threads...\n");
+    println!("Spawning {max_threads} worker threads...\n");
     let mut handles = vec![];
 
-    for i in 0..3 {
+    for i in 0..max_threads {
         let handle = thread::spawn(move || generate_and_sign(i));
         handles.push(handle);
     }
