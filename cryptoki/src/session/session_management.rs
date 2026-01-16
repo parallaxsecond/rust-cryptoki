@@ -107,12 +107,6 @@ impl Session {
     // Helper function to be able to close a session only taking a reference.
     // This is used in the Drop trait function which only takes a reference as input.
     pub(super) fn close_inner(&self) -> Result<()> {
-        if self.closed.get() {
-            return Err(Error::Pkcs11(
-                RvError::SessionClosed,
-                Function::CloseSession,
-            ));
-        }
         self.closed.set(true);
 
         unsafe {
