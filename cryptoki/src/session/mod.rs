@@ -29,7 +29,7 @@ pub use object_management::ObjectHandleIterator;
 pub use session_info::{SessionInfo, SessionState};
 pub use validation::ValidationFlagsType;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub(crate) enum CloseOnDrop {
     AutomaticallyCloseSession,
     DoNotClose,
