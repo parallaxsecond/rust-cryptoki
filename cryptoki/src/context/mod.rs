@@ -148,6 +148,9 @@ impl Pkcs11 {
             }
         }
 
+        if pkcs11_lib.C_GetFunctionList.is_err() {
+            return Err(Error::MissingSymbol("C_GetFunctionList"));
+        }
         let mut list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST = ptr::null_mut();
         Rv::from(pkcs11_lib.C_GetFunctionList(&mut list_ptr))
             .into_result(Function::GetFunctionList)?;
@@ -399,5 +402,47 @@ fn v30tov32(f: cryptoki_sys::CK_FUNCTION_LIST_3_0) -> cryptoki_sys::CK_FUNCTION_
         C_AsyncJoin: None,
         C_WrapKeyAuthenticated: None,
         C_UnwrapKeyAuthenticated: None,
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_missing_c_get_function_list_symbol() {
+        // Use a system library that exists but doesn't have PKCS#11 symbols
+        #[cfg(target_os = "macos")]
+        let lib_path = "/usr/lib/libSystem.B.dylib";
+        #[cfg(all(target_os = "linux", target_arch = "x86"))]
+        let lib_path = "/lib/i386-linux-gnu/libm.so.6";
+        #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+        let lib_path = "/lib/aarch64-linux-gnu/libm.so.6";
+        #[cfg(all(
+            target_os = "linux",
+            not(any(target_arch = "x86", target_arch = "aarch64"))
+        ))]
+        let lib_path = "/lib/x86_64-linux-gnu/libm.so.6";
+        #[cfg(target_os = "freebsd")]
+        let lib_path = "/lib/libm.so.5";
+        #[cfg(target_os = "windows")]
+        let lib_path = "kernel32.dll";
+
+        // Skip if the library doesn't exist (e.g., cross-compilation without target libs)
+        if !Path::new(lib_path).exists() {
+            return;
+        }
+
+        let result = Pkcs11::new(lib_path);
+
+        match result {
+            // The optional V3 interface checks will fall back on mapping the V2 interface
+            // at which point at least `C_GetFunctionList` would be expected.
+            Err(Error::MissingSymbol(name)) => {
+                assert_eq!(name, "C_GetFunctionList");
+            }
+            Err(e) => panic!("Expected MissingSymbol error, got: {:?}", e),
+            Ok(_) => panic!("Expected error, but library loaded successfully"),
+        }
     }
 }
