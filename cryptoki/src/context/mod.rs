@@ -430,7 +430,7 @@ mod test {
 
         // Skip if the library doesn't exist (e.g., cross-compilation without target libs)
         if !Path::new(lib_path).exists() {
-            println!("Skipping the test since {lib_path} does not exist.").
+            println!("Skipping the test since {lib_path} does not exist.");
             return;
         }
 
