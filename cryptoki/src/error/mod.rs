@@ -43,6 +43,9 @@ pub enum Error {
     /// Calling a PKCS11 function that is a NULL function pointer.
     NullFunctionPointer,
 
+    /// A required PKCS#11 symbol was not found in the loaded library.
+    MissingSymbol(&'static str),
+
     /// The value is not one of those expected.
     InvalidValue,
 
@@ -62,6 +65,7 @@ impl fmt::Display for Error {
             Error::Utf8(e) => write!(f, "Invalid UTF-8 ({e})"),
             Error::NulError(e) => write!(f, "An interior nul byte was found ({e})"),
             Error::NullFunctionPointer => write!(f, "Calling a NULL function pointer"),
+            Error::MissingSymbol(name) => write!(f, "Missing PKCS#11 symbol: {name}"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
             Error::PinNotSet => write!(f, "Pin has not been set before trying to log in"),
         }
@@ -80,6 +84,7 @@ impl std::error::Error for Error {
             Error::Pkcs11(_, _)
             | Error::NotSupported
             | Error::NullFunctionPointer
+            | Error::MissingSymbol(_)
             | Error::PinNotSet
             | Error::InvalidValue => None,
         }
