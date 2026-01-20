@@ -17,7 +17,6 @@ bitflags = "2.10.0"
 libloading = "0.8.9"
 log = "0.4.28"
 cryptoki-sys = { path = "../cryptoki-sys", version = "0.5.0" }
-paste = "1.0.15"
 secrecy = "0.10.3"
 
 [dev-dependencies]
