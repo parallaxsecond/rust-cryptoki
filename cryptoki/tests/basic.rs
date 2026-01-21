@@ -75,6 +75,13 @@ fn sign_verify() -> TestResult {
     // verify the signature
     session.verify(&Mechanism::RsaPkcs, public, &data, &signature)?;
 
+    // sign into a user-provided buffer with it
+    let mut signature = [0u8; 2048 / 8];
+    let sig_len = session.sign_into(&Mechanism::RsaPkcs, private, &data, &mut signature)?;
+
+    // verify the signature
+    session.verify(&Mechanism::RsaPkcs, public, &data, &signature[..sig_len])?;
+
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
@@ -119,6 +126,12 @@ fn sign_verify_eddsa() -> TestResult {
     let params = EddsaParams::new(scheme);
 
     let signature = session.sign(&Mechanism::Eddsa(params), private, &data)?;
+
+    session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
+
+    let mut signature = [0u8; 64];
+    let sig_len = session.sign_into(&Mechanism::Eddsa(params), private, &data, &mut signature)?;
+    assert_eq!(sig_len, 64);
 
     session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
 
@@ -175,6 +188,13 @@ fn sign_verify_eddsa_with_ed25519_schemes() -> TestResult {
         let params = EddsaParams::new(scheme);
 
         let signature = session.sign(&Mechanism::Eddsa(params), private, &data)?;
+
+        session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
+
+        let mut signature = [0u8; 64];
+        let sig_len =
+            session.sign_into(&Mechanism::Eddsa(params), private, &data, &mut signature)?;
+        assert_eq!(sig_len, 64);
 
         session.verify(&Mechanism::Eddsa(params), public, &data, &signature)?;
     }
@@ -334,6 +354,21 @@ fn sign_verify_multipart() -> TestResult {
         session.verify_update(part)?;
     }
     session.verify_final(&signature)?;
+
+    // Sign data into a user-provided buffer
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    for part in data.chunks(3) {
+        session.sign_update(part)?;
+    }
+    let mut signature = [0u8; 2048 / 8];
+    let sig_len = session.sign_final_into(&mut signature)?;
+
+    // Verify signature from the user-provided buffer
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    for part in data.chunks(3) {
+        session.verify_update(part)?;
+    }
+    session.verify_final(&signature[..sig_len])?;
 
     // Delete keys
     session.destroy_object(pub_key)?;
