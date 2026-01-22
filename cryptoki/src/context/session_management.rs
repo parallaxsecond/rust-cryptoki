@@ -6,14 +6,19 @@ use cryptoki_sys::{CKF_RW_SESSION, CKF_SERIAL_SESSION};
 
 use crate::context::Pkcs11;
 use crate::error::{Result, Rv};
-use crate::session::Session;
+use crate::session::{CloseOnDrop, Session};
 use crate::slot::Slot;
 
 use super::Function;
 
 impl Pkcs11 {
     #[inline(always)]
-    fn open_session(&self, slot_id: Slot, read_write: bool) -> Result<Session> {
+    fn open_session(
+        &self,
+        slot_id: Slot,
+        read_write: bool,
+        close_on_drop: CloseOnDrop,
+    ) -> Result<Session> {
         let mut session_handle = 0;
 
         let flags = if read_write {
@@ -33,7 +38,7 @@ impl Pkcs11 {
             .into_result(Function::OpenSession)?;
         }
 
-        Ok(Session::new(session_handle, self.clone()))
+        Ok(Session::new(session_handle, self.clone(), close_on_drop))
     }
 
     /// Open a new Read-Only session
@@ -63,13 +68,31 @@ impl Pkcs11 {
     /// # let _ = session; Ok(()) }
     /// ```
     pub fn open_ro_session(&self, slot_id: Slot) -> Result<Session> {
-        self.open_session(slot_id, false)
+        self.open_session(slot_id, false, CloseOnDrop::AutomaticallyCloseSession)
     }
 
     /// Open a new Read/Write session
     ///
     /// Note: No callback is set when opening the session.
     pub fn open_rw_session(&self, slot_id: Slot) -> Result<Session> {
-        self.open_session(slot_id, true)
+        self.open_session(slot_id, true, CloseOnDrop::AutomaticallyCloseSession)
+    }
+
+    /// Open a new Read-Only session without automatic close on drop.
+    ///
+    /// The caller is responsible for calling `close()` explicitly.
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_ro_session_no_drop(&self, slot_id: Slot) -> Result<Session> {
+        self.open_session(slot_id, false, CloseOnDrop::DoNotClose)
+    }
+
+    /// Open a new Read/Write session without automatic close on drop.
+    ///
+    /// The caller is responsible for calling `close()` explicitly.
+    ///
+    /// Note: No callback is set when opening the session.
+    pub fn open_rw_session_no_drop(&self, slot_id: Slot) -> Result<Session> {
+        self.open_session(slot_id, true, CloseOnDrop::DoNotClose)
     }
 }

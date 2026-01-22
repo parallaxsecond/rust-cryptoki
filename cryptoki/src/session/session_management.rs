@@ -4,7 +4,7 @@
 
 use crate::context::Function;
 use crate::error::{Error, Result, Rv, RvError};
-use crate::session::{Session, SessionInfo, UserType};
+use crate::session::{CloseOnDrop, Session, SessionInfo, UserType};
 use crate::types::{AuthPin, RawAuthPin};
 
 #[cfg(doc)]
@@ -16,6 +16,10 @@ use std::convert::{TryFrom, TryInto};
 
 impl Drop for Session {
     fn drop(&mut self) {
+        if self.close_on_drop == CloseOnDrop::DoNotClose || self.closed.get() {
+            return;
+        }
+
         match self.close_inner() {
             Err(Error::Pkcs11(RvError::SessionClosed, Function::CloseSession)) => (), // the session has already been closed: ignore.
             Ok(()) => (),
@@ -105,7 +109,9 @@ impl Session {
     pub(super) fn close_inner(&self) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_CloseSession)(self.handle()))
-                .into_result(Function::CloseSession)
+                .into_result(Function::CloseSession)?;
         }
+        self.closed.set(true);
+        Ok(())
     }
 }
