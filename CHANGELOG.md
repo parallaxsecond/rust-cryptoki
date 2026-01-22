@@ -1,5 +1,28 @@
 # Changelog
 
+## [cryptoki-0.12.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.12.0) (2026-01-22)
+
+[Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-0.11.0...cryptoki-0.12.0)
+
+**Implemented enhancements:**
+
+- Accelerate fetching attributes from an object handle - cleaned up version [\#341](https://github.com/parallaxsecond/rust-cryptoki/pull/341) ([keldonin](https://github.com/keldonin))
+
+**Closed issues:**
+
+- session no longer send [\#339](https://github.com/parallaxsecond/rust-cryptoki/issues/339)
+- Unmaintained Dependency `paste` \(RUSTSEC-2024-0436\) [\#279](https://github.com/parallaxsecond/rust-cryptoki/issues/279)
+
+**Merged pull requests:**
+
+- fix\(tests\): check if SLH DSA can do key pair gen [\#348](https://github.com/parallaxsecond/rust-cryptoki/pull/348) ([hug-dev](https://github.com/hug-dev))
+- Remove `paste` dependency [\#347](https://github.com/parallaxsecond/rust-cryptoki/pull/347) ([bal-e](https://github.com/bal-e))
+- fix: return an error if `C_GetFunctionList` couldn't be found [\#345](https://github.com/parallaxsecond/rust-cryptoki/pull/345) ([supervacuus](https://github.com/supervacuus))
+- docs: update CHANGELOG [\#342](https://github.com/parallaxsecond/rust-cryptoki/pull/342) ([hug-dev](https://github.com/hug-dev))
+- Make Session Send [\#340](https://github.com/parallaxsecond/rust-cryptoki/pull/340) ([hug-dev](https://github.com/hug-dev))
+- test: Add Wycheproof-based AES-GCM tests [\#336](https://github.com/parallaxsecond/rust-cryptoki/pull/336) ([testingapisname](https://github.com/testingapisname))
+- Don't raise an error at close when it's expected [\#325](https://github.com/parallaxsecond/rust-cryptoki/pull/325) ([EliseChouleur](https://github.com/EliseChouleur))
+
 ## [cryptoki-0.11.0](https://github.com/parallaxsecond/rust-cryptoki/tree/cryptoki-0.11.0) (2025-12-19)
 
 [Full Changelog](https://github.com/parallaxsecond/rust-cryptoki/compare/cryptoki-sys-0.5.0...cryptoki-0.11.0)
