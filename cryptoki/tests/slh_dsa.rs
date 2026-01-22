@@ -26,11 +26,20 @@ fn slh_dsa() -> TestResult {
         return Ok(());
     }
 
+    let mechanism = Mechanism::SlhDsaKeyPairGen;
+    let mechanism_type = mechanism.mechanism_type();
+    if pkcs11
+        .get_mechanism_info(slot, mechanism.mechanism_type())
+        .is_err()
+    {
+        println!("SKIP: {mechanism_type} does not support key pair generation with this backend.");
+        pkcs11.finalize()?;
+        return Ok(());
+    }
+
     let session = pkcs11.open_rw_session(slot)?;
 
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
-
-    let mechanism = Mechanism::SlhDsaKeyPairGen;
 
     let pub_key_template = vec![
         Attribute::Token(true),
@@ -128,11 +137,20 @@ fn slh_dsa_multipart() -> TestResult {
         return Ok(());
     }
 
+    let mechanism = Mechanism::SlhDsaKeyPairGen;
+    let mechanism_type = mechanism.mechanism_type();
+    if pkcs11
+        .get_mechanism_info(slot, mechanism.mechanism_type())
+        .is_err()
+    {
+        println!("SKIP: {mechanism_type} does not support key pair generation with this backend.");
+        pkcs11.finalize()?;
+        return Ok(());
+    }
+
     let session = pkcs11.open_rw_session(slot)?;
 
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
-
-    let mechanism = Mechanism::SlhDsaKeyPairGen;
 
     let pub_key_template = vec![
         Attribute::Token(true),
@@ -197,11 +215,20 @@ fn slh_dsa_hash() -> TestResult {
         return Ok(());
     }
 
+    let mechanism = Mechanism::SlhDsaKeyPairGen;
+    let mechanism_type = mechanism.mechanism_type();
+    if pkcs11
+        .get_mechanism_info(slot, mechanism.mechanism_type())
+        .is_err()
+    {
+        println!("SKIP: {mechanism_type} does not support key pair generation with this backend.");
+        pkcs11.finalize()?;
+        return Ok(());
+    }
+
     let session = pkcs11.open_rw_session(slot)?;
 
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
-
-    let mechanism = Mechanism::SlhDsaKeyPairGen;
 
     let pub_key_template = vec![
         Attribute::Token(true),
@@ -291,11 +318,20 @@ fn slh_dsa_hashes() -> TestResult {
         return Ok(());
     }
 
+    let mechanism = Mechanism::SlhDsaKeyPairGen;
+    let mechanism_type = mechanism.mechanism_type();
+    if pkcs11
+        .get_mechanism_info(slot, mechanism.mechanism_type())
+        .is_err()
+    {
+        println!("SKIP: {mechanism_type} does not support key pair generation with this backend.");
+        pkcs11.finalize()?;
+        return Ok(());
+    }
+
     let session = pkcs11.open_rw_session(slot)?;
 
     session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
-
-    let mechanism = Mechanism::SlhDsaKeyPairGen;
 
     let pub_key_template = vec![
         Attribute::Token(true),
