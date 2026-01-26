@@ -3,13 +3,18 @@
 //! Signing and authentication functions
 
 use crate::context::Function;
-use crate::error::{Result, Rv};
+use crate::error::{Error, Result, Rv, RvError};
 use crate::mechanism::Mechanism;
 use crate::object::ObjectHandle;
 use crate::session::Session;
 use cryptoki_sys::*;
 use std::convert::TryInto;
 
+/// # Generating and Verifying Signatures
+///
+/// Several functions are provided for signing data and verifying signatures.
+/// This includes message authentication codes (MACs). The signed data can be
+/// provided in one-shot and streaming modes.
 impl Session {
     /// Sign data in single-part
     pub fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
@@ -54,6 +59,81 @@ impl Session {
         signature.truncate(signature_len.try_into()?);
 
         Ok(signature)
+    }
+
+    /// Sign data into the given buffer.
+    ///
+    /// `data` should be a byte sequence representing the input message. It will
+    /// be signed using the specified key, and the resulting signature will be
+    /// written to the given output buffer.
+    ///
+    /// The output buffer should be large enough to store the signature.
+    /// If it is large enough, the number of filled bytes is returned
+    /// (i.e. `sig[0..size]` contains the prepared signature). Otherwise,
+    /// [`Error::IncorrectBufferSize`] is returned.
+    ///
+    /// Use [`Self::sign()`] if (an upper bound for) the size of the signature
+    /// is not known. Use [`Self::sign_init()`] etc. if the input data is being
+    /// streamed (i.e. it is not all immediately available).
+    pub fn sign_into(
+        &mut self,
+        mechanism: &Mechanism,
+        key: ObjectHandle,
+        data: &[u8],
+        sig: &mut [u8],
+    ) -> Result<usize> {
+        let mut mechanism: CK_MECHANISM = mechanism.into();
+
+        // The size of the signature buffer, into which 'C_Sign' will write the
+        // size of the generated signature.
+        let sig_buf_len = sig.len().try_into()?;
+        let mut sig_len = sig_buf_len;
+
+        // Initialize the signing operation.
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_SignInit)(
+                self.handle(),
+                &mut mechanism as CK_MECHANISM_PTR,
+                key.handle(),
+            ))
+            .into_result(Function::SignInit)?;
+        }
+
+        // Perform the actual signing.
+        let res = unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_Sign)(
+                self.handle(),
+                data.as_ptr() as *mut u8,
+                data.len().try_into()?,
+                sig.as_mut_ptr(),
+                &mut sig_len,
+            ))
+        };
+
+        // Check the result and buffer size.
+        match res {
+            Rv::Ok => {
+                // TODO: Should this be an Error of some kind?
+                assert!(sig_len <= sig_buf_len);
+
+                // 'sig_len <= sig_buf_len <= usize::MAX'.
+                Ok(sig_len as usize)
+            }
+
+            Rv::Error(RvError::BufferTooSmall) => {
+                // TODO: Should this be an Error of some kind?
+                assert!(sig_len > sig_buf_len);
+
+                // All reasonable buffer sizes fit in 'usize'.
+                let sig_len: usize = sig_len.try_into()?;
+
+                Err(Error::IncorrectBufferSize(sig_len))
+            }
+
+            // The error seems unrelated to the buffer size, so we don't check
+            // what 'sig_len' has been set to (if anything).
+            Rv::Error(err) => Err(Error::Pkcs11(err, Function::Sign)),
+        }
     }
 
     /// Starts new multi-part signing operation
@@ -116,6 +196,66 @@ impl Session {
         signature.truncate(signature_len.try_into()?);
 
         Ok(signature)
+    }
+
+    /// Complete an ongoing multi-part signing operation, writing the signature
+    /// into the given buffer.
+    ///
+    /// This must be preceded by [`Self::sign_init()`] and zero or more calls
+    /// to [`Self::sign_update()`]. This method will terminate the multi-part
+    /// signing operation.
+    ///
+    /// The output buffer should be large enough to store the signature.
+    /// If it is large enough, the number of filled bytes is returned
+    /// (i.e. `sig[0..size]` contains the prepared signature). Otherwise,
+    /// [`Error::IncorrectBufferSize`] is returned.
+    ///
+    /// Use [`Self::sign_final()`] if (an upper bound for) the size of the
+    /// signature is not known. Use [`Self::sign_into()`] if the input data
+    /// is entirely available in a single buffer (i.e. does not have to be
+    /// streamed).
+    //
+    // TODO: Is it possible to re-do this call if an incorrect buffer size
+    // was passed in? I think so?
+    pub fn sign_final_into(&mut self, sig: &mut [u8]) -> Result<usize> {
+        // The size of the signature buffer, into which 'C_Sign' will write the
+        // size of the generated signature.
+        let sig_buf_len = sig.len().try_into()?;
+        let mut sig_len = sig_buf_len;
+
+        // Perform the underlying finalization.
+        let res = unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_SignFinal)(
+                self.handle(),
+                sig.as_mut_ptr(),
+                &mut sig_len,
+            ))
+        };
+
+        // Check the result and buffer size.
+        match res {
+            Rv::Ok => {
+                // TODO: Should this be an Error of some kind?
+                assert!(sig_len <= sig_buf_len);
+
+                // 'sig_len <= sig_buf_len <= usize::MAX'.
+                Ok(sig_len as usize)
+            }
+
+            Rv::Error(RvError::BufferTooSmall) => {
+                // TODO: Should this be an Error of some kind?
+                assert!(sig_len > sig_buf_len);
+
+                // All reasonable buffer sizes fit in 'usize'.
+                let sig_len: usize = sig_len.try_into()?;
+
+                Err(Error::IncorrectBufferSize(sig_len))
+            }
+
+            // The error seems unrelated to the buffer size, so we don't check
+            // what 'sig_len' has been set to (if anything).
+            Rv::Error(err) => Err(Error::Pkcs11(err, Function::Sign)),
+        }
     }
 
     /// Verify data in single-part

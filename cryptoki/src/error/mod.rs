@@ -31,6 +31,12 @@ pub enum Error {
     /// Error when converting a slice to an array
     TryFromSlice(std::array::TryFromSliceError),
 
+    /// A user-provided buffer has the wrong size.
+    ///
+    /// The buffer may be too small or too large. The expected size (in bytes)
+    /// is returned.
+    IncorrectBufferSize(usize),
+
     /// Error when converting a numerical str to an integral value
     ParseInt(core::num::ParseIntError),
 
@@ -61,6 +67,10 @@ impl fmt::Display for Error {
             Error::NotSupported => write!(f, "Feature not supported"),
             Error::TryFromInt(e) => write!(f, "Conversion between integers failed ({e})"),
             Error::TryFromSlice(e) => write!(f, "Error converting slice to array ({e})"),
+            Error::IncorrectBufferSize(exp) => write!(
+                f,
+                "Provided buffer has incorrect size (expected {exp} bytes)"
+            ),
             Error::ParseInt(e) => write!(f, "Error parsing string as integer ({e})"),
             Error::Utf8(e) => write!(f, "Invalid UTF-8 ({e})"),
             Error::NulError(e) => write!(f, "An interior nul byte was found ({e})"),
@@ -83,6 +93,7 @@ impl std::error::Error for Error {
             Error::NulError(e) => Some(e),
             Error::Pkcs11(_, _)
             | Error::NotSupported
+            | Error::IncorrectBufferSize(_)
             | Error::NullFunctionPointer
             | Error::MissingSymbol(_)
             | Error::PinNotSet
