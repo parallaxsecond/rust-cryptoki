@@ -139,14 +139,12 @@ where
             // Get slot with token
             let slot = ctx.get_slots_with_token()?[0];
 
-            // Open new session (R/W for key generation)
-            let new_session = ctx.open_rw_session(slot)?;
+            // Open new session (R/O is sufficient for session key generation)
+            let new_session = ctx.open_ro_session(slot)?;
 
-            // Login as normal user
-            let user_pin = AuthPin::new(USER_PIN.into());
-            new_session.login(UserType::User, Some(&user_pin))?;
+            // No need to login.
 
-            println!("Thread {:?}: Opened new RW session", thread::current().id());
+            println!("Thread {:?}: Opened new RO session", thread::current().id());
 
             // Store in thread-local storage
             *session_opt = Some(new_session);
@@ -251,6 +249,21 @@ fn generate_and_sign(thread_id: usize) -> TestResult {
     Ok(())
 }
 
+/// Open and authenticate a persistent session for the application.
+///
+/// This opens a read-only session on the given `slot`, logs in the normal
+/// user (`USER_PIN`) and returns the session. The intent is to keep this
+/// session active for the duration of the application's lifetime so other
+/// components can rely on a long-lived, logged-in session.
+fn open_authenticated_session() -> TestResult<Session> {
+    let pkcs11 = PKCS11_CTX.get().ok_or("PKCS11 context not initialized")?;
+    let slot = pkcs11.get_slots_with_token()?[0];
+    let session = pkcs11.open_ro_session(slot)?;
+    let user_pin = AuthPin::new(USER_PIN.into());
+    session.login(UserType::User, Some(&user_pin))?;
+    Ok(session)
+}
+
 fn main() -> TestResult {
     println!("Thread-Local Session Pattern Example");
     println!("====================================\n");
@@ -264,6 +277,10 @@ fn main() -> TestResult {
     println!("Initializing PKCS11 context...");
     init_pkcs11_context()?;
     println!();
+
+    // Open a persistent session to maintain login state for the app's lifetime
+    let _persistent_session = open_authenticated_session()?;
+    println!("Persistent session opened to maintain login state.\n");
 
     let max_threads = 3;
 
@@ -287,5 +304,9 @@ fn main() -> TestResult {
     println!("\nAll threads completed successfully!");
     println!("Note: Each thread had its own Session instance, reused across multiple operations.");
 
+    // _persistent_session drops here, as Session implements Drop and objects on stack
+    // are dropped in reverse order of creation. Login state is cleaned up automatically.
+    // Since Session implements Drop, the compiler will not optimize _persistent_session away,
+    // and drop will happen as expected.
     Ok(())
 }
