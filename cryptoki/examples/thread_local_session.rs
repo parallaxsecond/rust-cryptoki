@@ -251,10 +251,10 @@ fn generate_and_sign(thread_id: usize) -> TestResult {
 
 /// Open and authenticate a persistent session for the application.
 ///
-/// This opens a read-only session on the given `slot`, logs in the normal
-/// user (`USER_PIN`) and returns the session. The intent is to keep this
-/// session active for the duration of the application's lifetime so other
-/// components can rely on a long-lived, logged-in session.
+/// This opens a read-only session on the first available slot with a token,
+/// logs in the normal user (`USER_PIN`) and returns the session. The intent
+/// is to keep this session active for the duration of the application's
+/// lifetime so other components can rely on a long-lived, logged-in session.
 fn open_authenticated_session() -> TestResult<Session> {
     let pkcs11 = PKCS11_CTX.get().ok_or("PKCS11 context not initialized")?;
     let slot = pkcs11.get_slots_with_token()?[0];
