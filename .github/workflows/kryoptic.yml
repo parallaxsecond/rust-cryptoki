@@ -148,7 +148,7 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           pushd ${{ env.KRYOPTIC_OPENSSL_SOURCES }}
-          ./Configure
+          ./Configure no-docs no-tests
           make
 
       - name: Cache OpenSSL 3.5 build
