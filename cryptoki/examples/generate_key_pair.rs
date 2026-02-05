@@ -8,9 +8,9 @@ use cryptoki::types::AuthPin;
 use std::env;
 
 // The default user pin
-pub static USER_PIN: &str = "fedcba";
+pub static USER_PIN: &str = "fedcba123456";
 // The default SO pin
-pub static SO_PIN: &str = "abcdef";
+pub static SO_PIN: &str = "abcdef654321";
 
 fn main() -> testresult::TestResult {
     // initialize a new Pkcs11 object using the module from the env variable
@@ -24,10 +24,10 @@ fn main() -> testresult::TestResult {
     let slot = pkcs11.get_slots_with_token()?[0];
 
     // initialize a test token
-    let so_pin = AuthPin::new("abcdef".into());
+    let so_pin = AuthPin::new(SO_PIN.into());
     pkcs11.init_token(slot, &so_pin, "Test Token")?;
 
-    let user_pin = AuthPin::new("fedcba".into());
+    let user_pin = AuthPin::new(USER_PIN.into());
 
     // initialize user PIN
     {

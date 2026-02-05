@@ -47,8 +47,10 @@ use cryptoki::object::Attribute;
 use cryptoki::session::{Session, UserType};
 use cryptoki::types::AuthPin;
 
-const USER_PIN: &str = "fedcba";
-const SO_PIN: &str = "abcdef";
+// The default user pin
+pub static USER_PIN: &str = "fedcba123456";
+// The default SO pin
+pub static SO_PIN: &str = "abcdef654321";
 
 // Global PKCS11 context shared across all threads using Arc for cheap cloning
 static PKCS11_CTX: OnceLock<Pkcs11> = OnceLock::new();

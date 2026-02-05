@@ -107,6 +107,11 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
+    env:
+      TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
+      SOFTHSM2_CONF: /tmp/softhsm2.conf
+      RUSTFLAGS: "-D warnings"
+      RUST_BACKTRACE: 1
     steps:
       - uses: actions/checkout@v4
       - name: Setup Rust toolchain
@@ -134,12 +139,18 @@ jobs:
       - name: Check
         run: cargo check --target ${{ matrix.target }} --workspace --all-targets
       - name: Test script
-        env:
-          TEST_PKCS11_MODULE: /usr/lib/softhsm/libsofthsm2.so
-          SOFTHSM2_CONF: /tmp/softhsm2.conf
-          RUSTFLAGS: "-D warnings"
-          RUST_BACKTRACE: 1
         run: cargo test --target ${{ matrix.target }}
+      # "Run examples" assumes that:
+      #   - there is one example per file.
+      #   - the run does not take any arguments.
+      #   - the run is relatively fast.
+      #   - the return code is non-zero if the example fails.
+      - name: Run examples
+        run: |
+          EXAMPLES=$(ls cryptoki/examples/*.rs | sed 's/\.rs$//' | xargs -n 1 basename)
+          for example in $EXAMPLES; do
+            cargo run --target ${{ matrix.target }} --example "$example"
+          done
 
   build-windows:
     name: Build on Windows
