@@ -241,6 +241,56 @@ fn sign_verify_eddsa_with_ed448_schemes() -> TestResult {
 
 #[test]
 #[serial]
+fn sign_verify_single_part() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Define parameters for keypair
+    let public_exponent = vec![0x01, 0x00, 0x01];
+    let modulus_bits = 2048;
+
+    let pub_key_template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::PublicExponent(public_exponent),
+        Attribute::ModulusBits(modulus_bits.into()),
+        Attribute::Verify(true),
+    ];
+    let priv_key_template = vec![Attribute::Token(true), Attribute::Sign(true)];
+
+    // Generate keypair
+    let (pub_key, priv_key) = session.generate_key_pair(
+        &Mechanism::RsaPkcsKeyPairGen,
+        &pub_key_template,
+        &priv_key_template,
+    )?;
+
+    // Data to sign
+    let data = [0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33];
+
+    // Sign data in a single part using separate init and single call
+    session.sign_init(&Mechanism::Sha256RsaPkcs, priv_key)?;
+    let signature = session.sign_single(&data)?;
+
+    // Verify signature in a single part using separate init and single call
+    session.verify_init(&Mechanism::Sha256RsaPkcs, pub_key)?;
+    session.verify_single(&data, &signature)?;
+
+    // Delete keys
+    session.destroy_object(pub_key)?;
+    session.destroy_object(priv_key)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
 fn sign_verify_multipart() -> TestResult {
     let (pkcs11, slot) = init_pins();
 
@@ -473,6 +523,50 @@ fn encrypt_decrypt() -> TestResult {
     // delete keys
     session.destroy_object(public)?;
     session.destroy_object(private)?;
+
+    session.close()?;
+    pkcs11.finalize()?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn encrypt_decrypt_single_part() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // Open a session and log in
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Generate key
+    let template = vec![
+        Attribute::Token(true),
+        Attribute::Private(false),
+        Attribute::ValueLen(AES128_BLOCK_SIZE),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+    let key = session.generate_key(&Mechanism::AesKeyGen, &template)?;
+
+    // Data to encrypt
+    let data = vec![
+        0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99, 0x77, 0xFF, 0x55, 0xDD, 0x11, 0xBB, 0x33, 0x99,
+        0x77,
+    ];
+
+    // Encrypt data in a single part using separate init and single call
+    session.encrypt_init(&Mechanism::AesEcb, key)?;
+    let encrypted_data = session.encrypt_single(&data)?;
+
+    // Decrypt data in a single part using separate init and single call
+    session.decrypt_init(&Mechanism::AesEcb, key)?;
+    let decrypted_data = session.decrypt_single(&encrypted_data)?;
+
+    assert_eq!(data, decrypted_data);
+
+    // Delete key
+    session.destroy_object(key)?;
 
     session.close()?;
     pkcs11.finalize()?;
@@ -2269,6 +2363,35 @@ fn sha256_digest() -> TestResult {
         0x92, 0x9f,
     ];
     let have = session.digest(&Mechanism::Sha256, &data)?;
+    assert_eq!(want[..], have[..]);
+
+    session.close()?;
+    pkcs11.finalize()?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn sha256_digest_single_part() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot)?;
+
+    // log in the session
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // data to digest
+    let data = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF];
+
+    let want = [
+        0x17, 0x22, 0x6b, 0x1f, 0x68, 0xae, 0xba, 0xcd, 0xef, 0x07, 0x46, 0x45, 0x0f, 0x64, 0x28,
+        0x74, 0x63, 0x8b, 0x29, 0x57, 0x07, 0xef, 0x73, 0xfb, 0x2c, 0x6b, 0xb7, 0xf8, 0x8e, 0x89,
+        0x92, 0x9f,
+    ];
+    session.digest_init(&Mechanism::Sha256)?;
+    let have = session.digest_single(&data)?;
     assert_eq!(want[..], have[..]);
 
     session.close()?;

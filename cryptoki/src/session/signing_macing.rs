@@ -13,17 +13,18 @@ use std::convert::TryInto;
 impl Session {
     /// Sign data in single-part
     pub fn sign(&self, mechanism: &Mechanism, key: ObjectHandle, data: &[u8]) -> Result<Vec<u8>> {
-        let mut mechanism: CK_MECHANISM = mechanism.into();
-        let mut signature_len = 0;
+        self.sign_init(mechanism, key)?;
+        self.sign_single(data)
+    }
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_SignInit)(
-                self.handle(),
-                &mut mechanism as CK_MECHANISM_PTR,
-                key.handle(),
-            ))
-            .into_result(Function::SignInit)?;
-        }
+    /// Sign data in single-part.
+    ///
+    /// This function can be used instead of the single shot related sign
+    /// function when the user needs to perform something like
+    /// context-specific user authentication after [`Session::sign_init`]
+    /// is called.
+    pub fn sign_single(&self, data: &[u8]) -> Result<Vec<u8>> {
+        let mut signature_len = 0;
 
         // Get the output buffer length
         unsafe {
@@ -56,7 +57,7 @@ impl Session {
         Ok(signature)
     }
 
-    /// Starts new multi-part signing operation
+    /// Starts new single-part or multi-part signing operation
     pub fn sign_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 
@@ -126,17 +127,17 @@ impl Session {
         data: &[u8],
         signature: &[u8],
     ) -> Result<()> {
-        let mut mechanism: CK_MECHANISM = mechanism.into();
+        self.verify_init(mechanism, key)?;
+        self.verify_single(data, signature)
+    }
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_VerifyInit)(
-                self.handle(),
-                &mut mechanism as CK_MECHANISM_PTR,
-                key.handle(),
-            ))
-            .into_result(Function::VerifyInit)?;
-        }
-
+    /// Verify data in single-part.
+    ///
+    /// This function can be used instead of the single shot related verify
+    /// function when the user needs to perform something like
+    /// context-specific user authentication after [`Session::verify_init`]
+    /// is called.
+    pub fn verify_single(&self, data: &[u8], signature: &[u8]) -> Result<()> {
         unsafe {
             Rv::from(get_pkcs11!(self.client(), C_Verify)(
                 self.handle(),
@@ -149,7 +150,7 @@ impl Session {
         }
     }
 
-    /// Starts new multi-part verifying operation
+    /// Starts new single-part or multi-part verifying operation
     pub fn verify_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 

@@ -12,17 +12,19 @@ use std::convert::TryInto;
 
 impl Session {
     /// Single-part digesting operation
-    pub fn digest(&self, m: &Mechanism, data: &[u8]) -> Result<Vec<u8>> {
-        let mut mechanism: CK_MECHANISM = m.into();
-        let mut digest_len = 0;
+    pub fn digest(&self, mechanism: &Mechanism, data: &[u8]) -> Result<Vec<u8>> {
+        self.digest_init(mechanism)?;
+        self.digest_single(data)
+    }
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_DigestInit)(
-                self.handle(),
-                &mut mechanism as CK_MECHANISM_PTR,
-            ))
-            .into_result(Function::DigestInit)?;
-        }
+    /// Digest data in single-part.
+    ///
+    /// This function can be used instead of the single shot related digest
+    /// function when the user needs to perform something like
+    /// context-specific user authentication after [`Session::digest_init`]
+    /// is called.
+    pub fn digest_single(&self, data: &[u8]) -> Result<Vec<u8>> {
+        let mut digest_len = 0;
 
         // Get the output buffer length
         unsafe {
@@ -54,7 +56,7 @@ impl Session {
         Ok(digest)
     }
 
-    /// Starts new multi-part digesting operation
+    /// Starts new single-part or multi-part digesting operation
     pub fn digest_init(&self, m: &Mechanism) -> Result<()> {
         let mut mechanism: CK_MECHANISM = m.into();
 

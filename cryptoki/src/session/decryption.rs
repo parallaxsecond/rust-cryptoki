@@ -18,17 +18,18 @@ impl Session {
         key: ObjectHandle,
         encrypted_data: &[u8],
     ) -> Result<Vec<u8>> {
-        let mut mechanism: CK_MECHANISM = mechanism.into();
-        let mut data_len = 0;
+        self.decrypt_init(mechanism, key)?;
+        self.decrypt_single(encrypted_data)
+    }
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_DecryptInit)(
-                self.handle(),
-                &mut mechanism as CK_MECHANISM_PTR,
-                key.handle(),
-            ))
-            .into_result(Function::DecryptInit)?;
-        }
+    /// Single-part decryption operation.
+    ///
+    /// This function can be used instead of the single shot related decrypt
+    /// function when the user needs to perform something like
+    /// context-specific user authentication after [`Session::decrypt_init`]
+    /// is called.
+    pub fn decrypt_single(&self, encrypted_data: &[u8]) -> Result<Vec<u8>> {
+        let mut data_len = 0;
 
         // Get the output buffer length
         unsafe {
@@ -61,7 +62,7 @@ impl Session {
         Ok(data)
     }
 
-    /// Starts new multi-part decryption operation
+    /// Starts new single-part or multi-part decryption operation
     pub fn decrypt_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 

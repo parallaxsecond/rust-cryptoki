@@ -18,17 +18,18 @@ impl Session {
         key: ObjectHandle,
         data: &[u8],
     ) -> Result<Vec<u8>> {
-        let mut mechanism: CK_MECHANISM = mechanism.into();
-        let mut encrypted_data_len = 0;
+        self.encrypt_init(mechanism, key)?;
+        self.encrypt_single(data)
+    }
 
-        unsafe {
-            Rv::from(get_pkcs11!(self.client(), C_EncryptInit)(
-                self.handle(),
-                &mut mechanism as CK_MECHANISM_PTR,
-                key.handle(),
-            ))
-            .into_result(Function::EncryptInit)?;
-        }
+    /// Single-part encryption operation.
+    ///
+    /// This function can be used instead of the single shot related encrypt
+    /// function when the user needs to perform something like
+    /// context-specific user authentication after [`Session::encrypt_init`]
+    /// is called.
+    pub fn encrypt_single(&self, data: &[u8]) -> Result<Vec<u8>> {
+        let mut encrypted_data_len = 0;
 
         // Get the output buffer length
         unsafe {
@@ -60,7 +61,7 @@ impl Session {
         Ok(encrypted_data)
     }
 
-    /// Starts new multi-part encryption operation
+    /// Starts new single-part or multi-part encryption operation
     pub fn encrypt_init(&self, mechanism: &Mechanism, key: ObjectHandle) -> Result<()> {
         let mut mechanism: CK_MECHANISM = mechanism.into();
 
