@@ -2775,4 +2775,8 @@ struct CK_FUNCTION_LIST {
 #pragma pack(pop, cryptoki)
 #endif
 
+#if defined(THALES_LUNA)
+#include "thales-luna/cr"
+#endif
+
 #endif
