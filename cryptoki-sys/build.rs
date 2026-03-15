@@ -25,6 +25,8 @@ mod generate {
         }
 
         fn int_macro(&self, name: &str, _: i64) -> Option<callbacks::IntKind> {
+            // The last matching prefix wins, so more specific prefixes must
+            // come after their generic counterparts.
             let prefixes = [
                 ("CK_", "CK_ULONG"),
                 ("CKA_", "CK_ATTRIBUTE_TYPE"),
@@ -46,10 +48,27 @@ mod generate {
                 ("CKP_", "CK_PROFILE_ID"),
                 ("CKR_", "CK_RV"),
                 ("CKS_", "CK_STATE"),
+                ("CKT_", "CK_TRUST"),
                 ("CKU_", "CK_USER_TYPE"),
                 ("CKZ_DATA_SPECIFIED", "CK_RSA_PKCS_OAEP_SOURCE_TYPE"),
                 ("CKZ_SALT_SPECIFIED", "CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE"),
                 ("CRYPTOKI_VERSION_", "CK_BYTE"),
+                // PKCS#11 3.x introduces types that share prefixes with
+                // earlier types. The more specific prefixes below override
+                // the generic matches above.
+                ("CKH_HEDGE_", "CK_HEDGE_TYPE"),
+                ("CKH_DETERMINISTIC_", "CK_HEDGE_TYPE"),
+                ("CKP_ML_DSA_", "CK_ML_DSA_PARAMETER_SET_TYPE"),
+                ("CKP_ML_KEM_", "CK_ML_KEM_PARAMETER_SET_TYPE"),
+                ("CKP_SLH_DSA_", "CK_SLH_DSA_PARAMETER_SET_TYPE"),
+                ("CKS_LAST_VALIDATION_", "CK_SESSION_VALIDATION_FLAGS_TYPE"),
+                ("CKV_TYPE_", "CK_VALIDATION_TYPE"),
+                ("CKV_AUTHORITY_TYPE_", "CK_VALIDATION_AUTHORITY_TYPE"),
+                (
+                    "CK_CERTIFICATE_CATEGORY_",
+                    "CK_CERTIFICATE_CATEGORY",
+                ),
+                ("CK_SECURITY_DOMAIN_", "CK_JAVA_MIDP_SECURITY_DOMAIN"),
             ];
 
             if ["CK_TRUE", "CK_FALSE"].contains(&name) {
