@@ -46,6 +46,7 @@ mod generate {
                 ("CKP_", "CK_PROFILE_ID"),
                 ("CKR_", "CK_RV"),
                 ("CKS_", "CK_STATE"),
+                ("CKT_", "CK_TRUST"),
                 ("CKU_", "CK_USER_TYPE"),
                 ("CKZ_DATA_SPECIFIED", "CK_RSA_PKCS_OAEP_SOURCE_TYPE"),
                 ("CKZ_SALT_SPECIFIED", "CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE"),
