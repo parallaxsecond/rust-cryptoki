@@ -50,6 +50,7 @@ mod generate {
                 ("CKZ_DATA_SPECIFIED", "CK_RSA_PKCS_OAEP_SOURCE_TYPE"),
                 ("CKZ_SALT_SPECIFIED", "CK_PKCS5_PBKDF2_SALT_SOURCE_TYPE"),
                 ("CRYPTOKI_VERSION_", "CK_BYTE"),
+                ("CKT_", "CK_TRUST"),
             ];
 
             if ["CK_TRUE", "CK_FALSE"].contains(&name) {
