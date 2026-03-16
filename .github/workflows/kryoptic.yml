@@ -125,13 +125,13 @@ jobs:
       #####################
       ### OpenSSL build ###
       #####################
-      - name: Setup OpenSSL 3.5
+      - name: Setup OpenSSL 4.0
         id: ossl-setup
         run: |
-          OPENSSL_BRANCH="openssl-3.5"
+          OPENSSL_BRANCH="kryoptic_ossl40"
 
           cd ..
-          git clone https://github.com/openssl/openssl.git \
+          git clone https://github.com/simo5/openssl.git \
                     --single-branch --branch $OPENSSL_BRANCH openssl
           cd openssl
           echo "KRYOPTIC_OPENSSL_SOURCES=$PWD" >> "$GITHUB_ENV"
@@ -151,7 +151,7 @@ jobs:
           ./Configure no-docs no-tests
           make -j$(nproc)
 
-      - name: Cache OpenSSL 3.5 build
+      - name: Cache OpenSSL 4.0 build
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v4
         with:
@@ -194,9 +194,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: Build logs OpenSSL version 3.5
+          name: Build logs with OpenSSL
           path: |
-            target/debug/build/*/output
+            ../kryoptic/target/debug/build/*/output
 
       - name: Checkout rust-cryptoki
         uses: actions/checkout@v4
