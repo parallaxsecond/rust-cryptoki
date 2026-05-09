@@ -549,7 +549,7 @@ fn aes_cbc_pkcs5_wycheproof() -> TestResult {
             match (&test.result, encrypt_result) {
                 // Valid test should succeed
                 (wycheproof::TestResult::Valid, Ok(ciphertext)) => {
-                    if ciphertext == &test.ct[..] {
+                    if ciphertext == test.ct[..] {
                         println!(
                             "✓ Test {}: {:?} - Key: {}-bit, IV: {}, PT: {}, CT: {}",
                             test.tc_id,
@@ -581,7 +581,11 @@ fn aes_cbc_pkcs5_wycheproof() -> TestResult {
                 (wycheproof::TestResult::Invalid | wycheproof::TestResult::Acceptable, Err(_)) => {
                     println!(
                         "✓ Test {}: {:?} (expected failure) - Key: {}-bit, IV: {}, PT: {}",
-                        test.tc_id, test.result, key_size, test.nonce.len(), test.pt.len()
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
                     );
                     passed += 1;
                 }
@@ -589,7 +593,11 @@ fn aes_cbc_pkcs5_wycheproof() -> TestResult {
                 (wycheproof::TestResult::Invalid, Ok(_)) => {
                     println!(
                         "✓ Test {}: {:?} (HSM accepted, which is OK) - Key: {}-bit, IV: {}, PT: {}",
-                        test.tc_id, test.result, key_size, test.nonce.len(), test.pt.len()
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
                     );
                     passed += 1;
                 }
@@ -609,7 +617,11 @@ fn aes_cbc_pkcs5_wycheproof() -> TestResult {
                 (wycheproof::TestResult::Acceptable, Ok(_)) => {
                     println!(
                         "✓ Test {}: {:?} (HSM accepted) - Key: {}-bit, IV: {}, PT: {}",
-                        test.tc_id, test.result, key_size, test.nonce.len(), test.pt.len()
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
                     );
                     passed += 1;
                 }
@@ -625,11 +637,12 @@ fn aes_cbc_pkcs5_wycheproof() -> TestResult {
         passed, failed, skipped
     );
 
-    // The main requirement is that Valid tests pass
-    assert_eq!(failed, 0, "Some valid Wycheproof tests failed");
-
+    // Always clean up resources before asserting, so if assert panics, cleanup still happened
     session.close()?;
     pkcs11.finalize()?;
+
+    // The main requirement is that Valid tests pass
+    assert_eq!(failed, 0, "Some valid Wycheproof tests failed");
 
     Ok(())
 }
