@@ -28,6 +28,7 @@ impl AesCtrParams {
     /// bits.
     ///
     /// # Errors
+    ///
     /// This function returns [`Error::InvalidValue`] if `counter_bits` is zero
     /// or larger than the AES block size of 128 bits.
     pub fn new(counter_bits: u8, block: [u8; 16]) -> Result<Self, Error> {
