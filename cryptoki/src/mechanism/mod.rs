@@ -3,6 +3,7 @@
 //! Data types for mechanisms
 
 pub mod aead;
+pub mod aes_ctr;
 pub mod dsa;
 pub mod eddsa;
 pub mod ekdf;
@@ -1053,6 +1054,13 @@ pub enum Mechanism<'a> {
     /// the plaintext to be recovered from the ciphertext.  Therefore no length
     /// should be provided when unwrapping keys with this mechanism.
     AesCbcPad([u8; 16]),
+    /// AES-CTR mechanism
+    ///
+    /// The parameter to this mechanism is the counter block, together with the
+    /// number of bits of it that make up the counter.
+    ///
+    /// The plaintext may be any size; the ciphertext has the same length.
+    AesCtr(aes_ctr::AesCtrParams),
     /// AES in ECB mode
     AesEcb,
     /// AES key wrap
@@ -1336,6 +1344,7 @@ impl Mechanism<'_> {
             Mechanism::AesEcb => MechanismType::AES_ECB,
             Mechanism::AesCbc(_) => MechanismType::AES_CBC,
             Mechanism::AesCbcPad(_) => MechanismType::AES_CBC_PAD,
+            Mechanism::AesCtr(_) => MechanismType::AES_CTR,
             Mechanism::AesKeyWrap => MechanismType::AES_KEY_WRAP,
             Mechanism::AesKeyWrapPad => MechanismType::AES_KEY_WRAP_PAD,
             Mechanism::AesGcm(_) => MechanismType::AES_GCM,
@@ -1461,6 +1470,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             Mechanism::AesCbc(params) | Mechanism::AesCbcPad(params) => {
                 make_mechanism(mechanism, params)
             }
+            Mechanism::AesCtr(params) => make_mechanism(mechanism, params),
             Mechanism::AesCbcEncryptData(params) => make_mechanism(mechanism, params),
             Mechanism::DesCbc(params)
             | Mechanism::Des3Cbc(params)

@@ -27,6 +27,7 @@ use std::collections::HashMap;
 use std::num::NonZeroUsize;
 use std::thread;
 
+use cryptoki::mechanism::aes_ctr::AesCtrParams;
 use cryptoki::mechanism::ekdf::AesCbcDeriveParams;
 use testresult::TestResult;
 
@@ -2326,6 +2327,45 @@ fn aes_cbc_pad_encrypt() -> TestResult {
     let mechanism = Mechanism::AesCbcPad(iv);
     let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
     assert_eq!(expected_cipher[..], cipher[..]);
+    session.close()?;
+    pkcs11.finalize()?;
+
+    Ok(())
+}
+
+#[test]
+#[serial]
+fn aes_ctr_encrypt() -> TestResult {
+    // Encrypt two blocks of zeros with AES-128-CTR, with a zero key and a zero
+    // counter block
+    let key = vec![0; 16];
+    let plain = [0; 32];
+    let expected_cipher = [
+        0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b,
+        0x2e, 0x58, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61, 0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7,
+        0x45, 0x5a,
+    ];
+
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    let template = [
+        Attribute::Class(ObjectClass::SECRET_KEY),
+        Attribute::KeyType(KeyType::AES),
+        Attribute::Value(key),
+        Attribute::Encrypt(true),
+        Attribute::Decrypt(true),
+    ];
+    let key_handle = session.create_object(&template)?;
+    let mechanism = Mechanism::AesCtr(AesCtrParams::new(128, [0; 16])?);
+    let cipher = session.encrypt(&mechanism, key_handle, &plain)?;
+    assert_eq!(expected_cipher[..], cipher[..]);
+
+    // In CTR mode decryption is the same operation as encryption.
+    let decrypted = session.decrypt(&mechanism, key_handle, &cipher)?;
+    assert_eq!(plain[..], decrypted[..]);
+
     session.close()?;
     pkcs11.finalize()?;
 
