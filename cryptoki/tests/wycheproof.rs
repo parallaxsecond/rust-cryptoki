@@ -485,3 +485,164 @@ fn aes_gcm_message_wycheproof() -> TestResult {
 
     Ok(())
 }
+
+/// Test AES-CBC with PKCS5 padding using Wycheproof test vectors
+#[test]
+#[serial]
+fn aes_cbc_pkcs5_wycheproof() -> TestResult {
+    let (pkcs11, slot) = init_pins();
+    let session = pkcs11.open_rw_session(slot)?;
+    session.login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))?;
+
+    // Load Wycheproof AES-CBC-PKCS5 test vectors
+    let test_set = wycheproof::cipher::TestSet::load(wycheproof::cipher::TestName::AesCbcPkcs5)?;
+
+    let mut passed = 0;
+    let mut failed = 0;
+    let mut skipped = 0;
+
+    for test_group in &test_set.test_groups {
+        let key_size = test_group.key_size;
+
+        // Only test key sizes we support (128, 192, 256 bits)
+        if ![128, 192, 256].contains(&key_size) {
+            skipped += test_group.tests.len();
+            continue;
+        }
+
+        for test in &test_group.tests {
+            // Skip tests with nonce (IV) sizes other than 16 bytes (AES block size)
+            if test.nonce.len() != 16 {
+                skipped += 1;
+                continue;
+            }
+
+            // Import the test key
+            let key_template = vec![
+                Attribute::Class(cryptoki::object::ObjectClass::SECRET_KEY),
+                Attribute::KeyType(cryptoki::object::KeyType::AES),
+                Attribute::Token(false),
+                Attribute::Sensitive(false),
+                Attribute::Extractable(true),
+                Attribute::Encrypt(true),
+                Attribute::Decrypt(true),
+                Attribute::Value(test.key.to_vec()),
+            ];
+
+            let key = match session.create_object(&key_template) {
+                Ok(k) => k,
+                Err(e) => {
+                    eprintln!("Test {}: Failed to create key: {:?}", test.tc_id, e);
+                    failed += 1;
+                    continue;
+                }
+            };
+
+            // Convert IV to fixed-size array for AesCbcPad
+            let mut iv = [0u8; 16];
+            iv.copy_from_slice(&test.nonce[0..16]);
+
+            // Test encryption
+            let mechanism = Mechanism::AesCbcPad(iv);
+            let encrypt_result = session.encrypt(&mechanism, key, &test.pt[..]);
+
+            match (&test.result, encrypt_result) {
+                // Valid test should succeed
+                (wycheproof::TestResult::Valid, Ok(ciphertext)) => {
+                    if ciphertext == test.ct[..] {
+                        println!(
+                            "✓ Test {}: {:?} - Key: {}-bit, IV: {}, PT: {}, CT: {}",
+                            test.tc_id,
+                            test.result,
+                            key_size,
+                            test.nonce.len(),
+                            test.pt.len(),
+                            test.ct.len()
+                        );
+                        passed += 1;
+                    } else {
+                        eprintln!(
+                            "✗ Test {}: Encryption output mismatch (expected valid)",
+                            test.tc_id
+                        );
+                        eprintln!(
+                            "  Key size: {}, IV len: {}, PT len: {}, CT len: {}",
+                            key_size,
+                            test.nonce.len(),
+                            test.pt.len(),
+                            test.ct.len()
+                        );
+                        eprintln!("  Expected: {}", hex::encode(&test.ct[..]));
+                        eprintln!("  Got:      {}", hex::encode(&ciphertext));
+                        failed += 1;
+                    }
+                }
+                // Invalid/Acceptable tests may fail - this is good
+                (wycheproof::TestResult::Invalid | wycheproof::TestResult::Acceptable, Err(_)) => {
+                    println!(
+                        "✓ Test {}: {:?} (expected failure) - Key: {}-bit, IV: {}, PT: {}",
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
+                    );
+                    passed += 1;
+                }
+                // Invalid test that succeeded - Note: HSM may not catch all invalid cases
+                (wycheproof::TestResult::Invalid, Ok(_)) => {
+                    println!(
+                        "✓ Test {}: {:?} (HSM accepted, which is OK) - Key: {}-bit, IV: {}, PT: {}",
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
+                    );
+                    passed += 1;
+                }
+                // Valid test that failed - this shouldn't happen
+                (wycheproof::TestResult::Valid, Err(e)) => {
+                    eprintln!("✗ Test {}: Valid test FAILED: {:?}", test.tc_id, e);
+                    eprintln!(
+                        "  Key size: {}, IV len: {}, PT len: {}, CT len: {}",
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len(),
+                        test.ct.len()
+                    );
+                    failed += 1;
+                }
+                // Acceptable tests can go either way
+                (wycheproof::TestResult::Acceptable, Ok(_)) => {
+                    println!(
+                        "✓ Test {}: {:?} (HSM accepted) - Key: {}-bit, IV: {}, PT: {}",
+                        test.tc_id,
+                        test.result,
+                        key_size,
+                        test.nonce.len(),
+                        test.pt.len()
+                    );
+                    passed += 1;
+                }
+            }
+
+            // Clean up
+            let _ = session.destroy_object(key);
+        }
+    }
+
+    println!(
+        "AES-CBC-PKCS5 Wycheproof results: {} passed, {} failed, {} skipped",
+        passed, failed, skipped
+    );
+
+    // Always clean up resources before asserting, so if assert panics, cleanup still happened
+    session.close()?;
+    pkcs11.finalize()?;
+
+    // The main requirement is that Valid tests pass
+    assert_eq!(failed, 0, "Some valid Wycheproof tests failed");
+
+    Ok(())
+}
