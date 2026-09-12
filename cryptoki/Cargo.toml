@@ -1,6 +1,6 @@
 [package]
 name = "cryptoki"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Contributors to the Parsec project"]
 edition = '2021'
 description = "Rust-native wrapper around the PKCS #11 API"
@@ -10,7 +10,7 @@ categories = ["api-bindings", "external-ffi-bindings", "cryptography", "hardware
 license = "Apache-2.0"
 repository = "https://github.com/parallaxsecond/rust-cryptoki"
 documentation = "https://docs.rs/crate/cryptoki"
-rust-version = "1.66.0"
+rust-version = "1.77.0"
 
 [dependencies]
 bitflags = "1.3"

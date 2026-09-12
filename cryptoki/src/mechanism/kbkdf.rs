@@ -4,6 +4,7 @@
 //! See: <https://docs.oasis-open.org/pkcs11/pkcs11-curr/v3.0/os/pkcs11-curr-v3.0-os.html#_Toc30061446>
 
 use core::{convert::TryInto, marker::PhantomData, ptr};
+use std::mem::size_of;
 use std::num::NonZeroUsize;
 
 use cryptoki_sys::{

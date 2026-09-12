@@ -802,12 +802,20 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
 
     fn try_from(attribute: CK_ATTRIBUTE) -> Result<Self> {
         let attr_type = AttributeType::try_from(attribute.type_)?;
-        // Cast from c_void to u8
-        let val = unsafe {
-            std::slice::from_raw_parts(
-                attribute.pValue as *const u8,
-                attribute.ulValueLen.try_into()?,
-            )
+        if attribute.pValue.is_null() && attribute.ulValueLen != 0 {
+            return Err(Error::InvalidValue);
+        }
+        let val = if attribute.pValue.is_null() {
+            // if pValue is null, return an empty slice - attribute has no value
+            &[]
+        } else {
+            // Cast from c_void to u8
+            unsafe {
+                std::slice::from_raw_parts(
+                    attribute.pValue as *const u8,
+                    attribute.ulValueLen.try_into()?,
+                )
+            }
         };
         match attr_type {
             // CK_BBOOL
@@ -896,17 +904,15 @@ impl TryFrom<CK_ATTRIBUTE> for Attribute {
                 CK_KEY_TYPE::from_ne_bytes(val.try_into()?).try_into()?,
             )),
             AttributeType::AllowedMechanisms => {
-                let val = unsafe {
-                    std::slice::from_raw_parts(
-                        attribute.pValue as *const CK_MECHANISM_TYPE,
-                        attribute.ulValueLen.try_into()?,
-                    )
-                };
-                let types: Vec<MechanismType> = val
-                    .iter()
-                    .copied()
-                    .map(|t| t.try_into())
-                    .collect::<Result<Vec<MechanismType>>>()?;
+                if val.len() % size_of::<CK_MECHANISM_TYPE>() != 0 {
+                    return Err(Error::InvalidValue);
+                }
+                let types = val
+                    .chunks_exact(size_of::<CK_MECHANISM_TYPE>())
+                    .map(|bytes| -> Result<MechanismType> {
+                        CK_MECHANISM_TYPE::from_ne_bytes(bytes.try_into()?).try_into()
+                    })
+                    .collect::<Result<Vec<_>>>()?;
                 Ok(Attribute::AllowedMechanisms(types))
             }
             AttributeType::EndDate => {
