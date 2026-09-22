@@ -5,6 +5,8 @@
 use crate::context::Function;
 use crate::error::{Result, Rv};
 use crate::mechanism::Mechanism;
+#[cfg(feature = "vendor-specifics")]
+use crate::mechanism::{vendor_defined::VendorDefinedMechanism, MechanismType};
 use crate::object::{Attribute, ObjectHandle};
 use crate::session::Session;
 use cryptoki_sys::{CK_ATTRIBUTE, CK_MECHANISM, CK_MECHANISM_PTR};
@@ -91,6 +93,49 @@ impl Session {
         }
 
         Ok(ObjectHandle::new(handle))
+    }
+
+    /// Vendore specific call that uses `mechanism` as the output parameter.
+    ///
+    /// A use case can be found [here](https://thalesdocs.com/gphsm/luna/7/docs/network/Content/sdk/extensions/BIP32.htm)
+    /// where public and private key handles are stored in the `hPublicKey` and
+    /// `hPrivateKey`, corresponding to `pParameter` from `CK_MECHANISM`.
+    #[cfg(feature = "vendor-specifics")]
+    pub fn derive_key_vendor<'a, T>(
+        &self,
+        mechanism: usize,
+        params: &mut T,
+        base_key: ObjectHandle,
+        template: impl Into<Option<&'a [Attribute]>>,
+    ) -> Result<()> {
+        let mut mechanism = VendorDefinedMechanism::new(
+            MechanismType::new_vendor_defined(mechanism.try_into()?)?,
+            Some(params),
+        );
+        let mut template = template.into().map(|template: &[Attribute]| {
+            template
+                .iter()
+                .map(|attr| attr.into())
+                .collect::<Vec<CK_ATTRIBUTE>>()
+        });
+        let (template_ptr, template_len) = template
+            .as_mut()
+            .map(|template| (template.as_mut_ptr(), template.len()))
+            .unwrap_or((std::ptr::null_mut(), 0));
+
+        unsafe {
+            Rv::from(get_pkcs11!(self.client(), C_DeriveKey)(
+                self.handle(),
+                &mut mechanism.inner as CK_MECHANISM_PTR,
+                base_key.handle(),
+                template_ptr,
+                template_len.try_into()?,
+                std::ptr::null_mut(),
+            ))
+            .into_result(Function::DeriveKey)?;
+        }
+
+        Ok(())
     }
 
     /// Wrap key
