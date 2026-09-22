@@ -28,3 +28,4 @@ wycheproof = { version = "0.7.0", features = ["aead"] }
 [features]
 generate-bindings = ["cryptoki-sys/generate-bindings"]
 serde = ["secrecy/serde"]
+vendor-specifics = []
