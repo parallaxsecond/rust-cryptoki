@@ -6,7 +6,7 @@ use crate::error::{Result, Rv};
 use crate::label_from_str;
 use crate::mechanism::{MechanismInfo, MechanismType};
 use crate::slot::{Slot, SlotInfo, TokenInfo};
-use crate::types::AuthPin;
+use crate::types::Credential;
 use crate::{
     context::Pkcs11,
     error::{Error, RvError},
@@ -15,7 +15,6 @@ use cryptoki_sys::{
     CKF_DONT_BLOCK, CK_BBOOL, CK_FALSE, CK_FLAGS, CK_MECHANISM_INFO, CK_SLOT_ID, CK_SLOT_INFO,
     CK_TOKEN_INFO, CK_TRUE,
 };
-use secrecy::ExposeSecret;
 use std::convert::{TryFrom, TryInto};
 
 use crate::error::RvError::BufferTooSmall;
@@ -82,16 +81,60 @@ impl Pkcs11 {
             .collect()
     }
 
-    /// Initialize a token
+    /// Initialize a token in the given slot.
     ///
-    /// Currently will use an empty label for all tokens.
-    pub fn init_token(&self, slot: Slot, pin: &AuthPin, label: &str) -> Result<()> {
+    /// The `label` must be a valid PKCS#11 token label. When providing a PIN,
+    /// it is passed directly to the underlying `C_InitToken` call.
+    ///
+    /// Credentials that include a username are rejected since SO authentication
+    /// does not use usernames.
+    ///
+    /// If using [`Credential::ProtectedAuthenticationPath`], you must ensure the token
+    /// supports a protected authentication path (the `CKF_PROTECTED_AUTHENTICATION_PATH` flag).
+    ///
+    /// # Examples
+    ///
+    /// Regular initialization with a PIN:
+    /// ```rust,no_run
+    /// # use cryptoki::context::Pkcs11;
+    /// # use cryptoki::types::{AuthPin, Credential};
+    /// # fn example(pkcs11: Pkcs11, slot: cryptoki::slot::Slot) -> cryptoki::error::Result<()> {
+    /// let pin = AuthPin::new("1234".into());
+    /// pkcs11.init_token(slot, Credential::pin(&pin), "My Token")?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// Initialization using a protected authentication path (no PIN provided):
+    /// ```rust,no_run
+    /// # use cryptoki::context::Pkcs11;
+    /// # use cryptoki::types::Credential;
+    /// # fn example(pkcs11: Pkcs11, slot: cryptoki::slot::Slot) -> cryptoki::error::Result<()> {
+    /// // The token must advertise CKF_PROTECTED_AUTHENTICATION_PATH.
+    /// pkcs11.init_token(
+    ///     slot,
+    ///     Credential::protected_authentication_path(),
+    ///     "My Protected Token",
+    /// )?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn init_token<'a, C>(&self, slot: Slot, credential: C, label: &str) -> Result<()>
+    where
+        C: Into<Credential<'a>>,
+    {
         let label = label_from_str(label);
+        let credential = credential.into();
+        if credential.username().is_some() {
+            return Err(Error::UsernameNotExpected("init_token"));
+        }
+        let (pin, pin_len) = credential.pin_ptr_len();
+
         unsafe {
             Rv::from(get_pkcs11!(self, C_InitToken)(
                 slot.into(),
-                pin.expose_secret().as_ptr() as *mut u8,
-                pin.expose_secret().len().try_into()?,
+                pin,
+                pin_len.try_into()?,
                 label.as_ptr() as *mut u8,
             ))
             .into_result(Function::InitToken)
