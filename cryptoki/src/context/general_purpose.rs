@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! General-purpose functions
 
-use crate::context::{CInitializeArgs, Info, Pkcs11};
+use crate::context::{Info, Pkcs11};
 use crate::error::{Result, Rv};
 use cryptoki_sys::{CK_C_INITIALIZE_ARGS, CK_INFO};
 use std::convert::TryFrom;
@@ -11,7 +11,10 @@ use std::ptr;
 
 // See public docs on stub in parent mod.rs
 #[inline(always)]
-pub(super) fn initialize(ctx: &Pkcs11, init_args: CInitializeArgs) -> Result<()> {
+pub(super) fn initialize<T>(ctx: &Pkcs11, init_args: T) -> Result<()>
+where
+    CK_C_INITIALIZE_ARGS: From<T>,
+{
     // if no args are specified, library expects NULL
     let mut init_args = CK_C_INITIALIZE_ARGS::from(init_args);
     let init_args_ptr = &mut init_args;
