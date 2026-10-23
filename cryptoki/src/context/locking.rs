@@ -14,7 +14,8 @@ bitflags! {
     /// Flags to set for the initialize function
     #[derive(Debug, Clone, Copy)]
     pub struct CInitializeFlags: CK_FLAGS {
-        /// The library can use the native OS library for locking or the custom
+        /// The library can use the native operating system locking primitives to make
+        /// itself thread-safe, instead of custom mutex functions
         const OS_LOCKING_OK = cryptoki_sys::CKF_OS_LOCKING_OK;
         /// The library may not create its own threads
         const LIBRARY_CANT_CREATE_OS_THREADS = cryptoki_sys::CKF_LIBRARY_CANT_CREATE_OS_THREADS;
