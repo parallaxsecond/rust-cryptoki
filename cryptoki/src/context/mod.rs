@@ -28,6 +28,7 @@ pub use general_purpose::*;
 pub use info::*;
 pub use locking::*;
 
+use crate::error::RvError;
 use crate::error::{Error, Result, Rv};
 
 use std::fmt;
@@ -111,14 +112,26 @@ impl Pkcs11 {
          * the 2.40 API */
         let mut interface: *mut cryptoki_sys::CK_INTERFACE = ptr::null_mut();
         if pkcs11_lib.C_GetInterface.is_ok() {
+            let mut fn_supported = true;
             Rv::from(pkcs11_lib.C_GetInterface(
                 ptr::null_mut(),
                 ptr::null_mut(),
                 &mut interface,
                 0,
             ))
-            .into_result(Function::GetInterface)?;
-            if !interface.is_null() {
+            .into_result(Function::GetInterface)
+            .or_else(|err| {
+                // Catch the case where the function is implemented but is
+                // only a shim that returns a function not supported error.
+                if matches!(err, Error::Pkcs11(RvError::FunctionNotSupported, _)) {
+                    fn_supported = false;
+                    Ok(())
+                } else {
+                    Err(err)
+                }
+            })?;
+
+            if fn_supported && !interface.is_null() {
                 let ifce: cryptoki_sys::CK_INTERFACE = *interface;
 
                 let list_ptr: *mut cryptoki_sys::CK_FUNCTION_LIST =
