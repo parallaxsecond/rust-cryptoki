@@ -1899,17 +1899,17 @@ impl KeyType {
 
     /// SHA384 HMAC key
     pub const SHA384_HMAC: KeyType = KeyType {
-        val: CKK_SHA256_HMAC,
+        val: CKK_SHA384_HMAC,
     };
 
     /// SHA512 HMAC key
     pub const SHA512_HMAC: KeyType = KeyType {
-        val: CKK_SHA256_HMAC,
+        val: CKK_SHA512_HMAC,
     };
 
     /// SHA224 HMAC key
     pub const SHA224_HMAC: KeyType = KeyType {
-        val: CKK_SHA256_HMAC,
+        val: CKK_SHA224_HMAC,
     };
 
     /// SEED key
