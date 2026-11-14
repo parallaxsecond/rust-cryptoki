@@ -1720,6 +1720,98 @@ fn wrap_and_unwrap_key_oaep() {
 
 #[test]
 #[serial]
+fn wrap_and_unwrap_key_kwp() {
+    let (pkcs11, slot) = init_pins();
+
+    // SoftHSM offers RFC 5649 as CKM_AES_KEY_WRAP_PAD only
+    if !pkcs11
+        .get_mechanism_list(slot)
+        .unwrap()
+        .contains(&MechanismType::AES_KEY_WRAP_KWP)
+    {
+        eprintln!("Skipping test: the token does not offer CKM_AES_KEY_WRAP_KWP");
+        pkcs11.finalize().unwrap();
+        return;
+    }
+
+    // open a session
+    let session = pkcs11.open_rw_session(slot).unwrap();
+
+    // log in the session
+    session
+        .login(UserType::User, Some(&AuthPin::new(USER_PIN.into())))
+        .unwrap();
+
+    let key_to_be_wrapped_template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen(32.into()),
+        // the key needs to be extractable to be suitable for being wrapped
+        Attribute::Extractable(true),
+        Attribute::Encrypt(true),
+    ];
+
+    // generate a secret key that will be wrapped
+    let key_to_be_wrapped = session
+        .generate_key(&Mechanism::AesKeyGen, &key_to_be_wrapped_template)
+        .unwrap();
+
+    // AesEcb input length must be a multiple of 16
+    let encrypted_with_original = session
+        .encrypt(
+            &Mechanism::AesEcb,
+            key_to_be_wrapped,
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+        )
+        .unwrap();
+
+    // the wrapping key needs the "wrap" and "unwrap" attributes
+    let wrapping_key_template = vec![
+        Attribute::Token(true),
+        Attribute::ValueLen(32.into()),
+        Attribute::Wrap(true),
+        Attribute::Unwrap(true),
+    ];
+
+    let wrapping_key = session
+        .generate_key(&Mechanism::AesKeyGen, &wrapping_key_template)
+        .unwrap();
+
+    let wrapped_key = session
+        .wrap_key(&Mechanism::AesKeyWrapKwp, wrapping_key, key_to_be_wrapped)
+        .unwrap();
+    // the 32-byte key, padded and wrapped: 32 + 8
+    assert_eq!(wrapped_key.len(), 40);
+
+    let unwrapped_key = session
+        .unwrap_key(
+            &Mechanism::AesKeyWrapKwp,
+            wrapping_key,
+            &wrapped_key,
+            &[
+                Attribute::Token(true),
+                Attribute::Private(true),
+                Attribute::Encrypt(true),
+                Attribute::Class(ObjectClass::SECRET_KEY),
+                Attribute::KeyType(KeyType::AES),
+            ],
+        )
+        .unwrap();
+
+    let encrypted_with_unwrapped = session
+        .encrypt(
+            &Mechanism::AesEcb,
+            unwrapped_key,
+            &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+        )
+        .unwrap();
+    assert_eq!(encrypted_with_original, encrypted_with_unwrapped);
+
+    session.close().unwrap();
+    pkcs11.finalize().unwrap();
+}
+
+#[test]
+#[serial]
 fn login_feast() {
     const SESSIONS: usize = 100;
 
