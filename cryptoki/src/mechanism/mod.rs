@@ -111,6 +111,11 @@ impl MechanismType {
     pub const RSA_PKCS_OAEP: MechanismType = MechanismType {
         val: CKM_RSA_PKCS_OAEP,
     };
+    /// RSA-OAEP of a fresh AES key, then AES key wrap with padding (RFC 5649) under it
+    /// (PKCS#11 2.40 `CKM_RSA_AES_KEY_WRAP`): one wrap whose only wrapping key is the RSA key.
+    pub const RSA_AES_KEY_WRAP: MechanismType = MechanismType {
+        val: CKM_RSA_AES_KEY_WRAP,
+    };
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
     /// RSA, as assumed in X.509.
     pub const RSA_X_509: MechanismType = MechanismType { val: CKM_RSA_X_509 };
@@ -951,6 +956,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_SHA384_RSA_PKCS_PSS => Ok(MechanismType::SHA384_RSA_PKCS_PSS),
             CKM_SHA512_RSA_PKCS_PSS => Ok(MechanismType::SHA512_RSA_PKCS_PSS),
             CKM_RSA_PKCS_OAEP => Ok(MechanismType::RSA_PKCS_OAEP),
+            CKM_RSA_AES_KEY_WRAP => Ok(MechanismType::RSA_AES_KEY_WRAP),
             CKM_RSA_X_509 => Ok(MechanismType::RSA_X_509),
             CKM_DES3_KEY_GEN => Ok(MechanismType::DES3_KEY_GEN),
             CKM_DES3_ECB => Ok(MechanismType::DES3_ECB),
@@ -1095,6 +1101,8 @@ pub enum Mechanism<'a> {
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem and the OAEP block format
     /// defined in PKCS #1
     RsaPkcsOaep(PkcsOaepParams<'a>),
+    /// RSA-OAEP of a fresh AES key, then RFC 5649 under it (`CKM_RSA_AES_KEY_WRAP`)
+    RsaAesKeyWrap(rsa::RsaAesKeyWrapParams<'a>),
     /// Multi-purpose mechanism based on the RSA public-key cryptosystem.  This is so-called "raw"
     /// RSA, as assumed in X.509.
     RsaX509,
@@ -1355,6 +1363,7 @@ impl Mechanism<'_> {
             Mechanism::RsaPkcs => MechanismType::RSA_PKCS,
             Mechanism::RsaPkcsPss(_) => MechanismType::RSA_PKCS_PSS,
             Mechanism::RsaPkcsOaep(_) => MechanismType::RSA_PKCS_OAEP,
+            Mechanism::RsaAesKeyWrap(_) => MechanismType::RSA_AES_KEY_WRAP,
             Mechanism::RsaX509 => MechanismType::RSA_X_509,
 
             Mechanism::DesKeyGen => MechanismType::DES_KEY_GEN,
@@ -1484,6 +1493,7 @@ impl From<&Mechanism<'_>> for CK_MECHANISM {
             | Mechanism::Sha384RsaPkcsPss(params)
             | Mechanism::Sha512RsaPkcsPss(params) => make_mechanism(mechanism, params),
             Mechanism::RsaPkcsOaep(params) => make_mechanism(mechanism, params),
+            Mechanism::RsaAesKeyWrap(params) => make_mechanism(mechanism, params),
             Mechanism::Ecdh1Derive(params) => make_mechanism(mechanism, params),
             Mechanism::Eddsa(params) => match params.inner() {
                 None => CK_MECHANISM {

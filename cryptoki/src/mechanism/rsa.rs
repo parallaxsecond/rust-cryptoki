@@ -178,6 +178,28 @@ impl<'a> PkcsOaepParams<'a> {
     }
 }
 
+/// Parameters of the RsaAesKeyWrap mechanism (`CK_RSA_AES_KEY_WRAP_PARAMS`): the length of the
+/// fresh AES key, and the OAEP parameters it is wrapped with.
+#[derive(Copy, Debug, Clone)]
+#[repr(C)]
+#[cfg_attr(windows, repr(packed))]
+pub struct RsaAesKeyWrapParams<'a> {
+    aes_key_bits: Ulong,
+    oaep_params: *const PkcsOaepParams<'a>,
+    _marker: PhantomData<&'a PkcsOaepParams<'a>>,
+}
+
+impl<'a> RsaAesKeyWrapParams<'a> {
+    /// Construct a new `RsaAesKeyWrapParams`: an AES key of `aes_key_bits`, wrapped with `oaep`.
+    pub fn new(aes_key_bits: Ulong, oaep: &'a PkcsOaepParams<'a>) -> Self {
+        RsaAesKeyWrapParams {
+            aes_key_bits,
+            oaep_params: oaep,
+            _marker: PhantomData,
+        }
+    }
+}
+
 impl<'a> From<PkcsOaepParams<'a>> for Mechanism<'a> {
     fn from(pkcs_oaep_params: PkcsOaepParams<'a>) -> Self {
         Mechanism::RsaPkcsOaep(pkcs_oaep_params)
