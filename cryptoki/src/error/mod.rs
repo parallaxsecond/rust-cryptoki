@@ -51,6 +51,10 @@ pub enum Error {
 
     /// The PIN was not set before logging in.
     PinNotSet,
+
+    /// The Credential included a username where it was not expected:
+    /// when initializing a PIN or token, or when changing a PIN.
+    UsernameNotExpected(&'static str),
 }
 
 impl fmt::Display for Error {
@@ -68,6 +72,10 @@ impl fmt::Display for Error {
             Error::MissingSymbol(name) => write!(f, "Missing PKCS#11 symbol: {name}"),
             Error::InvalidValue => write!(f, "The value is not one of the expected options"),
             Error::PinNotSet => write!(f, "Pin has not been set before trying to log in"),
+            Error::UsernameNotExpected(name) => write!(
+                f,
+                "A username was provided where it is not expected for {name}"
+            ),
         }
     }
 }
@@ -86,7 +94,8 @@ impl std::error::Error for Error {
             | Error::NullFunctionPointer
             | Error::MissingSymbol(_)
             | Error::PinNotSet
-            | Error::InvalidValue => None,
+            | Error::InvalidValue
+            | Error::UsernameNotExpected(_) => None,
         }
     }
 }
