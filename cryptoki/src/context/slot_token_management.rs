@@ -30,6 +30,11 @@ impl Pkcs11 {
             get_pkcs11!(self, C_GetSlotList)(with_token, std::ptr::null_mut(), &mut slot_count)
         };
         Rv::from(rval).into_result(Function::GetSlotList)?;
+        // Asking again with an empty buffer can loop forever: p11-kit's client
+        // module answers it with CKR_BUFFER_TOO_SMALL and a count of 0.
+        if slot_count == 0 {
+            return Ok(Vec::new());
+        }
 
         let mut slots;
         loop {
