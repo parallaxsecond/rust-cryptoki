@@ -16,7 +16,7 @@ pub mod rsa;
 pub mod vendor_defined;
 
 use cryptoki_sys::*;
-use log::error;
+use log::debug;
 use std::convert::{TryFrom, TryInto};
 use std::ffi::c_void;
 use std::fmt::Formatter;
@@ -1022,7 +1022,7 @@ impl TryFrom<CK_MECHANISM_TYPE> for MechanismType {
             CKM_HASH_SLH_DSA_SHAKE128 => Ok(MechanismType::HASH_SLH_DSA_SHAKE128),
             val if val >= CKM_VENDOR_DEFINED => Ok(MechanismType { val }),
             other => {
-                error!("Mechanism type {other} is not supported.");
+                debug!("Mechanism type {other} is not supported.");
                 Err(Error::NotSupported)
             }
         }
