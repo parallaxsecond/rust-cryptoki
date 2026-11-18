@@ -194,6 +194,26 @@ pub enum RvError {
     PublicKeyInvalid,
     /// The signature request is rejected by the user.
     FunctionRejected,
+    /// CKR_AEAD_DECRYPT_FAILED
+    AeadDecryptFailed,
+    /// CKR_TOKEN_RESOURCE_EXCEEDED
+    TokenResourceExceeded,
+    /// This value can only be returned by C_SessionCancel. It means that one or more of the requested operations could not be cancelled for implementation or vendor-specific reasons.
+    OperationCancelFailed,
+    /// CKR_KEY_EXHAUSTED
+    KeyExhausted,
+    /// CKR_PENDING
+    Pending,
+    /// CKR_SESSION_ASYNC_NOT_SUPPORTED
+    SessionAsyncNotSupported,
+    /// CKR_SEED_RANDOM_REQUIRED
+    SeedRandomRequired,
+    /// CKR_OPERATION_NOT_VALIDATED
+    OperationNotValidated,
+    /// CKR_TOKEN_NOT_INITIALIZED
+    TokenNotInitialized,
+    /// CKR_PARAMETER_SET_NOT_SUPPORTED
+    ParameterSetNotSupported,
     /// A vendor defined error code, CKR_VENDOR_DEFINED and above.
     VendorDefined(CK_RV),
     /// An unknown error code
@@ -296,6 +316,16 @@ impl fmt::Display for RvError {
             RvError::PinTooWeak => write!(f, "The specified PIN is too weak so that it could be easy to guess.  If the PIN is too short, CKR_PIN_LEN_RANGE should be returned instead. This return code only applies to functions which attempt to set a PIN."),
             RvError::PublicKeyInvalid => write!(f, "The public key fails a public key validation.  For example, an EC public key fails the public key validation specified in Section 5.2.2 of ANSI X9.62. This error code may be returned by C_CreateObject, when the public key is created, or by C_VerifyInit or C_VerifyRecoverInit, when the public key is used.  It may also be returned by C_DeriveKey, in preference to  CKR_MECHANISM_PARAM_INVALID, if the other party's public key specified in the mechanism's parameters is invalid."),
             RvError::FunctionRejected => write!(f, "The signature request is rejected by the user."),
+            RvError::AeadDecryptFailed => write!(f, "CKR_AEAD_DECRYPT_FAILED"),
+            RvError::TokenResourceExceeded => write!(f, "CKR_TOKEN_RESOURCE_EXCEEDED"),
+            RvError::OperationCancelFailed => write!(f, "This value can only be returned by C_SessionCancel. It means that one or more of the requested operations could not be cancelled for implementation or vendor-specific reasons."),
+            RvError::KeyExhausted => write!(f, "CKR_KEY_EXHAUSTED"),
+            RvError::Pending => write!(f, "CKR_PENDING"),
+            RvError::SessionAsyncNotSupported => write!(f, "CKR_SESSION_ASYNC_NOT_SUPPORTED"),
+            RvError::SeedRandomRequired => write!(f, "CKR_SEED_RANDOM_REQUIRED"),
+            RvError::OperationNotValidated => write!(f, "CKR_OPERATION_NOT_VALIDATED"),
+            RvError::TokenNotInitialized => write!(f, "CKR_TOKEN_NOT_INITIALIZED"),
+            RvError::ParameterSetNotSupported => write!(f, "CKR_PARAMETER_SET_NOT_SUPPORTED"),
             RvError::VendorDefined(code) => write!(f, "CKR_VENDOR_DEFINED({code:#x})"),
             RvError::UnknownErrorCode(code) => write!(f, "Unknown error code: {code:#x}"),
         }
