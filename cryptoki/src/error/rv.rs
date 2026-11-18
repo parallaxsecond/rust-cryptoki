@@ -17,113 +17,160 @@ pub enum Rv {
     Error(RvError),
 }
 
-impl From<CK_RV> for Rv {
-    fn from(ck_rv: CK_RV) -> Self {
-        match ck_rv {
-            CKR_OK => Rv::Ok,
-            CKR_CANCEL => Rv::Error(RvError::Cancel),
-            CKR_HOST_MEMORY => Rv::Error(RvError::HostMemory),
-            CKR_SLOT_ID_INVALID => Rv::Error(RvError::SlotIdInvalid),
-            CKR_GENERAL_ERROR => Rv::Error(RvError::GeneralError),
-            CKR_FUNCTION_FAILED => Rv::Error(RvError::FunctionFailed),
-            CKR_ARGUMENTS_BAD => Rv::Error(RvError::ArgumentsBad),
-            CKR_NO_EVENT => Rv::Error(RvError::NoEvent),
-            CKR_NEED_TO_CREATE_THREADS => Rv::Error(RvError::NeedToCreateThreads),
-            CKR_CANT_LOCK => Rv::Error(RvError::CantLock),
-            CKR_ATTRIBUTE_READ_ONLY => Rv::Error(RvError::AttributeReadOnly),
-            CKR_ATTRIBUTE_SENSITIVE => Rv::Error(RvError::AttributeSensitive),
-            CKR_ATTRIBUTE_TYPE_INVALID => Rv::Error(RvError::AttributeTypeInvalid),
-            CKR_ATTRIBUTE_VALUE_INVALID => Rv::Error(RvError::AttributeValueInvalid),
-            CKR_ACTION_PROHIBITED => Rv::Error(RvError::ActionProhibited),
-            CKR_DATA_INVALID => Rv::Error(RvError::DataInvalid),
-            CKR_DATA_LEN_RANGE => Rv::Error(RvError::DataLenRange),
-            CKR_DEVICE_ERROR => Rv::Error(RvError::DeviceError),
-            CKR_DEVICE_MEMORY => Rv::Error(RvError::DeviceMemory),
-            CKR_DEVICE_REMOVED => Rv::Error(RvError::DeviceRemoved),
-            CKR_ENCRYPTED_DATA_INVALID => Rv::Error(RvError::EncryptedDataInvalid),
-            CKR_ENCRYPTED_DATA_LEN_RANGE => Rv::Error(RvError::EncryptedDataLenRange),
-            CKR_FUNCTION_CANCELED => Rv::Error(RvError::FunctionCanceled),
-            CKR_FUNCTION_NOT_PARALLEL => Rv::Error(RvError::FunctionNotParallel),
-            CKR_FUNCTION_NOT_SUPPORTED => Rv::Error(RvError::FunctionNotSupported),
-            CKR_CURVE_NOT_SUPPORTED => Rv::Error(RvError::CurveNotSupported),
-            CKR_KEY_HANDLE_INVALID => Rv::Error(RvError::KeyHandleInvalid),
-            CKR_KEY_SIZE_RANGE => Rv::Error(RvError::KeySizeRange),
-            CKR_KEY_TYPE_INCONSISTENT => Rv::Error(RvError::KeyTypeInconsistent),
-            CKR_KEY_NOT_NEEDED => Rv::Error(RvError::KeyNotNeeded),
-            CKR_KEY_CHANGED => Rv::Error(RvError::KeyChanged),
-            CKR_KEY_NEEDED => Rv::Error(RvError::KeyNeeded),
-            CKR_KEY_INDIGESTIBLE => Rv::Error(RvError::KeyIndigestible),
-            CKR_KEY_FUNCTION_NOT_PERMITTED => Rv::Error(RvError::KeyFunctionNotPermitted),
-            CKR_KEY_NOT_WRAPPABLE => Rv::Error(RvError::KeyNotWrappable),
-            CKR_KEY_UNEXTRACTABLE => Rv::Error(RvError::KeyUnextractable),
-            CKR_MECHANISM_INVALID => Rv::Error(RvError::MechanismInvalid),
-            CKR_MECHANISM_PARAM_INVALID => Rv::Error(RvError::MechanismParamInvalid),
-            CKR_OBJECT_HANDLE_INVALID => Rv::Error(RvError::ObjectHandleInvalid),
-            CKR_OPERATION_ACTIVE => Rv::Error(RvError::OperationActive),
-            CKR_OPERATION_NOT_INITIALIZED => Rv::Error(RvError::OperationNotInitialized),
-            CKR_PIN_INCORRECT => Rv::Error(RvError::PinIncorrect),
-            CKR_PIN_INVALID => Rv::Error(RvError::PinInvalid),
-            CKR_PIN_LEN_RANGE => Rv::Error(RvError::PinLenRange),
-            CKR_PIN_EXPIRED => Rv::Error(RvError::PinExpired),
-            CKR_PIN_LOCKED => Rv::Error(RvError::PinLocked),
-            CKR_SESSION_CLOSED => Rv::Error(RvError::SessionClosed),
-            CKR_SESSION_COUNT => Rv::Error(RvError::SessionCount),
-            CKR_SESSION_HANDLE_INVALID => Rv::Error(RvError::SessionHandleInvalid),
-            CKR_SESSION_PARALLEL_NOT_SUPPORTED => Rv::Error(RvError::SessionParallelNotSupported),
-            CKR_SESSION_READ_ONLY => Rv::Error(RvError::SessionReadOnly),
-            CKR_SESSION_EXISTS => Rv::Error(RvError::SessionExists),
-            CKR_SESSION_READ_ONLY_EXISTS => Rv::Error(RvError::SessionReadOnlyExists),
-            CKR_SESSION_READ_WRITE_SO_EXISTS => Rv::Error(RvError::SessionReadWriteSoExists),
-            CKR_SIGNATURE_INVALID => Rv::Error(RvError::SignatureInvalid),
-            CKR_SIGNATURE_LEN_RANGE => Rv::Error(RvError::SignatureLenRange),
-            CKR_TEMPLATE_INCOMPLETE => Rv::Error(RvError::TemplateIncomplete),
-            CKR_TEMPLATE_INCONSISTENT => Rv::Error(RvError::TemplateInconsistent),
-            CKR_TOKEN_NOT_PRESENT => Rv::Error(RvError::TokenNotPresent),
-            CKR_TOKEN_NOT_RECOGNIZED => Rv::Error(RvError::TokenNotRecognized),
-            CKR_TOKEN_WRITE_PROTECTED => Rv::Error(RvError::TokenWriteProtected),
-            CKR_UNWRAPPING_KEY_HANDLE_INVALID => Rv::Error(RvError::UnwrappingKeyHandleInvalid),
-            CKR_UNWRAPPING_KEY_SIZE_RANGE => Rv::Error(RvError::UnwrappingKeySizeRange),
-            CKR_UNWRAPPING_KEY_TYPE_INCONSISTENT => {
-                Rv::Error(RvError::UnwrappingKeyTypeInconsistent)
+/// One row per standard return value, `RvError` variant => `CKR_*` constant: `From<CK_RV> for Rv`,
+/// its inverse and `RvError::name` are all generated from it, so they cannot disagree.
+macro_rules! rv_errors {
+    ($($variant:ident => $ckr:ident,)*) => {
+        impl From<CK_RV> for Rv {
+            fn from(ck_rv: CK_RV) -> Self {
+                match ck_rv {
+                    CKR_OK => Rv::Ok,
+                    $($ckr => Rv::Error(RvError::$variant),)*
+                    CKR_VENDOR_DEFINED..=CK_ULONG::MAX => Rv::Error(RvError::VendorDefined(ck_rv)),
+                    other => {
+                        error!(
+                            "Can not find a corresponding error for {other}, converting to UnknownErrorCode."
+                        );
+                        Rv::Error(RvError::UnknownErrorCode(other))
+                    }
+                }
             }
-            CKR_USER_ALREADY_LOGGED_IN => Rv::Error(RvError::UserAlreadyLoggedIn),
-            CKR_USER_NOT_LOGGED_IN => Rv::Error(RvError::UserNotLoggedIn),
-            CKR_USER_PIN_NOT_INITIALIZED => Rv::Error(RvError::UserPinNotInitialized),
-            CKR_USER_TYPE_INVALID => Rv::Error(RvError::UserTypeInvalid),
-            CKR_USER_ANOTHER_ALREADY_LOGGED_IN => Rv::Error(RvError::UserAnotherAlreadyLoggedIn),
-            CKR_USER_TOO_MANY_TYPES => Rv::Error(RvError::UserTooManyTypes),
-            CKR_WRAPPED_KEY_INVALID => Rv::Error(RvError::WrappedKeyInvalid),
-            CKR_WRAPPED_KEY_LEN_RANGE => Rv::Error(RvError::WrappedKeyLenRange),
-            CKR_WRAPPING_KEY_HANDLE_INVALID => Rv::Error(RvError::WrappingKeyHandleInvalid),
-            CKR_WRAPPING_KEY_SIZE_RANGE => Rv::Error(RvError::WrappingKeySizeRange),
-            CKR_WRAPPING_KEY_TYPE_INCONSISTENT => Rv::Error(RvError::WrappingKeyTypeInconsistent),
-            CKR_RANDOM_SEED_NOT_SUPPORTED => Rv::Error(RvError::RandomSeedNotSupported),
-            CKR_RANDOM_NO_RNG => Rv::Error(RvError::RandomNoRng),
-            CKR_DOMAIN_PARAMS_INVALID => Rv::Error(RvError::DomainParamsInvalid),
-            CKR_BUFFER_TOO_SMALL => Rv::Error(RvError::BufferTooSmall),
-            CKR_SAVED_STATE_INVALID => Rv::Error(RvError::SavedStateInvalid),
-            CKR_INFORMATION_SENSITIVE => Rv::Error(RvError::InformationSensitive),
-            CKR_STATE_UNSAVEABLE => Rv::Error(RvError::StateUnsaveable),
-            CKR_CRYPTOKI_NOT_INITIALIZED => Rv::Error(RvError::CryptokiNotInitialized),
-            CKR_CRYPTOKI_ALREADY_INITIALIZED => Rv::Error(RvError::CryptokiAlreadyInitialized),
-            CKR_MUTEX_BAD => Rv::Error(RvError::MutexBad),
-            CKR_MUTEX_NOT_LOCKED => Rv::Error(RvError::MutexNotLocked),
-            CKR_NEW_PIN_MODE => Rv::Error(RvError::NewPinMode),
-            CKR_NEXT_OTP => Rv::Error(RvError::NextOtp),
-            CKR_EXCEEDED_MAX_ITERATIONS => Rv::Error(RvError::ExceededMaxIterations),
-            CKR_FIPS_SELF_TEST_FAILED => Rv::Error(RvError::FipsSelfTestFailed),
-            CKR_LIBRARY_LOAD_FAILED => Rv::Error(RvError::LibraryLoadFailed),
-            CKR_PIN_TOO_WEAK => Rv::Error(RvError::PinTooWeak),
-            CKR_PUBLIC_KEY_INVALID => Rv::Error(RvError::PublicKeyInvalid),
-            CKR_FUNCTION_REJECTED => Rv::Error(RvError::FunctionRejected),
-            // Section 3.6 of v3.1: "Return values CKR_VENDOR_DEFINED and above are permanently reserved for token vendors."
-            CKR_VENDOR_DEFINED..=CK_ULONG::MAX => Rv::Error(RvError::VendorDefined(ck_rv)),
-            other => {
-                error!(
-                    "Can not find a corresponding error for {other}, converting to UnknownErrorCode."
-                );
-                Rv::Error(RvError::UnknownErrorCode(other))
+        }
+
+        impl From<RvError> for CK_RV {
+            /// The return value an error stands for: the inverse of `From<CK_RV> for Rv`.
+            fn from(rv_error: RvError) -> Self {
+                match rv_error {
+                    $(RvError::$variant => $ckr,)*
+                    RvError::VendorDefined(ck_rv) | RvError::UnknownErrorCode(ck_rv) => ck_rv,
+                }
             }
+        }
+
+        impl RvError {
+            /// The name of the `CKR_*` constant this error stands for, as the specification spells
+            /// it; `None` for a vendor-defined or unknown return value.
+            pub fn name(&self) -> Option<&'static str> {
+                match self {
+                    $(RvError::$variant => Some(stringify!($ckr)),)*
+                    RvError::VendorDefined(_) | RvError::UnknownErrorCode(_) => None,
+                }
+            }
+        }
+    };
+}
+
+rv_errors! {
+    Cancel => CKR_CANCEL,
+    HostMemory => CKR_HOST_MEMORY,
+    SlotIdInvalid => CKR_SLOT_ID_INVALID,
+    GeneralError => CKR_GENERAL_ERROR,
+    FunctionFailed => CKR_FUNCTION_FAILED,
+    ArgumentsBad => CKR_ARGUMENTS_BAD,
+    NoEvent => CKR_NO_EVENT,
+    NeedToCreateThreads => CKR_NEED_TO_CREATE_THREADS,
+    CantLock => CKR_CANT_LOCK,
+    AttributeReadOnly => CKR_ATTRIBUTE_READ_ONLY,
+    AttributeSensitive => CKR_ATTRIBUTE_SENSITIVE,
+    AttributeTypeInvalid => CKR_ATTRIBUTE_TYPE_INVALID,
+    AttributeValueInvalid => CKR_ATTRIBUTE_VALUE_INVALID,
+    ActionProhibited => CKR_ACTION_PROHIBITED,
+    DataInvalid => CKR_DATA_INVALID,
+    DataLenRange => CKR_DATA_LEN_RANGE,
+    DeviceError => CKR_DEVICE_ERROR,
+    DeviceMemory => CKR_DEVICE_MEMORY,
+    DeviceRemoved => CKR_DEVICE_REMOVED,
+    EncryptedDataInvalid => CKR_ENCRYPTED_DATA_INVALID,
+    EncryptedDataLenRange => CKR_ENCRYPTED_DATA_LEN_RANGE,
+    FunctionCanceled => CKR_FUNCTION_CANCELED,
+    FunctionNotParallel => CKR_FUNCTION_NOT_PARALLEL,
+    FunctionNotSupported => CKR_FUNCTION_NOT_SUPPORTED,
+    CurveNotSupported => CKR_CURVE_NOT_SUPPORTED,
+    KeyHandleInvalid => CKR_KEY_HANDLE_INVALID,
+    KeySizeRange => CKR_KEY_SIZE_RANGE,
+    KeyTypeInconsistent => CKR_KEY_TYPE_INCONSISTENT,
+    KeyNotNeeded => CKR_KEY_NOT_NEEDED,
+    KeyChanged => CKR_KEY_CHANGED,
+    KeyNeeded => CKR_KEY_NEEDED,
+    KeyIndigestible => CKR_KEY_INDIGESTIBLE,
+    KeyFunctionNotPermitted => CKR_KEY_FUNCTION_NOT_PERMITTED,
+    KeyNotWrappable => CKR_KEY_NOT_WRAPPABLE,
+    KeyUnextractable => CKR_KEY_UNEXTRACTABLE,
+    MechanismInvalid => CKR_MECHANISM_INVALID,
+    MechanismParamInvalid => CKR_MECHANISM_PARAM_INVALID,
+    ObjectHandleInvalid => CKR_OBJECT_HANDLE_INVALID,
+    OperationActive => CKR_OPERATION_ACTIVE,
+    OperationNotInitialized => CKR_OPERATION_NOT_INITIALIZED,
+    PinIncorrect => CKR_PIN_INCORRECT,
+    PinInvalid => CKR_PIN_INVALID,
+    PinLenRange => CKR_PIN_LEN_RANGE,
+    PinExpired => CKR_PIN_EXPIRED,
+    PinLocked => CKR_PIN_LOCKED,
+    SessionClosed => CKR_SESSION_CLOSED,
+    SessionCount => CKR_SESSION_COUNT,
+    SessionHandleInvalid => CKR_SESSION_HANDLE_INVALID,
+    SessionParallelNotSupported => CKR_SESSION_PARALLEL_NOT_SUPPORTED,
+    SessionReadOnly => CKR_SESSION_READ_ONLY,
+    SessionExists => CKR_SESSION_EXISTS,
+    SessionReadOnlyExists => CKR_SESSION_READ_ONLY_EXISTS,
+    SessionReadWriteSoExists => CKR_SESSION_READ_WRITE_SO_EXISTS,
+    SignatureInvalid => CKR_SIGNATURE_INVALID,
+    SignatureLenRange => CKR_SIGNATURE_LEN_RANGE,
+    TemplateIncomplete => CKR_TEMPLATE_INCOMPLETE,
+    TemplateInconsistent => CKR_TEMPLATE_INCONSISTENT,
+    TokenNotPresent => CKR_TOKEN_NOT_PRESENT,
+    TokenNotRecognized => CKR_TOKEN_NOT_RECOGNIZED,
+    TokenWriteProtected => CKR_TOKEN_WRITE_PROTECTED,
+    UnwrappingKeyHandleInvalid => CKR_UNWRAPPING_KEY_HANDLE_INVALID,
+    UnwrappingKeySizeRange => CKR_UNWRAPPING_KEY_SIZE_RANGE,
+    UnwrappingKeyTypeInconsistent => CKR_UNWRAPPING_KEY_TYPE_INCONSISTENT,
+    UserAlreadyLoggedIn => CKR_USER_ALREADY_LOGGED_IN,
+    UserNotLoggedIn => CKR_USER_NOT_LOGGED_IN,
+    UserPinNotInitialized => CKR_USER_PIN_NOT_INITIALIZED,
+    UserTypeInvalid => CKR_USER_TYPE_INVALID,
+    UserAnotherAlreadyLoggedIn => CKR_USER_ANOTHER_ALREADY_LOGGED_IN,
+    UserTooManyTypes => CKR_USER_TOO_MANY_TYPES,
+    WrappedKeyInvalid => CKR_WRAPPED_KEY_INVALID,
+    WrappedKeyLenRange => CKR_WRAPPED_KEY_LEN_RANGE,
+    WrappingKeyHandleInvalid => CKR_WRAPPING_KEY_HANDLE_INVALID,
+    WrappingKeySizeRange => CKR_WRAPPING_KEY_SIZE_RANGE,
+    WrappingKeyTypeInconsistent => CKR_WRAPPING_KEY_TYPE_INCONSISTENT,
+    RandomSeedNotSupported => CKR_RANDOM_SEED_NOT_SUPPORTED,
+    RandomNoRng => CKR_RANDOM_NO_RNG,
+    DomainParamsInvalid => CKR_DOMAIN_PARAMS_INVALID,
+    BufferTooSmall => CKR_BUFFER_TOO_SMALL,
+    SavedStateInvalid => CKR_SAVED_STATE_INVALID,
+    InformationSensitive => CKR_INFORMATION_SENSITIVE,
+    StateUnsaveable => CKR_STATE_UNSAVEABLE,
+    CryptokiNotInitialized => CKR_CRYPTOKI_NOT_INITIALIZED,
+    CryptokiAlreadyInitialized => CKR_CRYPTOKI_ALREADY_INITIALIZED,
+    MutexBad => CKR_MUTEX_BAD,
+    MutexNotLocked => CKR_MUTEX_NOT_LOCKED,
+    NewPinMode => CKR_NEW_PIN_MODE,
+    NextOtp => CKR_NEXT_OTP,
+    ExceededMaxIterations => CKR_EXCEEDED_MAX_ITERATIONS,
+    FipsSelfTestFailed => CKR_FIPS_SELF_TEST_FAILED,
+    LibraryLoadFailed => CKR_LIBRARY_LOAD_FAILED,
+    PinTooWeak => CKR_PIN_TOO_WEAK,
+    PublicKeyInvalid => CKR_PUBLIC_KEY_INVALID,
+    FunctionRejected => CKR_FUNCTION_REJECTED,
+    AeadDecryptFailed => CKR_AEAD_DECRYPT_FAILED,
+    TokenResourceExceeded => CKR_TOKEN_RESOURCE_EXCEEDED,
+    OperationCancelFailed => CKR_OPERATION_CANCEL_FAILED,
+    KeyExhausted => CKR_KEY_EXHAUSTED,
+    Pending => CKR_PENDING,
+    SessionAsyncNotSupported => CKR_SESSION_ASYNC_NOT_SUPPORTED,
+    SeedRandomRequired => CKR_SEED_RANDOM_REQUIRED,
+    OperationNotValidated => CKR_OPERATION_NOT_VALIDATED,
+    TokenNotInitialized => CKR_TOKEN_NOT_INITIALIZED,
+    ParameterSetNotSupported => CKR_PARAMETER_SET_NOT_SUPPORTED,
+}
+
+impl From<Rv> for CK_RV {
+    fn from(rv: Rv) -> Self {
+        match rv {
+            Rv::Ok => CKR_OK,
+            Rv::Error(rv_error) => rv_error.into(),
         }
     }
 }
@@ -165,5 +212,22 @@ mod test {
         let actual = Rv::from(code);
         let expected = Rv::Error(RvError::UnknownErrorCode(code));
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn round_trip() {
+        for code in (0..0x1000).chain([CKR_VENDOR_DEFINED, CKR_VENDOR_DEFINED + 42]) {
+            let rv = Rv::from(code);
+            assert_eq!(CK_RV::from(rv), code);
+            if let Rv::Error(rv_error) = rv {
+                let named = !matches!(
+                    rv_error,
+                    RvError::VendorDefined(_) | RvError::UnknownErrorCode(_)
+                );
+                assert_eq!(rv_error.name().is_some(), named, "{code:#x}");
+            }
+        }
+        assert_eq!(RvError::GeneralError.name(), Some("CKR_GENERAL_ERROR"));
+        assert_eq!(CK_RV::from(RvError::GeneralError), CKR_GENERAL_ERROR);
     }
 }
